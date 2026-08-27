@@ -58,8 +58,12 @@ function submit() {
               {{ mode === "login" ? "WELCOME BACK" : "JOIN THE NETWORK" }}
             </p>
             <h1>
-              {{ mode === 'login' ? 'Your safety.<br /><em>Always on.</em>' :
-              'Join 12,400+<br /><em>protected</em><br />women.' }}
+              <template v-if="mode === 'login'">
+                Your safety.<br /><em>Always on.</em>
+              </template>
+              <template v-else>
+                Join 12,400+<br /><em>protected</em><br />women.
+              </template>
             </h1>
             <p>
               {{
@@ -68,37 +72,6 @@ function submit() {
                   : "Every account includes free access to live GPS tracking, emergency alerts and more."
               }}
             </p>
-          </div>
-          <div class="auth-benefits">
-            <div>
-              <i class="bi bi-geo-alt-fill"></i
-              ><span
-                ><strong>Live Location Sharing</strong
-                ><small
-                  >Share your real-time GPS with trusted contacts in one
-                  tap.</small
-                ></span
-              >
-            </div>
-            <div>
-              <i class="bi bi-bell-fill"></i
-              ><span
-                ><strong>Instant Alert System</strong
-                ><small
-                  >Emergency alerts reach your safety circle quickly.</small
-                ></span
-              >
-            </div>
-            <div>
-              <i class="bi bi-shield-fill"></i
-              ><span
-                ><strong>Practical Safety Tools</strong
-                ><small>Tools designed for real-world protection.</small></span
-              >
-            </div>
-          </div>
-          <div class="auth-trust">
-            <i class="bi bi-lock-fill"></i> Your information stays private
           </div>
         </div>
         <form class="auth-form" @submit.prevent="submit">

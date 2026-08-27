@@ -2500,21 +2500,25 @@ p {
 }
 .auth-shell .auth-page {
   min-height: 100vh;
-  padding: 64px 32px 80px;
+  padding: 56px 32px 72px;
   background:
     radial-gradient(circle at 10% 15%, #f6dce3 0, transparent 24%),
     radial-gradient(circle at 92% 82%, #eaddec 0, transparent 28%), var(--blush);
+  display: grid;
+  place-items: center;
 }
 .auth-shell .auth-card {
-  max-width: 1040px;
-  min-height: 650px;
+  width: min(1120px, 100%);
+  min-height: 0;
   border: 1px solid #eadfe3;
   border-radius: 8px;
   box-shadow: 0 25px 60px #3515361c;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(420px, 1.05fr);
 }
 .auth-shell .auth-intro {
-  min-height: 650px;
-  padding: 58px 54px;
+  min-height: 620px;
+  padding: 58px clamp(38px, 5vw, 72px);
   background: linear-gradient(145deg, var(--plum), #552856);
   color: #fff;
 }
@@ -2525,8 +2529,8 @@ p {
   color: #fff;
 }
 .auth-shell .auth-form {
-  min-height: 650px;
-  padding: 58px 62px;
+  min-height: 620px;
+  padding: 58px clamp(38px, 5vw, 72px);
   background: #fff;
   color: var(--ink);
 }
@@ -2536,9 +2540,16 @@ p {
 .auth-shell .auth-form label {
   color: var(--plum);
 }
+.auth-shell .auth-form > label {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
 .auth-shell .auth-form input:not([type="checkbox"]) {
   background: #fdfbfc;
   color: var(--ink);
+  margin-top: 0;
 }
 .auth-shell .auth-subtitle {
   color: var(--muted);
@@ -2590,12 +2601,14 @@ p {
 @media (max-width: 700px) {
   .auth-shell .auth-page {
     padding: 24px 16px 50px;
+    display: block;
   }
   .auth-shell .auth-card {
     min-height: 0;
+    display: block;
   }
   .auth-shell .auth-intro {
-    min-height: 385px;
+    min-height: 0;
     padding: 36px 28px;
   }
   .auth-shell .auth-form {
