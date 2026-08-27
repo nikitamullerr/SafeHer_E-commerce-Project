@@ -5,6 +5,7 @@ defineProps({
   menuOpen: Boolean,
   language: String,
   cartCount: Number,
+  darkMode: Boolean,
 });
 const emit = defineEmits([
   "navigate",
@@ -12,6 +13,7 @@ const emit = defineEmits([
   "update:language",
   "toggle-cart",
   "logout",
+  "toggle-dark-mode",
 ]);
 </script>
 <template>
@@ -45,12 +47,26 @@ const emit = defineEmits([
             @click="emit('navigate', 'index')"
           >
             {{ t("home") }}</button
-          ><button @click="emit('navigate', 'services')">
+          ><button
+            :class="{ active: activeView === 'services' }"
+            @click="emit('navigate', 'services')"
+          >
             {{ t("guide") }}</button
-          ><button @click="emit('navigate', 'products')">
+          ><button
+            :class="{ active: activeView === 'products' }"
+            @click="emit('navigate', 'products')"
+          >
             {{ t("store") }}</button
-          ><button @click="emit('navigate', 'safetyhub')">
+          ><button
+            :class="{ active: activeView === 'safetyhub' }"
+            @click="emit('navigate', 'safetyhub')"
+          >
             {{ t("hub") }}
+          </button><button
+            :class="{ active: activeView === 'packages' || activeView === 'videos' }"
+            @click="emit('navigate', 'packages')"
+          >
+            Premium
           </button>
         </div>
         <div class="nav-actions">
@@ -64,6 +80,13 @@ const emit = defineEmits([
             <option>Afrikaans</option>
             <option>isiXhosa</option></select
           ><button
+            class="theme-toggle"
+            :aria-label="darkMode ? 'Use light mode' : 'Use dark mode'"
+            :title="darkMode ? 'Use light mode' : 'Use dark mode'"
+            @click="emit('toggle-dark-mode')"
+          >
+            <i :class="darkMode ? 'bi bi-sun-fill' : 'bi bi-moon-fill'"></i>
+          </button><button
             class="icon-button"
             aria-label="Log out"
             title="Log out"

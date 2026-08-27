@@ -6,6 +6,8 @@ import CartDrawer from "./components/CartDrawer.vue";
 import HomePage from "./pages/HomePage.vue";
 import ProductsPage from "./pages/ProductsPage.vue";
 import SafetyHubPage from "./pages/SafetyHubPage.vue";
+import PremiumVideosPage from "./pages/PremiumVideosPage.vue";
+import PremiumPackagesPage from "./pages/PremiumPackagesPage.vue";
 import AuthPage from "./pages/AuthPage.vue";
 import InfoPage from "./pages/InfoPage.vue";
 import SiteFooter from "./components/SiteFooter.vue";
@@ -14,6 +16,7 @@ import { language } from "./languageConfig.js";
 const isAuthenticated = ref(
   localStorage.getItem("safeher-authenticated") === "true",
 );
+const darkMode = ref(localStorage.getItem("safeher-dark-mode") === "true");
 
 // App-level state is shared with the page and component views below.
 const activeView = ref(isAuthenticated.value ? "index" : "login");
@@ -71,6 +74,10 @@ function navigate(view) {
   menuOpen.value = false;
   cartOpen.value = false;
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function toggleDarkMode() {
+  darkMode.value = !darkMode.value;
+  localStorage.setItem("safeher-dark-mode", String(darkMode.value));
 }
 function addToCart(product) {
   const existing = cart.value.find((item) => item.id === product.id);
@@ -189,14 +196,62 @@ function shareRoute() {
   window.location.href = `sms:${contacts.value.map((contact) => contact.phone).join(",")}?body=${encodeURIComponent(body)}`;
 }
 function checkout() {
+  if (!cart.value.length) return;
+  const orderTotal = cartTotal.value;
   Swal.fire({
-    title: "Order confirmed",
-    text: `Your R${cartTotal.value.toLocaleString()} order is ready for confirmation.`,
-    icon: "success",
-    confirmButtonColor: "#351536",
+    title: "Secure payment",
+    html: `
+      <p style="margin:0 0 14px;color:#756d76;font-size:12px">Total due: <strong style="color:#351536">R${orderTotal.toLocaleString()}</strong></p>
+      <select id="payment-method" class="swal2-input" style="width:90%;font-size:13px">
+        <option value="card">Credit or debit card</option>
+        <option value="mobile">Mobile money</option>
+      </select>
+      <input id="payment-name" class="swal2-input" placeholder="Cardholder name" autocomplete="cc-name">
+      <input id="payment-number" class="swal2-input" placeholder="Card number" inputmode="numeric" autocomplete="cc-number" maxlength="19">
+      <div style="display:flex;gap:8px;justify-content:center">
+        <input id="payment-expiry" class="swal2-input" style="width:42%" placeholder="MM/YY" inputmode="numeric" autocomplete="cc-exp">
+        <input id="payment-cvv" class="swal2-input" style="width:42%" placeholder="CVV" inputmode="numeric" autocomplete="cc-csc" maxlength="4">
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: `Pay R${orderTotal.toLocaleString()}`,
+    confirmButtonColor: "#d92d36",
+    cancelButtonText: "Back to bag",
+    focusConfirm: false,
+    preConfirm: () => {
+      const name = document.getElementById("payment-name").value.trim();
+      const number = document
+        .getElementById("payment-number")
+        .value.replace(/\s/g, "");
+      const expiry = document.getElementById("payment-expiry").value.trim();
+      const cvv = document.getElementById("payment-cvv").value.trim();
+      if (!name || number.length < 12 || !/^\d{2}\/\d{2}$/.test(expiry) || !/^\d{3,4}$/.test(cvv)) {
+        Swal.showValidationMessage("Enter valid payment details to continue");
+        return false;
+      }
+      return { name, method: document.getElementById("payment-method").value };
+    },
+  }).then((result) => {
+    if (!result.isConfirmed) return;
+    const orders = JSON.parse(localStorage.getItem("safeher-orders") || "[]");
+    orders.push({
+      id: Date.now(),
+      email: localStorage.getItem("safeher-client-email"),
+      total: orderTotal,
+      items: cart.value.map(({ id, name, quantity }) => ({ id, name, quantity })),
+      paymentMethod: result.value.method,
+      createdAt: new Date().toISOString(),
+    });
+    localStorage.setItem("safeher-orders", JSON.stringify(orders));
+    cart.value = [];
+    cartOpen.value = false;
+    Swal.fire({
+      title: "Payment successful",
+      text: `Your R${orderTotal.toLocaleString()} order is confirmed.`,
+      icon: "success",
+      confirmButtonColor: "#351536",
+    });
   });
-  cart.value = [];
-  cartOpen.value = false;
 }
 function authenticated(email) {
   isAuthenticated.value = true;
@@ -221,7 +276,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="app-shell">
+  <div class="app-shell" :class="{ 'dark-mode': darkMode }">
     <AuthPage
       v-if="!isAuthenticated"
       :mode="activeView === 'registration' ? 'registration' : 'login'"
@@ -234,11 +289,13 @@ onMounted(() => {
         :menu-open="menuOpen"
         :language="language"
         :cart-count="cartCount"
+        :dark-mode="darkMode"
         @navigate="navigate"
         @toggle-menu="menuOpen = !menuOpen"
         @update:language="language = $event"
         @toggle-cart="cartOpen = !cartOpen"
         @logout="logout"
+        @toggle-dark-mode="toggleDarkMode"
       />
       <CartDrawer
         :open="cartOpen"
@@ -275,6 +332,8 @@ onMounted(() => {
         @track="toggleTracking"
         @sos="showSos"
       />
+      <PremiumVideosPage v-else-if="activeView === 'videos'" @navigate="navigate" />
+      <PremiumPackagesPage v-else-if="activeView === 'packages'" />
       <InfoPage v-else :view="activeView" @sos="showSos" />
       <SiteFooter @navigate="navigate" />
     </template>

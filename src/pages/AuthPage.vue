@@ -9,6 +9,19 @@ const password = ref("");
 const confirm = ref("");
 const showPassword = ref(false);
 
+function readAccounts() {
+  try {
+    const accounts = JSON.parse(localStorage.getItem("safeher-accounts") || "[]");
+    return Array.isArray(accounts) ? accounts : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizedEmail(value) {
+  return value.trim().toLowerCase();
+}
+
 // Login and registration share one form so the visual experience stays consistent.
 function submit() {
   if (
@@ -27,7 +40,37 @@ function submit() {
     });
     return;
   }
-  emit("authenticated", email.value);
+  const accountEmail = normalizedEmail(email.value);
+  const accounts = readAccounts();
+  const account = accounts.find((item) => item.email === accountEmail);
+
+  if (props.mode === "registration") {
+    if (account) {
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        timer: 2500,
+        showConfirmButton: false,
+        icon: "error",
+        title: "An account with this email already exists",
+      });
+      return;
+    }
+    accounts.push({ name: name.value.trim(), email: accountEmail, password: password.value });
+    localStorage.setItem("safeher-accounts", JSON.stringify(accounts));
+  } else if (!account || account.password !== password.value) {
+    Swal.fire({
+      toast: true,
+      position: "top-end",
+      timer: 2500,
+      showConfirmButton: false,
+      icon: "error",
+      title: "Incorrect email or password",
+    });
+    return;
+  }
+
+  emit("authenticated", accountEmail);
   Swal.fire({
     icon: "success",
     title:
@@ -36,6 +79,56 @@ function submit() {
         : "Your SafeHer account is ready",
     confirmButtonColor: "#351536",
   }).then(() => emit("navigate", "index"));
+}
+
+async function forgotPassword() {
+  const emailResult = await Swal.fire({
+    title: "Reset your password",
+    input: "email",
+    inputLabel: "Enter the email on your SafeHer account",
+    inputPlaceholder: "you@example.com",
+    showCancelButton: true,
+    confirmButtonText: "Find account",
+    confirmButtonColor: "#351536",
+    inputValidator: (value) => (!value ? "Please enter your email address" : undefined),
+  });
+  if (!emailResult.isConfirmed) return;
+
+  const accountEmail = normalizedEmail(emailResult.value);
+  const accounts = readAccounts();
+  const account = accounts.find((item) => item.email === accountEmail);
+  if (!account) {
+    Swal.fire({
+      icon: "error",
+      title: "Account not found",
+      text: "Check the email address or create a new account.",
+      confirmButtonColor: "#351536",
+    });
+    return;
+  }
+
+  const passwordResult = await Swal.fire({
+    title: "Choose a new password",
+    input: "password",
+    inputLabel: "Your new password must be at least 6 characters",
+    inputPlaceholder: "At least 6 characters",
+    inputAttributes: { minlength: 6, autocomplete: "new-password" },
+    showCancelButton: true,
+    confirmButtonText: "Update password",
+    confirmButtonColor: "#351536",
+    inputValidator: (value) =>
+      value.length < 6 ? "Use at least 6 characters" : undefined,
+  });
+  if (!passwordResult.isConfirmed) return;
+
+  account.password = passwordResult.value;
+  localStorage.setItem("safeher-accounts", JSON.stringify(accounts));
+  Swal.fire({
+    icon: "success",
+    title: "Password updated",
+    text: "You can now sign in with your new password.",
+    confirmButtonColor: "#351536",
+  });
 }
 </script>
 <template>
@@ -133,16 +226,7 @@ function submit() {
               v-if="mode === 'login'"
               type="button"
               class="form-link"
-              @click="
-                Swal.fire({
-                  toast: true,
-                  position: 'top-end',
-                  timer: 2000,
-                  showConfirmButton: false,
-                  icon: 'info',
-                  title: 'Password reset requested',
-                })
-              "
+              @click="forgotPassword"
             >
               Forgot password?
             </button>

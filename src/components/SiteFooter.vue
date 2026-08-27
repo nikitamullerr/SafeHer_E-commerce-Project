@@ -18,11 +18,17 @@ const emit = defineEmits(["navigate"]);
           ><button @click="emit('navigate', 'safetyhub')">Safety hub</button>
         </div>
         <div>
-          <strong>Support</strong
-          ><button @click="emit('navigate', 'login')">Log in</button
-          ><button @click="emit('navigate', 'registration')">
-            Create account
+          <strong>Premium</strong
+          ><button class="footer-premium-link" @click="emit('navigate', 'packages')">
+            <i class="bi bi-stars"></i> Premium packages
+          </button><button class="footer-premium-link" @click="emit('navigate', 'videos')">
+            <i class="bi bi-lock-fill"></i> Safety videos
           </button>
+        </div>
+        <div class="footer-hotlines">
+          <strong>Emergency support</strong>
+          <a href="tel:0800428428"><i class="bi bi-telephone-fill"></i> GBV Command Centre <b>0800 428 428</b></a>
+          <a href="tel:10111"><i class="bi bi-shield-fill"></i> Police emergency <b>10111</b></a>
         </div>
       </div>
       <div class="footer-bottom">
