@@ -1087,15 +1087,41 @@ p {
   position: absolute;
   border: 1px solid #dfcbd5;
   border-radius: 50%;
+  animation: orbit-float 5s ease-in-out infinite alternate;
 }
 .orbit-one {
   width: 500px;
   height: 500px;
+  animation: orbit-float 5s ease-in-out infinite, orbit-glow 3s ease-in-out infinite;
 }
 .orbit-two {
   width: 350px;
   height: 350px;
   border-color: #eedee4;
+  animation: orbit-float 4s ease-in-out infinite alternate-reverse, orbit-glow 2.8s ease-in-out infinite reverse;
+}
+@keyframes orbit-float {
+  0% {
+    transform: scale(0.97) rotate(0deg);
+    opacity: 0.72;
+  }
+  50% {
+    transform: scale(1.03) rotate(5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.06) rotate(-5deg);
+    opacity: 0.82;
+  }
+}
+@keyframes orbit-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(217, 45, 54, 0);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(217, 45, 54, 0.12);
+  }
 }
 .phone {
   width: 252px;
@@ -3492,6 +3518,83 @@ p {
   padding: 8px;
   font-size: 9px;
 }
+.panic-panel {
+  display: grid;
+  gap: 14px;
+  margin-top: 15px;
+  padding: 18px 15px;
+}
+.panic-panel h2 {
+  font: 700 15px "Syne";
+  color: var(--plum);
+  margin: 0 0 5px;
+}
+.panic-panel p {
+  font-size: 9px;
+  color: var(--muted);
+  margin: 0;
+}
+.safety-plan-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.safety-plan-row button {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--plum);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.safety-plan-row button.active {
+  background: var(--plum);
+  color: #fff;
+  border-color: var(--plum);
+}
+.panic-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff7f8;
+  border: 1px solid #f4d8df;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.panic-box strong {
+  display: block;
+  font-size: 12px;
+  color: var(--plum);
+}
+.panic-box small {
+  color: var(--muted);
+  display: block;
+  margin-top: 3px;
+}
+.panic-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.btn-sos {
+  background: var(--red);
+  border: 0;
+  color: white;
+  padding: 9px 12px;
+  font-size: 10px;
+  border-radius: 999px;
+}
+.btn-outline-plum {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--plum);
+  padding: 9px 12px;
+  font-size: 10px;
+  border-radius: 999px;
+}
 .checkin-panel {
   display: flex;
   align-items: center;
@@ -3527,10 +3630,20 @@ p {
 .dark-mode .contact-form input,
 .dark-mode .contact-form select,
 .dark-mode .hub-contact-form input,
-.dark-mode .hub-contact-form select {
+.dark-mode .hub-contact-form select,
+.dark-mode .safety-plan-row button,
+.dark-mode .panic-box,
+.dark-mode .btn-outline-plum {
   background: #0e0a0e;
   color: var(--ink);
   border-color: var(--line);
+}
+.dark-mode .panic-box small {
+  color: #d2c8d0;
+}
+.dark-mode .safety-plan-row button.active {
+  background: var(--red);
+  border-color: var(--red);
 }
 .dark-mode .footer-links,
 .dark-mode .footer-brand,
@@ -3541,6 +3654,10 @@ p {
   font-size: 9px;
   color: var(--muted);
   margin: 0;
+}
+.panic-panel,
+.checkin-panel {
+  background: #fff;
 }
 .checkin-actions {
   display: flex;
@@ -3777,6 +3894,29 @@ p {
 .hub-contact-form .btn {
   font-size: 12px;
   padding: 13px;
+}
+.panic-panel {
+  padding: 25px 20px;
+}
+.panic-panel h2 {
+  font-size: 19px;
+}
+.panic-panel p {
+  font-size: 12px;
+}
+.safety-plan-row button {
+  font-size: 12px;
+  padding: 10px 14px;
+}
+.panic-box {
+  padding: 16px 18px;
+}
+.panic-box strong {
+  font-size: 14px;
+}
+.panic-actions .btn {
+  font-size: 11px;
+  padding: 10px 14px;
 }
 .checkin-panel {
   padding: 25px 20px;

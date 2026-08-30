@@ -104,7 +104,7 @@ const emit = defineEmits(["sos", "track", "navigate"]);
           ></button
         ><button
           class="feature-card card-red"
-          @click="emit('navigate', 'safetyhub')"
+          @click="emit('navigate', 'videos')"
         >
           <i class="bi bi-play-circle-fill"></i
           ><span

@@ -63,6 +63,11 @@ const emit = defineEmits([
           >
             {{ t("hub") }}
           </button><button
+            :class="{ active: activeView === 'orders' }"
+            @click="emit('navigate', 'orders')"
+          >
+            Orders
+          </button><button
             :class="{ active: activeView === 'packages' || activeView === 'videos' }"
             @click="emit('navigate', 'packages')"
           >

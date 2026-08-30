@@ -1,7 +1,24 @@
 <script setup>
+import { computed, ref } from "vue";
 import { t } from "../languageConfig.js";
-defineProps({ products: Array });
+
+const props = defineProps({ products: Array });
 const emit = defineEmits(["add"]);
+
+const filters = [
+  { value: "all", label: t("allAccessories") || "All accessories" },
+  { value: "personal-safety", label: "Personal safety" },
+  { value: "home", label: "For your home" },
+  { value: "travel", label: "Travel-ready" },
+];
+
+const selectedFilter = ref("all");
+
+const filteredProducts = computed(() => {
+  if (!props.products) return [];
+  if (selectedFilter.value === "all") return props.products;
+  return props.products.filter((product) => product.category === selectedFilter.value);
+});
 </script>
 <template>
   <main class="inner-page container-fluid px-4 px-xl-5">
@@ -12,15 +29,19 @@ const emit = defineEmits(["add"]);
     </div>
     <div class="store-layout">
       <div class="product-filter">
-        <span>FILTER PRODUCTS</span
-        ><button class="selected">
-          {{ t("allAccessories") || "All accessories" }}</button
-        ><button>Personal safety</button><button>For your home</button
-        ><button>Travel-ready</button>
+        <span>FILTER PRODUCTS</span>
+        <button
+          v-for="filter in filters"
+          :key="filter.value"
+          :class="{ selected: selectedFilter === filter.value }"
+          @click="selectedFilter = filter.value"
+        >
+          {{ filter.label }}
+        </button>
       </div>
       <div class="product-list">
         <article
-          v-for="product in products"
+          v-for="product in filteredProducts"
           :key="product.id"
           class="product-card"
         >

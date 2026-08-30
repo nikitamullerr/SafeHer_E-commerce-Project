@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import LiveMap from "../components/LiveMap.vue";
 import { t } from "../languageConfig.js";
 
@@ -14,16 +14,27 @@ const emit = defineEmits([
   "share",
   "track",
   "sos",
+  "call-contact",
+  "message-contact",
 ]);
 const checkInMinutes = ref(0);
 const checkInSeconds = ref(0);
+const checkInStatus = ref(localStorage.getItem("safeher-checkin-status") || "Not checked in yet");
+const panicStatus = ref("Ready");
+const panicCountdown = ref(0);
+const selectedPlan = ref(localStorage.getItem("safeher-active-plan") || "Home mode");
+const safetyPlans = ["Home mode", "Travel mode", "Night mode"];
+const orders = ref([]);
+const orderStages = ["Confirmed", "Packed", "Out for delivery", "Delivered"];
 let timer;
+let panicTimer;
 
-// Each selected duration resets the active check-in countdown.
 function startTimer(minutes) {
   clearInterval(timer);
   checkInMinutes.value = minutes;
   checkInSeconds.value = 0;
+  checkInStatus.value = `Timer started • ${minutes} minute check-in`;
+  localStorage.setItem("safeher-checkin-status", checkInStatus.value);
   timer = setInterval(() => {
     if (checkInSeconds.value === 0 && checkInMinutes.value === 0)
       return clearInterval(timer);
@@ -33,7 +44,74 @@ function startTimer(minutes) {
     } else checkInSeconds.value -= 1;
   }, 1000);
 }
-onBeforeUnmount(() => clearInterval(timer));
+
+function checkInNow() {
+  checkInStatus.value = "Checked in • safe and active";
+  localStorage.setItem("safeher-checkin-status", checkInStatus.value);
+  clearInterval(timer);
+  checkInMinutes.value = 0;
+  checkInSeconds.value = 0;
+  if (props.contacts.length) {
+    emit("message-contact", props.contacts[0]);
+  }
+}
+
+function setSafetyPlan(plan) {
+  selectedPlan.value = plan;
+  localStorage.setItem("safeher-active-plan", plan);
+  panicStatus.value = `${plan} active`;
+}
+
+function startPanicCountdown() {
+  clearInterval(panicTimer);
+  panicCountdown.value = 5;
+  panicStatus.value = "Panic countdown started";
+
+  panicTimer = setInterval(() => {
+    if (panicCountdown.value <= 1) {
+      clearInterval(panicTimer);
+      panicCountdown.value = 0;
+      panicStatus.value = "SOS triggered";
+      emit("sos");
+      return;
+    }
+    panicCountdown.value -= 1;
+  }, 1000);
+}
+
+function cancelPanicCountdown() {
+  clearInterval(panicTimer);
+  panicCountdown.value = 0;
+  panicStatus.value = "Countdown cancelled";
+}
+
+function loadOrders() {
+  try {
+    orders.value = JSON.parse(localStorage.getItem("safeher-orders") || "[]");
+  } catch {
+    orders.value = [];
+  }
+}
+
+function advanceOrder(orderId) {
+  const targetOrder = orders.value.find((order) => order.id === orderId);
+  if (!targetOrder) return;
+  const currentIndex = orderStages.indexOf(targetOrder.status || "Confirmed");
+  const nextIndex = Math.min(currentIndex + 1, orderStages.length - 1);
+  targetOrder.status = orderStages[nextIndex];
+  localStorage.setItem("safeher-orders", JSON.stringify(orders.value));
+  orders.value = [...orders.value];
+}
+
+const latestOrder = computed(() => orders.value[orders.value.length - 1]);
+
+onMounted(() => {
+  loadOrders();
+});
+onBeforeUnmount(() => {
+  clearInterval(timer);
+  clearInterval(panicTimer);
+});
 </script>
 <template>
   <main class="hub-page container-fluid px-4 px-xl-5">
@@ -116,12 +194,20 @@ onBeforeUnmount(() => clearInterval(timer));
                 >{{ contact.relationship }} · {{ contact.phone }}</small
               ></span
             ><i class="bi bi-circle-fill"></i
-            ><button
-              class="hub-remove"
-              @click="emit('remove-contact', contact.id)"
-            >
-              <i class="bi bi-x"></i>
-            </button>
+            ><div class="hub-contact-actions">
+              <button class="hub-mini-action" @click="emit('call-contact', contact)">
+                <i class="bi bi-telephone"></i>
+              </button>
+              <button class="hub-mini-action" @click="emit('message-contact', contact)">
+                <i class="bi bi-chat-text"></i>
+              </button>
+              <button
+                class="hub-remove"
+                @click="emit('remove-contact', contact.id)"
+              >
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
           </div>
         </div>
         <div v-else class="hub-empty-contacts">
@@ -145,10 +231,40 @@ onBeforeUnmount(() => clearInterval(timer));
         </form>
       </article>
     </section>
+    <section class="hub-panel panic-panel">
+      <div>
+        <h2>Safety plans</h2>
+        <p>Switch your daily protection mode based on your situation.</p>
+      </div>
+      <div class="safety-plan-row">
+        <button
+          v-for="plan in safetyPlans"
+          :key="plan"
+          :class="{ active: selectedPlan === plan }"
+          @click="setSafetyPlan(plan)"
+        >
+          {{ plan }}
+        </button>
+      </div>
+      <div class="panic-box">
+        <div>
+          <strong>{{ panicStatus }}</strong>
+          <small>{{ panicCountdown ? `Triggering in ${panicCountdown}s` : "Ready to trigger SOS" }}</small>
+        </div>
+        <div class="panic-actions">
+          <button class="btn btn-sos" @click="startPanicCountdown">Start countdown</button>
+          <button class="btn btn-outline-plum" @click="cancelPanicCountdown">Cancel</button>
+        </div>
+      </div>
+    </section>
+
     <section class="hub-panel checkin-panel">
       <div>
         <h2>{{ t("checkinTimer") }}</h2>
         <p>If you do not check in, your contacts are automatically alerted.</p>
+      </div>
+      <div class="checkin-status-box">
+        <span class="status-pill">{{ checkInStatus }}</span>
       </div>
       <div class="timer-display" v-if="checkInMinutes || checkInSeconds">
         <i class="bi bi-stopwatch"></i
@@ -163,9 +279,41 @@ onBeforeUnmount(() => clearInterval(timer));
           @click="startTimer(minutes)"
         >
           {{ minutes }} min</button
-        ><button class="btn btn-dark-plum" @click="emit('share')">
+        ><button class="btn btn-dark-plum" @click="checkInNow">
+          <i class="bi bi-check-circle"></i> Check in now
+        </button>
+        <button class="btn btn-dark-plum" @click="emit('share')">
           <i class="bi bi-send"></i> {{ t("shareRoute") }}
         </button>
+      </div>
+    </section>
+
+    <section class="hub-panel tracking-panel">
+      <div class="hub-panel-heading">
+        <h2>Order tracking</h2>
+        <span class="hub-add">{{ orders.length }} recent orders</span>
+      </div>
+
+      <div v-if="latestOrder" class="tracking-card">
+        <div class="tracking-header">
+          <strong>Latest order</strong>
+          <span>#{{ latestOrder.id }}</span>
+        </div>
+        <div class="tracking-steps">
+          <button
+            v-for="stage in orderStages"
+            :key="stage"
+            :class="{ active: latestOrder.status === stage }"
+            @click="advanceOrder(latestOrder.id)"
+          >
+            {{ stage }}
+          </button>
+        </div>
+        <p class="tracking-status">Status: {{ latestOrder.status || 'Confirmed' }}</p>
+      </div>
+      <div v-else class="hub-empty-contacts">
+        <i class="bi bi-bag"></i>
+        <p>Your confirmed orders will appear here.</p>
       </div>
     </section>
   </main>

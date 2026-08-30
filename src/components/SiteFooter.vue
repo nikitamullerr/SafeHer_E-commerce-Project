@@ -15,7 +15,7 @@ const emit = defineEmits(["navigate"]);
         <div>
           <strong>Explore</strong
           ><button @click="emit('navigate', 'services')">Our services</button
-          ><button @click="emit('navigate', 'safetyhub')">Safety hub</button>
+          ><button @click="emit('navigate', 'reviews')">Reviews</button>
         </div>
         <div>
           <strong>Premium</strong
