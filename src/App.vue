@@ -20,7 +20,6 @@ const isAuthenticated = ref(
 );
 const darkMode = ref(localStorage.getItem("safeher-dark-mode") === "true");
 
-// App-level state is shared with the page and component views below.
 const activeView = ref(isAuthenticated.value ? "index" : "login");
 const cartOpen = ref(false);
 const menuOpen = ref(false);
@@ -28,6 +27,7 @@ const cart = ref([]);
 const contacts = ref([]);
 const userLocation = ref(null);
 let watcher;
+
 const products = [
   {
     id: 1,
@@ -111,6 +111,7 @@ const products = [
     category: "travel",
   },
 ];
+
 const cartCount = computed(() =>
   cart.value.reduce((sum, item) => sum + item.quantity, 0),
 );
@@ -124,7 +125,7 @@ const nearest = computed(() =>
     : "Use live tracking to locate yourself",
 );
 
-// Navigation is kept here so every view uses the same route behavior.
+// ----- Navigation -----
 function navigate(view) {
   if (!isAuthenticated.value && view !== "login" && view !== "registration")
     return;
@@ -134,10 +135,13 @@ function navigate(view) {
   cartOpen.value = false;
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
 function toggleDarkMode() {
   darkMode.value = !darkMode.value;
   localStorage.setItem("safeher-dark-mode", String(darkMode.value));
 }
+
+// ----- Cart -----
 function addToCart(product) {
   const existing = cart.value.find((item) => item.id === product.id);
   if (existing) existing.quantity += 1;
@@ -160,6 +164,8 @@ function changeQuantity(item, amount) {
 function removeFromCart(id) {
   cart.value = cart.value.filter((item) => item.id !== id);
 }
+
+// ----- Location & SOS -----
 function startTracking() {
   if (!navigator.geolocation) return;
   watcher = navigator.geolocation.watchPosition(
@@ -182,8 +188,6 @@ function startTracking() {
     { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 },
   );
 }
-
-// The browser asks for permission only when the user starts tracking.
 function toggleTracking() {
   if (userLocation.value && watcher !== undefined) {
     navigator.geolocation.clearWatch(watcher);
@@ -210,6 +214,8 @@ function showSos() {
       });
   });
 }
+
+// ----- Contacts -----
 function addContact(event) {
   const form = new FormData(event.target);
   contacts.value.push({
@@ -263,6 +269,8 @@ function messageContact(contact) {
   const body = "I’m checking in — please confirm you received my message.";
   window.location.href = `sms:${contact.phone}?body=${encodeURIComponent(body)}`;
 }
+
+// ----- Checkout -----
 function checkout() {
   if (!cart.value.length) return;
   const orderTotal = cartTotal.value;
@@ -475,6 +483,8 @@ function checkout() {
     });
   });
 }
+
+// ----- Auth -----
 function authenticated(email) {
   isAuthenticated.value = true;
   localStorage.setItem("safeher-authenticated", "true");
@@ -486,6 +496,50 @@ function logout() {
   localStorage.removeItem("safeher-authenticated");
   activeView.value = "login";
 }
+
+// ----- Page component mapping for transitions -----
+const pageComponentMap = {
+  index: HomePage,
+  products: ProductsPage,
+  safetyhub: SafetyHubPage,
+  videos: PremiumVideosPage,
+  packages: PremiumPackagesPage,
+  reviews: ReviewsPage,
+  orders: OrdersPage,
+  // 'services' is handled by InfoPage with view prop
+  // 'contact' is redirected to services
+};
+// InfoPage handles any other views (services, guide, etc.)
+const currentPageComponent = computed(() => {
+  if (activeView.value === 'services' || activeView.value === 'guide' || activeView.value === 'contact') {
+    return InfoPage;
+  }
+  return pageComponentMap[activeView.value] || InfoPage;
+});
+
+// Props and events passed to the dynamic page
+const pageProps = computed(() => ({
+  view: activeView.value,
+  locationReady: locationReady.value,
+  userLocation: userLocation.value,
+  nearest: nearest.value,
+  products: products,
+  contacts: contacts.value,
+}));
+
+const pageEvents = {
+  sos: showSos,
+  track: toggleTracking,
+  navigate: navigate,
+  add: addToCart,
+  'add-contact': addContact,
+  'remove-contact': removeContact,
+  share: shareRoute,
+  'call-contact': callContact,
+  'message-contact': messageContact,
+};
+
+// ----- Lifecycle -----
 onMounted(() => {
   try {
     contacts.value = JSON.parse(
@@ -529,39 +583,49 @@ onMounted(() => {
         @checkout="checkout"
         @shop="navigate('products')"
       />
-      <HomePage
-        v-if="activeView === 'index'"
-        :location-ready="locationReady"
-        :user-location="userLocation"
-        :nearest="nearest"
-        @sos="showSos"
-        @track="toggleTracking"
-        @navigate="navigate"
-      />
-      <ProductsPage
-        v-else-if="activeView === 'products'"
-        :products="products"
-        @add="addToCart"
-      />
-      <SafetyHubPage
-        v-else-if="activeView === 'safetyhub'"
-        :contacts="contacts"
-        :location-ready="locationReady"
-        :user-location="userLocation"
-        @add-contact="addContact"
-        @remove-contact="removeContact"
-        @share="shareRoute"
-        @track="toggleTracking"
-        @sos="showSos"
-        @call-contact="callContact"
-        @message-contact="messageContact"
-      />
-      <PremiumVideosPage v-else-if="activeView === 'videos'" @navigate="navigate" />
-      <PremiumPackagesPage v-else-if="activeView === 'packages'" />
-      <ReviewsPage v-else-if="activeView === 'reviews'" />
-      <OrdersPage v-else-if="activeView === 'orders'" />
-      <InfoPage v-else :view="activeView" @sos="showSos" />
+
+      <!-- ===== PAGE TRANSITION ===== -->
+      <Transition name="page" mode="out-in">
+        <component
+          :is="currentPageComponent"
+          :key="activeView"
+          v-bind="pageProps"
+          v-on="pageEvents"
+        />
+      </Transition>
+
       <SiteFooter @navigate="navigate" />
     </template>
   </div>
 </template>
+
+<style>
+/* ============================================
+   PAGE TRANSITION ANIMATIONS
+   ============================================ */
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(18px) scale(0.98);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-12px) scale(0.96);
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active,
+  .page-leave-active {
+    transition: none !important;
+  }
+  .page-enter-from,
+  .page-leave-to {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+</style>

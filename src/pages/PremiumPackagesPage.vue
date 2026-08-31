@@ -1,4 +1,5 @@
 <script setup>
+import { t } from "../languageConfig.js";
 import Swal from "sweetalert2";
 
 const packages = [
@@ -134,25 +135,31 @@ function choosePackage(packageItem) {
   });
 }
 </script>
+
 <template>
   <main class="packages-page container-fluid px-4 px-xl-5">
     <section class="packages-heading">
-      <p class="eyebrow">SAFEHER / PREMIUM PACKAGES</p>
-      <h1>Choose the support that fits your <em>life.</em></h1>
-      <p>Unlock guided safety videos and practical tools for building a stronger everyday safety routine.</p>
+      <p class="eyebrow">SAFEHER / {{ t('premiumPackages') }}</p>
+      <h1>{{ t('chooseFit') }}</h1>
+      <p>{{ t('unlockTools') }}</p>
     </section>
     <section class="package-grid">
       <article v-for="item in packages" :key="item.name" class="package-card" :class="{ featured: item.featured }">
-        <span v-if="item.featured" class="package-popular">MOST POPULAR</span>
-        <p class="eyebrow">SAFEHER PREMIUM</p>
+        <span v-if="item.featured" class="package-popular">{{ t('mostPopular') }}</span>
+        <p class="eyebrow">{{ t('premium') }}</p>
         <h2>{{ item.name }}</h2>
         <p>{{ item.detail }}</p>
-        <strong class="package-price">{{ item.price }}<small>{{ item.name === "Annual" ? " / year" : " / month" }}</small></strong>
+        <strong class="package-price">
+          {{ item.price }}
+          <small>{{ item.name === "Annual" ? t('perYear') : t('perMonth') }}</small>
+        </strong>
         <ul>
-          <li v-for="feature in item.features" :key="feature"><i class="bi bi-check2"></i>{{ feature }}</li>
+          <li v-for="feature in item.features" :key="feature">
+            <i class="bi bi-check2"></i>{{ feature }}
+          </li>
         </ul>
         <button class="btn" :class="item.featured ? 'btn-sos' : 'btn-outline-plum'" @click="choosePackage(item)">
-          Choose {{ item.name }} <i class="bi bi-arrow-right"></i>
+          {{ t('choose') }} {{ item.name }} <i class="bi bi-arrow-right"></i>
         </button>
       </article>
     </section>

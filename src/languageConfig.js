@@ -58,6 +58,22 @@ const messages = {
     stepThreeText:
       "Use SOS or share your live route with your emergency contacts.",
     servicesTitle: "Safety Guide",
+    // NEW KEYS FOR PREMIUM & ORDERS
+    premiumPackages: "Premium Packages",
+    chooseFit: "Choose the support that fits your life.",
+    unlockTools: "Unlock guided safety videos and practical tools for building a stronger everyday safety routine.",
+    mostPopular: "Most Popular",
+    premium: "SafeHer Premium",
+    perMonth: "/ month",
+    perYear: "/ year",
+    choose: "Choose",
+    orders: "Orders",
+    recentOrders: "Your recent orders.",
+    trackDelivery: "Track your delivery progress and keep a clear record of recent purchases.",
+    noOrders: "No orders yet",
+    ordersHere: "Your confirmed purchases will show up here once you check out.",
+    totalSpent: "Total spent",
+    orderLabel: "Order",
   },
   isiZulu: {
     home: "Ikhaya",
@@ -113,6 +129,22 @@ const messages = {
     stepThreeText:
       "Sebenzisa i-SOS noma yabelana ngomzila wakho obukhoma nabantu bakho.",
     servicesTitle: "Umhlahlandlela wokuphepha",
+    // NEW KEYS FOR PREMIUM & ORDERS
+    premiumPackages: "Amaphakheji we-Premium",
+    chooseFit: "Khetha ukwesekwa okuhambisana nempilo yakho.",
+    unlockTools: "Vula amavidiyo okuphepha aqondisiwe namathuluzi asebenzayo okwakha isimiso sokuphepha esiqinile sansuku zonke.",
+    mostPopular: "Kuthandwa kakhulu",
+    premium: "SafeHer Premium",
+    perMonth: "/ ngenyanga",
+    perYear: "/ ngonyaka",
+    choose: "Khetha",
+    orders: "Ama-oda",
+    recentOrders: "Ama-oda akho akamuva.",
+    trackDelivery: "Landela inqubekela phambili yokulethwa kwakho futhi ugcine irekhodi elicacile lokuthenga kwakho.",
+    noOrders: "Awekho ama-oda okwamanje",
+    ordersHere: "Ukuthenga kwakho okuqinisekisiwe kuzovela lapha uma usuqeda ukuthenga.",
+    totalSpent: "Isamba esichithiwe",
+    orderLabel: "I-oda",
   },
   Afrikaans: {
     home: "Tuis",
@@ -167,6 +199,22 @@ const messages = {
     stepThreeText:
       "Gebruik SOS of deel jou regstreekse roete met jou noodkontakte.",
     servicesTitle: "Veiligheidsgids",
+    // NEW KEYS FOR PREMIUM & ORDERS
+    premiumPackages: "Premium-pakkette",
+    chooseFit: "Kies die ondersteuning wat by jou lewe pas.",
+    unlockTools: "Ontsluit veiligheidsvideo's en praktiese gereedskap om 'n sterker daaglikse veiligheidsroetine te bou.",
+    mostPopular: "Gewildste",
+    premium: "SafeHer Premium",
+    perMonth: "/ maand",
+    perYear: "/ jaar",
+    choose: "Kies",
+    orders: "Bestellings",
+    recentOrders: "Jou onlangse bestellings.",
+    trackDelivery: "Volg jou afleweringsvordering en hou 'n duidelike rekord van onlangse aankope.",
+    noOrders: "Nog geen bestellings nie",
+    ordersHere: "Jou bevestigde aankope sal hier verskyn sodra jy afreken.",
+    totalSpent: "Totale besteding",
+    orderLabel: "Bestelling",
   },
   isiXhosa: {
     home: "Ekhaya",
@@ -223,8 +271,25 @@ const messages = {
     stepThreeText:
       "Sebenzisa i-SOS okanye wabelane ngendlela yakho ephilayo nabafowunelwa bakho.",
     servicesTitle: "Isikhokelo sokhuseleko",
+    // NEW KEYS FOR PREMIUM & ORDERS
+    premiumPackages: "Iipakethe ze-Premium",
+    chooseFit: "Khetha inkxaso ehambelana nobomi bakho.",
+    unlockTools: "Vula iividiyo zokhuseleko ezikhokelwayo kunye nezixhobo ezisebenzayo zokwakha isiqhelo sokhuseleko esomeleleyo mihla le.",
+    mostPopular: "Eyona ithandwa kakhulu",
+    premium: "SafeHer Premium",
+    perMonth: "/ ngenyanga",
+    perYear: "/ ngonyaka",
+    choose: "Khetha",
+    orders: "Iioda",
+    recentOrders: "Iioda zakho zamva nje.",
+    trackDelivery: "Landela inkqubela phambili yokuhanjiswa kwakho kwaye ugcine irekhodi ecacileyo yokuthenga kwakho.",
+    noOrders: "Akukho zioda okwangoku",
+    ordersHere: "Ukuthenga kwakho okuqinisekisiweyo kuya kuvela apha xa ugqiba ukuthenga.",
+    totalSpent: "Ingqibelelo echithiweyo",
+    orderLabel: "I-oda",
   },
 };
+
 export function t(key) {
   return messages[language.value]?.[key] || messages.English[key] || key;
 }

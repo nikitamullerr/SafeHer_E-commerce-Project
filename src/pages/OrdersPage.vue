@@ -1,4 +1,5 @@
 <script setup>
+import { t } from "../languageConfig.js";
 import { computed, onMounted, ref } from "vue";
 
 const orders = ref([]);
@@ -32,15 +33,15 @@ const orderTotal = computed(() =>
 <template>
   <main class="container-fluid px-4 px-xl-5 orders-page">
     <section class="orders-header">
-      <p class="eyebrow">SAFEHER / ORDERS</p>
-      <h1>Your recent orders.</h1>
-      <p>Track your delivery progress and keep a clear record of recent purchases.</p>
+      <p class="eyebrow">SAFEHER / {{ t('orders') }}</p>
+      <h1>{{ t('recentOrders') }}</h1>
+      <p>{{ t('trackDelivery') }}</p>
     </section>
 
     <section v-if="orders.length" class="orders-list">
       <article v-for="order in orders" :key="order.id" class="order-card">
         <div class="order-topline">
-          <strong>Order #{{ order.id }}</strong>
+          <strong>{{ t('orderLabel') }} #{{ order.id }}</strong>
           <span class="order-status">{{ order.status || "Confirmed" }}</span>
         </div>
         <div class="order-meta">
@@ -58,13 +59,13 @@ const orderTotal = computed(() =>
 
     <section v-else class="empty-orders">
       <i class="bi bi-bag"></i>
-      <h2>No orders yet</h2>
-      <p>Your confirmed purchases will show up here once you check out.</p>
+      <h2>{{ t('noOrders') }}</h2>
+      <p>{{ t('ordersHere') }}</p>
     </section>
 
     <section class="orders-summary" v-if="orders.length">
       <div>
-        <span>Total spent</span>
+        <span>{{ t('totalSpent') }}</span>
         <strong>R{{ orderTotal.toLocaleString() }}</strong>
       </div>
     </section>

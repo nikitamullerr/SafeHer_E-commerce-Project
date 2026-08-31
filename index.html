@@ -8,6 +8,9 @@
   </head>
   <body>
     <div id="app"></div>
+    <!-- Load Google FIRST (without async) so it's ready when Vue mounts -->
+    <script src="https://accounts.google.com/gsi/client"></script>
+    <!-- Then load your app -->
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
