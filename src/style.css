@@ -4178,3 +4178,53 @@ p {
     animation: none;
   }
 }
+
+/* GLOBAL HEADING STYLES (matches Safety Guide */
+
+/* Page heading wrapper */
+.page-heading {
+  max-width: 780px;
+  margin-bottom: 42px;
+}
+
+.page-heading h1 {
+  font: 700 clamp(42px, 5vw, 68px)/0.98 "Syne", sans-serif;
+  color: var(--plum, #351536);
+  margin: 0 0 18px;
+}
+
+.page-heading .subtitle {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--muted, #756d76);
+  max-width: 600px;
+  margin: 0;
+}
+
+.page-heading .eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  font-weight: 700;
+  color: var(--red, #d92d36);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+/* Dark mode support */
+.dark-mode .page-heading h1 {
+  color: var(--ink, #fff4f7);
+}
+
+.dark-mode .page-heading .subtitle {
+  color: var(--muted, #c7b8c0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .page-heading h1 {
+    font-size: clamp(30px, 8vw, 42px);
+  }
+  .page-heading .subtitle {
+    font-size: 14px;
+  }
+}

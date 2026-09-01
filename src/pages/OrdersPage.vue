@@ -32,16 +32,16 @@ const orderTotal = computed(() =>
 
 <template>
   <main class="container-fluid px-4 px-xl-5 orders-page">
-    <section class="orders-header">
-      <p class="eyebrow">SAFEHER / {{ t('orders') }}</p>
-      <h1>{{ t('recentOrders') }}</h1>
-      <p>{{ t('trackDelivery') }}</p>
-    </section>
+    <div class="guide-heading">
+      <p class="eyebrow">SAFEHER / {{ t("orders") }}</p>
+      <h1>{{ t("recentOrders") }}</h1>
+      <p>{{ t("trackDelivery") }}</p>
+    </div>
 
     <section v-if="orders.length" class="orders-list">
       <article v-for="order in orders" :key="order.id" class="order-card">
         <div class="order-topline">
-          <strong>{{ t('orderLabel') }} #{{ order.id }}</strong>
+          <strong>{{ t("orderLabel") }} #{{ order.id }}</strong>
           <span class="order-status">{{ order.status || "Confirmed" }}</span>
         </div>
         <div class="order-meta">
@@ -53,19 +53,21 @@ const orderTotal = computed(() =>
             {{ item.name }} × {{ item.quantity }}
           </li>
         </ul>
-        <button class="btn btn-dark-plum" @click="nextStatus(order)">Advance status</button>
+        <button class="btn btn-dark-plum" @click="nextStatus(order)">
+          Advance status
+        </button>
       </article>
     </section>
 
     <section v-else class="empty-orders">
       <i class="bi bi-bag"></i>
-      <h2>{{ t('noOrders') }}</h2>
-      <p>{{ t('ordersHere') }}</p>
+      <h2>{{ t("noOrders") }}</h2>
+      <p>{{ t("ordersHere") }}</p>
     </section>
 
     <section class="orders-summary" v-if="orders.length">
       <div>
-        <span>{{ t('totalSpent') }}</span>
+        <span>{{ t("totalSpent") }}</span>
         <strong>R{{ orderTotal.toLocaleString() }}</strong>
       </div>
     </section>

@@ -7,20 +7,32 @@ const packages = [
     name: "Essential",
     price: "R49",
     detail: "A focused start for everyday confidence.",
-    features: ["Full premium video library", "Monthly safety checklist", "Cancel anytime"],
+    features: [
+      "Full premium video library",
+      "Monthly safety checklist",
+      "Cancel anytime",
+    ],
   },
   {
     name: "Circle",
     price: "R89",
     detail: "More support for you and your trusted people.",
     featured: true,
-    features: ["Everything in Essential", "Shared safety plans", "Priority support"],
+    features: [
+      "Everything in Essential",
+      "Shared safety plans",
+      "Priority support",
+    ],
   },
   {
     name: "Annual",
     price: "R899",
     detail: "The best value for a year of preparedness.",
-    features: ["Everything in Circle", "Two months free", "Annual safety review"],
+    features: [
+      "Everything in Circle",
+      "Two months free",
+      "Annual safety review",
+    ],
   },
 ];
 
@@ -35,10 +47,26 @@ const saBanks = [
 ];
 
 const paymentOptions = [
-  { value: "card", label: "Credit / Debit Card", detail: "Visa, Mastercard, Amex" },
-  { value: "instant-eft", label: "Instant EFT", detail: "Pay directly from your bank" },
-  { value: "bank-transfer", label: "Bank Transfer", detail: "Secure transfer to SafeHer" },
-  { value: "wallet", label: "Wallet / QR / Mobile Pay", detail: "Apple Pay, SnapScan, Ozow" },
+  {
+    value: "card",
+    label: "Credit / Debit Card",
+    detail: "Visa, Mastercard, Amex",
+  },
+  {
+    value: "instant-eft",
+    label: "Instant EFT",
+    detail: "Pay directly from your bank",
+  },
+  {
+    value: "bank-transfer",
+    label: "Bank Transfer",
+    detail: "Secure transfer to SafeHer",
+  },
+  {
+    value: "wallet",
+    label: "Wallet / QR / Mobile Pay",
+    detail: "Apple Pay, SnapScan, Ozow",
+  },
 ];
 
 function choosePackage(packageItem) {
@@ -95,10 +123,13 @@ function choosePackage(packageItem) {
     width: 560,
     focusConfirm: false,
     preConfirm: () => {
-      const selectedMethod = document.querySelector('input[name="safeher-payment"]:checked');
+      const selectedMethod = document.querySelector(
+        'input[name="safeher-payment"]:checked',
+      );
       const bank = document.getElementById("safeher-bank")?.value || "Bank";
       const email = document.getElementById("safeher-email")?.value.trim();
-      const paymentNumber = document.getElementById("safeher-payment-number")?.value.trim() || "";
+      const paymentNumber =
+        document.getElementById("safeher-payment-number")?.value.trim() || "";
 
       if (!selectedMethod) {
         Swal.showValidationMessage("Select a payment method to continue.");
@@ -138,28 +169,41 @@ function choosePackage(packageItem) {
 
 <template>
   <main class="packages-page container-fluid px-4 px-xl-5">
-    <section class="packages-heading">
-      <p class="eyebrow">SAFEHER / {{ t('premiumPackages') }}</p>
-      <h1>{{ t('chooseFit') }}</h1>
-      <p>{{ t('unlockTools') }}</p>
-    </section>
+    <div class="guide-heading">
+      <p class="eyebrow">SAFEHER / {{ t("premiumPackages") }}</p>
+      <h1>{{ t("chooseFit") }}</h1>
+      <p>{{ t("unlockTools") }}</p>
+    </div>
     <section class="package-grid">
-      <article v-for="item in packages" :key="item.name" class="package-card" :class="{ featured: item.featured }">
-        <span v-if="item.featured" class="package-popular">{{ t('mostPopular') }}</span>
-        <p class="eyebrow">{{ t('premium') }}</p>
+      <article
+        v-for="item in packages"
+        :key="item.name"
+        class="package-card"
+        :class="{ featured: item.featured }"
+      >
+        <span v-if="item.featured" class="package-popular">{{
+          t("mostPopular")
+        }}</span>
+        <p class="eyebrow">{{ t("premium") }}</p>
         <h2>{{ item.name }}</h2>
         <p>{{ item.detail }}</p>
         <strong class="package-price">
           {{ item.price }}
-          <small>{{ item.name === "Annual" ? t('perYear') : t('perMonth') }}</small>
+          <small>{{
+            item.name === "Annual" ? t("perYear") : t("perMonth")
+          }}</small>
         </strong>
         <ul>
           <li v-for="feature in item.features" :key="feature">
             <i class="bi bi-check2"></i>{{ feature }}
           </li>
         </ul>
-        <button class="btn" :class="item.featured ? 'btn-sos' : 'btn-outline-plum'" @click="choosePackage(item)">
-          {{ t('choose') }} {{ item.name }} <i class="bi bi-arrow-right"></i>
+        <button
+          class="btn"
+          :class="item.featured ? 'btn-sos' : 'btn-outline-plum'"
+          @click="choosePackage(item)"
+        >
+          {{ t("choose") }} {{ item.name }} <i class="bi bi-arrow-right"></i>
         </button>
       </article>
     </section>

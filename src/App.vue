@@ -14,11 +14,15 @@ import AuthPage from "./pages/AuthPage.vue";
 import InfoPage from "./pages/InfoPage.vue";
 import SiteFooter from "./components/SiteFooter.vue";
 import { language } from "./languageConfig.js";
+import SOSEffect from "./components/SOSEffect.vue";
+
 
 const isAuthenticated = ref(
   localStorage.getItem("safeher-authenticated") === "true",
 );
 const darkMode = ref(localStorage.getItem("safeher-dark-mode") === "true");
+
+const sosActive = ref(false);
 
 const activeView = ref(isAuthenticated.value ? "index" : "login");
 const cartOpen = ref(false);
@@ -205,13 +209,26 @@ function showSos() {
     confirmButtonColor: "#d92d36",
     cancelButtonColor: "#351536",
   }).then((result) => {
-    if (result.isConfirmed)
+    if (result.isConfirmed) {
+      // Show success message WITHOUT blocking the effect
       Swal.fire({
         title: "SOS activated",
         text: "Your safety circle has been notified.",
         icon: "success",
         confirmButtonColor: "#351536",
+        timer: 1500,
+        timerProgressBar: true,
+        willClose: () => {
+          // --- TRIGGER THE 3D EFFECT AFTER THE ALERT CLOSES ---
+          sosActive.value = true;
+
+          // Reset after 3 seconds
+          setTimeout(() => {
+            sosActive.value = false;
+          }, 3000);
+        },
       });
+    }
   });
 }
 
@@ -595,6 +612,9 @@ onMounted(() => {
       </Transition>
 
       <SiteFooter @navigate="navigate" />
+
+      <!-- ===== SOS EFFECT OVERLAY ===== -->
+    <SOSEffect :active="sosActive" @complete="sosActive = false" />
     </template>
   </div>
 </template>

@@ -14,6 +14,7 @@
     "bootstrap-icons": "latest",
     "leaflet": "^1.9.4",
     "sweetalert2": "latest",
+    "three": "^0.185.1",
     "vite": "latest",
     "vue": "latest"
   }

@@ -41,7 +41,7 @@ function showPremiumMessage() {
 <template>
   <main class="premium-page container-fluid px-4 px-xl-5">
     <section class="premium-heading">
-      <div>
+      <div class="guide-heading">
         <p class="eyebrow">SAFEHER / PREMIUM LIBRARY</p>
         <h1>Learn skills that help you feel <em>ready.</em></h1>
         <p>
@@ -60,7 +60,10 @@ function showPremiumMessage() {
         <div>
           <p class="eyebrow">YOUR NEXT STEP</p>
           <h2>Unlock the full safety video library.</h2>
-          <p>Premium gives you guided lessons you can revisit whenever you need them.</p>
+          <p>
+            Premium gives you guided lessons you can revisit whenever you need
+            them.
+          </p>
         </div>
       </div>
       <button class="btn btn-sos" @click="emit('navigate', 'packages')">

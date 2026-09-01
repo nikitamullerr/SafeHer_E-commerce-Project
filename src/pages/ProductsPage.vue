@@ -17,12 +17,14 @@ const selectedFilter = ref("all");
 const filteredProducts = computed(() => {
   if (!props.products) return [];
   if (selectedFilter.value === "all") return props.products;
-  return props.products.filter((product) => product.category === selectedFilter.value);
+  return props.products.filter(
+    (product) => product.category === selectedFilter.value,
+  );
 });
 </script>
 <template>
   <main class="inner-page container-fluid px-4 px-xl-5">
-    <div class="inner-heading">
+    <div class="guide-heading">
       <p class="eyebrow">SAFEHER / {{ t("store") }}</p>
       <h1>{{ t("storeTitle") }}</h1>
       <p>{{ t("storeLead") }}</p>

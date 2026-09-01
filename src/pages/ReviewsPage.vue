@@ -33,17 +33,21 @@ const testimonials = [
 
 <template>
   <main class="container-fluid px-4 px-xl-5 reviews-page">
-    <section class="reviews-header">
+    <div class="guide-heading">
       <p class="eyebrow">SAFEHER / REVIEWS</p>
       <h1>People trust SafeHer when it matters most.</h1>
       <p>
         Real stories from users who wanted a calmer, safer way to feel prepared,
         connected and supported.
       </p>
-    </section>
+    </div>
 
     <section class="reviews-grid">
-      <article v-for="item in testimonials" :key="item.name" class="review-card">
+      <article
+        v-for="item in testimonials"
+        :key="item.name"
+        class="review-card"
+      >
         <div class="stars">{{ item.stars }}</div>
         <p>“{{ item.quote }}”</p>
         <div class="review-user">
