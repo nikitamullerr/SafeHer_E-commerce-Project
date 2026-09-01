@@ -358,9 +358,10 @@ async function forgotPassword() {
     <span class="sf-orbit sf-orbit-b" aria-hidden="true"></span>
 
     <section class="sf-card">
-      <div class="sf-signal" aria-hidden="true">
+      <div :key="mode" class="sf-signal" aria-hidden="true">
         <span class="sf-ring sf-ring-1"></span>
         <span class="sf-ring sf-ring-2"></span>
+        <span class="sf-logo-pusher"><i class="bi bi-person-standing-dress"></i></span>
         <span class="sf-core"
           ><i :class="mode === 'login' ? 'bi bi-shield-fill' : 'bi bi-person-plus-fill'"></i
         ></span>
@@ -661,6 +662,30 @@ async function forgotPassword() {
   width: 56px;
   height: 56px;
   margin: 0 auto 24px;
+}
+.sf-logo-pusher {
+  position: absolute;
+  z-index: 3;
+  left: -40px;
+  bottom: 4px;
+  color: var(--red);
+  font-size: 20px;
+  line-height: 1;
+  will-change: transform, opacity;
+  animation: sf-logo-push 2.4s cubic-bezier(0.45, 0, 0.15, 1) both;
+}
+.sf-logo-pusher i {
+  display: block;
+}
+@keyframes sf-logo-push {
+  0% { opacity: 0; transform: translate3d(-50px, 2px, 0); }
+  12% { opacity: 1; }
+  26% { transform: translate3d(24px, 4px, 0); }
+  42% { transform: translate3d(92px, 3px, 0); }
+  58% { transform: translate3d(98px, -42px, 0); }
+  74% { transform: translate3d(31px, -50px, 0); }
+  88% { transform: translate3d(22px, -9px, 0); opacity: 1; }
+  100% { transform: translate3d(22px, -9px, 0) scale(0.96); opacity: 0; }
 }
 .sf-ring {
   position: absolute;
@@ -1112,7 +1137,9 @@ async function forgotPassword() {
 @media (prefers-reduced-motion: reduce) {
   .sf-orbit,
   .sf-ring,
-  .sf-card {
+  .sf-card,
+  .sf-logo-pusher,
+  .sf-core {
     animation: none;
   }
   .sf-crossfade-enter-active,
