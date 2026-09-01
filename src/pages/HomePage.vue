@@ -72,7 +72,7 @@ const emit = defineEmits(["sos", "track", "navigate"]);
         </div>
       </div>
     </section>
-    <LiveMap :location="userLocation" :nearest="nearest" />
+    <LiveMap :location="userLocation" :nearest="nearest" @request-location="emit('track')" />
     <section class="quick-section container-fluid px-4 px-xl-5">
       <div class="section-heading">
         <div>

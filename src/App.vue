@@ -13,6 +13,7 @@ import OrdersPage from "./pages/OrdersPage.vue";
 import AuthPage from "./pages/AuthPage.vue";
 import InfoPage from "./pages/InfoPage.vue";
 import SiteFooter from "./components/SiteFooter.vue";
+import SafeHerAI from "./components/SafeHerAI.vue";
 import { language } from "./languageConfig.js";
 
 const isAuthenticated = ref(
@@ -207,8 +208,8 @@ function showSos() {
   }).then((result) => {
     if (result.isConfirmed)
       Swal.fire({
-        title: "SOS activated",
-        text: "Your safety circle has been notified.",
+        title: "SOS action started",
+        text: "This development app has no alert delivery service configured. Use your phone's call or SMS options to contact help now.",
         icon: "success",
         confirmButtonColor: "#351536",
       });
@@ -268,6 +269,14 @@ function messageContact(contact) {
   if (!contact?.phone) return;
   const body = "I’m checking in — please confirm you received my message.";
   window.location.href = `sms:${contact.phone}?body=${encodeURIComponent(body)}`;
+}
+
+function contactTrustedPerson() {
+  if (!contacts.value.length) {
+    Swal.fire({ title: "Add a trusted contact", text: "Save a trusted contact in the Safety Hub first.", icon: "info", confirmButtonColor: "#351536" });
+    return;
+  }
+  messageContact(contacts.value[0]);
 }
 
 // ----- Checkout -----
@@ -595,6 +604,13 @@ onMounted(() => {
       </Transition>
 
       <SiteFooter @navigate="navigate" />
+      <SafeHerAI
+        :location="userLocation"
+        :contacts="contacts"
+        @request-location="startTracking"
+        @activate-sos="showSos"
+        @contact-trusted="contactTrustedPerson"
+      />
     </template>
   </div>
 </template>

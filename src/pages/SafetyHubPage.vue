@@ -166,7 +166,7 @@ onBeforeUnmount(() => {
     </section>
     <section class="hub-main-grid">
       <article class="hub-panel location-panel">
-        <LiveMap :location="props.userLocation" compact />
+        <LiveMap :location="props.userLocation" compact @request-location="emit('track')" />
         <div class="hub-map-footer">
           <span
             ><i class="bi bi-crosshair2"></i

@@ -6,6 +6,7 @@ const props = defineProps({
   nearest: String,
   compact: Boolean,
 });
+const emit = defineEmits(["request-location"]);
 const mapElement = ref(null);
 const locationName = ref("");
 const nearestPoliceName = ref("");
@@ -16,27 +17,8 @@ let locationRequest;
 let helpMarkers = [];
 let nearestPolice;
 
-// These are the local response points shown until a map service supplies live places.
-const points = [
-  {
-    name: "Cape Town Central Police Station",
-    type: "Police",
-    lat: -33.9249,
-    lng: 18.4241,
-  },
-  {
-    name: "Cape Town Mediclinic",
-    type: "Ambulance & medical",
-    lat: -33.9295,
-    lng: 18.4107,
-  },
-  {
-    name: "SafeHer Community Response",
-    type: "Trusted help",
-    lat: -33.918,
-    lng: 18.431,
-  },
-];
+// Emergency-service listings are opened in Google Maps; no unverified local places are shown.
+const points = [];
 function update() {
   if (!map || !props.location) return;
   const position = [props.location.lat, props.location.lng];
@@ -115,10 +97,19 @@ async function findLocationName(location) {
     if (error.name !== "AbortError") locationName.value = "Your current position";
   }
 }
+function openGoogleMaps() {
+  const coordinates = props.location
+    ? `${props.location.lat},${props.location.lng}`
+    : "";
+  const url = coordinates
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coordinates)}`
+    : "https://www.google.com/maps";
+  window.open(url, "_blank", "noopener,noreferrer");
+}
 onMounted(() => {
   map = L.map(mapElement.value, { zoomControl: false }).setView(
-    [-33.9249, 18.4241],
-    13,
+    [-30.5595, 22.9375],
+    5,
   );
   L.control.zoom({ position: "bottomright" }).addTo(map);
   L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
@@ -165,8 +156,7 @@ onBeforeUnmount(() => {
         <p class="eyebrow">LIVE SAFETY MAP</p>
         <h2>See your surroundings.</h2>
         <p>
-          Track your position and find nearby police, ambulance and trusted
-          SafeHer help.
+          Your location appears only after you grant browser permission.
         </p>
         <p v-if="nearestPoliceName" class="nearest-station-label">
           <i class="bi bi-shield-fill-check"></i>
@@ -175,7 +165,7 @@ onBeforeUnmount(() => {
       </div>
       <span class="map-status" :class="{ active: location }"
         ><i class="bi bi-circle-fill"></i
-        >{{ location ? "Live now" : "Map ready" }}</span
+        >{{ location ? "Live now" : "Location private" }}</span
       >
     </div>
     <div class="live-map-wrap">
@@ -193,6 +183,21 @@ onBeforeUnmount(() => {
           }}</small></span
         >
       </div>
+      <div class="map-actions">
+        <button class="btn btn-track" @click="emit('request-location')">
+          <i class="bi bi-crosshair"></i>
+          {{ location ? "Refresh location" : "Use my location" }}
+        </button>
+        <button class="btn btn-outline-plum" @click="openGoogleMaps">
+          <i class="bi bi-map"></i> Open Google Maps
+        </button>
+      </div>
     </div>
   </section>
 </template>
+
+<style scoped>
+.map-actions { position:absolute; right:16px; bottom:16px; z-index:500; display:flex; gap:8px; flex-wrap:wrap; }
+.map-actions .btn { font-size:12px; box-shadow:0 4px 14px rgba(53,21,54,.2); }
+@media (max-width: 576px) { .map-actions { left:12px; right:12px; bottom:12px; } .map-actions .btn { flex:1; padding:7px 8px; } }
+</style>
