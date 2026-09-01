@@ -36,6 +36,17 @@ const testimonials = [
     initials: "NS",
   },
   {
+    name: "Thandi M.",
+    location: "Soweto",
+    title: "Good features but could be simpler",
+    quote:
+      "The app has really useful safety features and the emergency response is quick. However, the menu navigation could be more intuitive for first-time users.",
+    stars: 3,
+    date: "25 July 2026",
+    helpful: 4,
+    initials: "TM",
+  },
+  {
     name: "Aisha P.",
     location: "Durban",
     title: "Clean, calming and effective",
@@ -45,6 +56,28 @@ const testimonials = [
     date: "19 July 2026",
     helpful: 15,
     initials: "AP",
+  },
+  {
+    name: "James L.",
+    location: "Bloemfontein",
+    title: "Reliable safety companion",
+    quote:
+      "Been using SafeHer for 6 months now and I trust it completely. The location sharing with my trusted circle works seamlessly and the support team is responsive.",
+    stars: 4,
+    date: "16 July 2026",
+    helpful: 9,
+    initials: "JL",
+  },
+  {
+    name: "Nomvula R.",
+    location: "Pietermaritzburg",
+    title: "Helpful but interface needs work",
+    quote:
+      "The safety hub content is informative and the SOS feature works well. The app could use better visual organization - some buttons are hard to find when you need them quickly.",
+    stars: 3,
+    date: "08 July 2026",
+    helpful: 6,
+    initials: "NR",
   },
 ];
 
