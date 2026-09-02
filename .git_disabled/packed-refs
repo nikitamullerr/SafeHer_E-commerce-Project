@@ -1,0 +1,7 @@
+# pack-refs with: peeled fully-peeled sorted 
+d8646ec502b5f4039e78209bb011d900dcc0e73c refs/remotes/origin/develop
+de8272e1651806f0d4be5f8d344b71b9db4413c9 refs/remotes/origin/khanya-dev
+de8272e1651806f0d4be5f8d344b71b9db4413c9 refs/remotes/origin/main
+de8272e1651806f0d4be5f8d344b71b9db4413c9 refs/remotes/origin/nhlakanipho-dev
+de8272e1651806f0d4be5f8d344b71b9db4413c9 refs/remotes/origin/nikita-dev
+de8272e1651806f0d4be5f8d344b71b9db4413c9 refs/remotes/origin/vuyolwethu-dev

@@ -1,0 +1,30 @@
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+[remote "origin"]
+	url = https://github.com/nikitamullerr/SafeHer_E-commerce-Project.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+	vscode-merge-base = origin/main
+[branch "develop"]
+	remote = origin
+	merge = refs/heads/develop
+	vscode-merge-base = origin/develop
+[branch "vuyolwethu-dev"]
+	remote = origin
+	vscode-merge-base = origin/vuyolwethu-dev
+	merge = refs/heads/vuyolwethu-dev
+[branch "test-merge"]
+	vscode-merge-base = origin/vuyolwethu-dev
+	remote = origin
+	merge = refs/heads/test-merge
+[branch "nikita-dev"]
+	remote = origin
+	merge = refs/heads/nikita-dev
+	vscode-merge-base = origin/nikita-dev
