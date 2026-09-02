@@ -20,7 +20,7 @@ const emit = defineEmits(["navigate"]);
         <div>
           <strong>Premium</strong
           ><button class="footer-premium-link" @click="emit('navigate', 'packages')">
-            <i class="bi bi-stars"></i> Premium packages
+            <i class="bi bi-heart-fill"></i> Premium packages
           </button><button class="footer-premium-link" @click="emit('navigate', 'videos')">
             <i class="bi bi-lock-fill"></i> Safety videos
           </button>

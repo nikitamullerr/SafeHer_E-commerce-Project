@@ -78,16 +78,16 @@ const emit = defineEmits([
             {{ t("hub") }}
           </button>
           <button
-            :class="{ active: activeView === 'orders' }"
-            @click="emit('navigate', 'orders')"
-          >
-            {{ t("orders") }}
-          </button>
-          <button
             :class="{ active: activeView === 'packages' || activeView === 'videos' }"
             @click="emit('navigate', 'packages')"
           >
             {{ t("premium") }}
+          </button>
+          <button
+            :class="{ active: activeView === 'orders' }"
+            @click="emit('navigate', 'orders')"
+          >
+            {{ t("orders") }}
           </button>
         </div>
 
@@ -114,21 +114,21 @@ const emit = defineEmits([
           </button>
 
           <button
-            class="icon-button"
-            aria-label="Log out"
-            title="Log out"
-            @click="emit('logout')"
-          >
-            <i class="bi bi-box-arrow-right"></i>
-          </button>
-
-          <button
             class="bag-button"
             aria-label="Shopping bag"
             @click="emit('toggle-cart')"
           >
             <i class="bi bi-bag"></i>
             <b>{{ cartCount }}</b>
+          </button>
+
+          <button
+            class="icon-button"
+            aria-label="Log out"
+            title="Log out"
+            @click="emit('logout')"
+          >
+            <i class="bi bi-box-arrow-right"></i>
           </button>
         </div>
       </div>

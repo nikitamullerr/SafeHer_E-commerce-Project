@@ -67,19 +67,11 @@ const getReviews = (productId) => {
 const filteredProducts = computed(() => {
   if (!props.products) return [];
   if (selectedFilter.value === "all") return props.products;
-  return props.products.filter(
-    (product) => product.category === selectedFilter.value,
-  );
+  return props.products.filter((product) => product.category === selectedFilter.value);
 });
 
 const displayedProducts = computed(() => {
-  const filtered = filteredProducts.value;
-  return filtered.slice(0, 6);
-});
-
-const featuredProduct = computed(() => {
-  const list = filteredProducts.value;
-  return list.length ? list[0] : props.products?.[0] || null;
+  return filteredProducts.value;
 });
 
 function formatPrice(value) {
@@ -103,47 +95,12 @@ function closeModal() {
 </script>
 
 <template>
-  <main class="inner-page container-fluid px-4 px-xl-5 products-page">
+  <main class="inner-page container-fluid px-4 px-xl-5 all-products-page">
     <div class="inner-heading">
       <p class="eyebrow">SAFEHER / {{ t("store") }}</p>
-      <h1>{{ t("storeTitle") }}</h1>
-      <p>{{ t("storeLead") }}</p>
+      <h1>All products</h1>
+      <p>Our complete range of safety accessories</p>
     </div>
-
-    <section v-if="featuredProduct" class="featured-product-card">
-      <div class="featured-product-visual" :class="featuredProduct.tone">
-        <div class="featured-product-badge">Best seller</div>
-        <i :class="`bi ${featuredProduct.icon}`"></i>
-        <span>SAFEHER</span>
-      </div>
-
-      <div class="featured-product-copy">
-        <p class="eyebrow">Bestselling safety pick</p>
-        <h2>{{ featuredProduct.name }}</h2>
-
-        <div class="product-rating-row">
-          <span class="rating-stars">★★★★★</span>
-          <span>4.8</span>
-          <span class="rating-count">(126 reviews)</span>
-        </div>
-
-        <div class="product-price-row">
-          <strong>{{ formatPrice(featuredProduct.price) }}</strong>
-          <span>In stock</span>
-        </div>
-
-        <p class="product-summary">
-          {{ featuredProduct.detail }} — designed for everyday confidence, quick access, and calm in the moments that matter most.
-        </p>
-
-        <div class="feature-actions">
-          <button class="btn btn-dark-plum" @click="emit('add', featuredProduct)">
-            <i class="bi bi-bag-plus"></i> {{ t("add") }}
-          </button>
-          <button class="btn btn-light-plum" @click="openModal(featuredProduct)">View details</button>
-        </div>
-      </div>
-    </section>
 
     <div class="store-layout">
       <div class="product-filter">
@@ -186,13 +143,13 @@ function closeModal() {
           </div>
         </article>
       </div>
+    </div>
 
-      <!-- More button -->
-      <div v-if="filteredProducts.length > 6" class="products-more-section">
-        <button class="btn btn-outline-plum" @click="emit('navigate', 'store-all')">
-          <i class="bi bi-arrow-right"></i> View all products ({{ filteredProducts.length - 6 }} more)
-        </button>
-      </div>
+    <!-- Back button -->
+    <div class="back-to-store">
+      <button class="btn btn-outline-plum" @click="emit('navigate', 'products')">
+        <i class="bi bi-arrow-left"></i> Back to store
+      </button>
     </div>
 
     <!-- Product Detail Modal -->
@@ -251,3 +208,44 @@ function closeModal() {
     </div>
   </main>
 </template>
+
+<style scoped>
+.all-products-page {
+  background: var(--blush);
+  min-height: 100vh;
+  padding-top: 75px;
+  padding-bottom: 100px;
+}
+
+.inner-heading h1 {
+  color: #f2b6c6;
+  font-family: "Syne", sans-serif;
+  font-weight: 700;
+  font-size: clamp(28px, 4vw, 48px);
+}
+
+.back-to-store {
+  display: flex;
+  justify-content: center;
+  padding: 28px 0;
+}
+
+.back-to-store .btn {
+  min-width: 260px;
+}
+
+@media (max-width: 768px) {
+  .all-products-page {
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+
+  .back-to-store {
+    padding: 20px 0;
+  }
+
+  .back-to-store .btn {
+    min-width: 200px;
+  }
+}
+</style>
