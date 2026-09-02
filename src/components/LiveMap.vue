@@ -5,7 +5,10 @@ const props = defineProps({
   location: Object,
   nearest: String,
   compact: Boolean,
+  loading: Boolean,
+  error: String,
 });
+const emit = defineEmits(["locate"]);
 const mapElement = ref(null);
 const locationName = ref("");
 const nearestPoliceName = ref("");
@@ -52,7 +55,7 @@ function update() {
       zIndexOffset: 1000,
     })
       .addTo(map)
-      .bindPopup("<strong>You are here</strong><br>Live location");
+      .bindPopup("<strong>You are here</strong>");
     circle = L.circle(position, {
       radius: props.location.accuracy,
       color: "#d92d36",
@@ -63,6 +66,7 @@ function update() {
     marker.setLatLng(position);
     circle.setLatLng(position).setRadius(props.location.accuracy);
   }
+  marker.openPopup();
   const policeStations = points.filter((point) => point.type === "Police");
   nearestPolice = policeStations.reduce((nearest, point) => {
     const distance = Math.hypot(
@@ -129,7 +133,7 @@ onMounted(async () => {
     zoomControl: false,
     preferCanvas: false,
     attributionControl: true,
-  }).setView([-33.9249, 18.4241], 13);
+  }).fitWorld();
 
   // Add zoom control
   L.control.zoom({ position: "bottomright" }).addTo(map);
@@ -198,11 +202,26 @@ onBeforeUnmount(() => {
       </div>
       <span class="map-status" :class="{ active: location }"
         ><i class="bi bi-circle-fill"></i
-        >{{ location ? "Live now" : "Map ready" }}</span
+        >{{ location ? "LIVE LOCATION" : "Map ready" }}</span
       >
     </div>
     <div class="live-map-wrap">
       <div ref="mapElement" class="live-map"></div>
+      <div class="map-actions">
+        <button class="map-locate-button" :disabled="loading" @click="emit('locate')">
+          <i :class="loading ? 'bi bi-arrow-repeat spin' : 'bi bi-crosshair2'"></i>
+          {{ loading ? "Finding location..." : "Use My Location" }}
+        </button>
+        <a
+          v-if="location"
+          class="map-google-button"
+          :href="`https://www.google.com/maps?q=${location.lat},${location.lng}`"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="bi bi-box-arrow-up-right"></i> OPEN GOOGLE MAPS
+        </a>
+      </div>
       <div class="map-overlay">
         <i class="bi bi-crosshair2"></i
         ><span
@@ -216,6 +235,7 @@ onBeforeUnmount(() => {
           }}</small></span
         >
       </div>
+      <p v-if="error" class="map-location-error" role="alert">{{ error }}</p>
     </div>
   </section>
 </template>
@@ -350,6 +370,57 @@ onBeforeUnmount(() => {
   max-width: 350px;
 }
 
+.map-actions {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 800;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.map-locate-button,
+.map-google-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 42px;
+  padding: 0.6rem 0.85rem;
+  border: 0;
+  border-radius: 10px;
+  background: #351536;
+  color: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(53, 21, 54, 0.25);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.map-locate-button:hover,
+.map-google-button:hover { background: #d92d36; color: #fff; }
+.map-locate-button:disabled { cursor: wait; opacity: 0.8; }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.map-location-error {
+  position: absolute;
+  top: 68px;
+  left: 16px;
+  z-index: 800;
+  max-width: min(360px, calc(100% - 32px));
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 9px;
+  background: #fff1f1;
+  color: #a11c25;
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
 .map-overlay i {
   color: #d92d36;
   font-size: 1.25rem;
@@ -376,6 +447,15 @@ onBeforeUnmount(() => {
 
 .compact-map .live-map-wrap {
   height: 350px;
+}
+
+@media (max-width: 575.98px) {
+  .live-map-wrap { height: 420px; }
+  .compact-map .live-map-wrap { height: 320px; }
+  .map-actions { right: 12px; left: 12px; }
+  .map-locate-button, .map-google-button { flex: 1; justify-content: center; }
+  .map-overlay { right: 12px; bottom: 12px; left: 12px; max-width: none; }
+  .map-location-error { top: 114px; left: 12px; max-width: calc(100% - 24px); }
 }
 </style>
 

@@ -1,7 +1,13 @@
 <script setup>
 import LiveMap from "../components/LiveMap.vue";
 import { t } from "../languageConfig.js";
-defineProps({ locationReady: Boolean, nearest: String, userLocation: Object });
+defineProps({
+  locationReady: Boolean,
+  nearest: String,
+  userLocation: Object,
+  locationLoading: Boolean,
+  locationError: String,
+});
 const emit = defineEmits(["sos", "track", "navigate"]);
 </script>
 <template>
@@ -34,7 +40,7 @@ const emit = defineEmits(["sos", "track", "navigate"]);
             >
           </div>
           <button class="btn btn-track" @click="emit('track')">
-            {{ locationReady ? "Stop tracking" : t("locate") }}
+            {{ locationReady ? "Use My Location" : t("locate") }}
           </button>
         </div>
       </div>
@@ -72,7 +78,13 @@ const emit = defineEmits(["sos", "track", "navigate"]);
         </div>
       </div>
     </section>
-    <LiveMap :location="userLocation" :nearest="nearest" />
+    <LiveMap
+      :location="userLocation"
+      :nearest="nearest"
+      :loading="locationLoading"
+      :error="locationError"
+      @locate="emit('track')"
+    />
     <section class="quick-section container-fluid px-4 px-xl-5">
       <div class="section-heading">
         <div>

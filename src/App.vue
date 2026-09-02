@@ -30,7 +30,8 @@ const menuOpen = ref(false);
 const cart = ref([]);
 const contacts = ref([]);
 const userLocation = ref(null);
-let watcher;
+const locationLoading = ref(false);
+const locationError = ref("");
 
 const products = [
   {
@@ -171,33 +172,34 @@ function removeFromCart(id) {
 
 // ----- Location & SOS -----
 function startTracking() {
-  if (!navigator.geolocation) return;
-  watcher = navigator.geolocation.watchPosition(
+  if (!navigator.geolocation) {
+    locationError.value = "Location is not supported by this browser.";
+    return;
+  }
+
+  locationLoading.value = true;
+  locationError.value = "";
+  navigator.geolocation.getCurrentPosition(
     ({ coords }) => {
       userLocation.value = {
         lat: coords.latitude,
         lng: coords.longitude,
         accuracy: coords.accuracy,
       };
+      locationLoading.value = false;
     },
-    () =>
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        timer: 2200,
-        showConfirmButton: false,
-        icon: "error",
-        title: "Location permission is required",
-      }),
+    (error) => {
+      locationLoading.value = false;
+      locationError.value =
+        error.code === error.PERMISSION_DENIED
+          ? "Location permission was denied. Please allow it and try again."
+          : "We could not get your location. Please try again.";
+    },
     { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 },
   );
 }
 function toggleTracking() {
-  if (userLocation.value && watcher !== undefined) {
-    navigator.geolocation.clearWatch(watcher);
-    watcher = undefined;
-    userLocation.value = null;
-  } else startTracking();
+  startTracking();
 }
 function showSos() {
   Swal.fire({
@@ -539,6 +541,8 @@ const pageProps = computed(() => ({
   view: activeView.value,
   locationReady: locationReady.value,
   userLocation: userLocation.value,
+  locationLoading: locationLoading.value,
+  locationError: locationError.value,
   nearest: nearest.value,
   products: products,
   contacts: contacts.value,
