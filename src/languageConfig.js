@@ -36,6 +36,7 @@ const messages = {
     storeTitle: "Safety products for every day.",
     storeLead: "Practical tools for prevention, protection and peace of mind.",
     safetyAccessory: "Safety accessory",
+    allAccessories: "All Accessories",
     add: "Add",
     guide: "Safety Guide",
     guideLead:
@@ -106,6 +107,7 @@ const messages = {
     storeTitle: "Imikhiqizo yokuphepha yansuku zonke.",
     storeLead: "Amathuluzi okuvikela nokuthula kwengqondo.",
     safetyAccessory: "Izesekeli zokuphepha",
+    allAccessories: "All Accessories",
     add: "Engeza",
     guide: "Umhlahlandlela wokuphepha",
     guideLead:
@@ -176,6 +178,7 @@ const messages = {
     storeTitle: "Veiligheidsprodukte vir elke dag.",
     storeLead: "Praktiese gereedskap vir beskerming en gemoedsrus.",
     safetyAccessory: "Veiligheidsbykomstigheid",
+    allAccessories: "All Accessories",
     add: "Voeg by",
     guide: "Veiligheidsgids",
     guideLead:
@@ -248,6 +251,7 @@ const messages = {
     storeTitle: "Iimveliso zokhuseleko zemihla ngemihla.",
     storeLead: "Izixhobo ezisebenzayo zokhuseleko noxolo lwengqondo.",
     safetyAccessory: "Isixhobo sokhuseleko",
+    allAccessories: "All Accessories",
     add: "Yongeza",
     guide: "Isikhokelo sokhuseleko",
     guideLead:

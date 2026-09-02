@@ -5,6 +5,7 @@ import SiteHeader from "./components/SiteHeader.vue";
 import CartDrawer from "./components/CartDrawer.vue";
 import HomePage from "./pages/HomePage.vue";
 import ProductsPage from "./pages/ProductsPage.vue";
+import AllProductsPage from "./pages/AllProductsPage.vue";
 import SafetyHubPage from "./pages/SafetyHubPage.vue";
 import PremiumVideosPage from "./pages/PremiumVideosPage.vue";
 import PremiumPackagesPage from "./pages/PremiumPackagesPage.vue";
@@ -13,14 +14,18 @@ import OrdersPage from "./pages/OrdersPage.vue";
 import AuthPage from "./pages/AuthPage.vue";
 import InfoPage from "./pages/InfoPage.vue";
 import SiteFooter from "./components/SiteFooter.vue";
+import SafeHerAI from "./components/SafeHerAI.vue";
 import { language } from "./languageConfig.js";
+import { assessDangerLevel } from "./services/dangerAssessment.js";
 
 const isAuthenticated = ref(
   localStorage.getItem("safeher-authenticated") === "true",
 );
 const darkMode = ref(localStorage.getItem("safeher-dark-mode") === "true");
 
-const activeView = ref(isAuthenticated.value ? "index" : "login");
+// Restore activeView from localStorage to prevent redirect on refresh
+const savedView = isAuthenticated.value ? localStorage.getItem("safeher-active-view") : null;
+const activeView = ref(savedView || (isAuthenticated.value ? "index" : "login"));
 const cartOpen = ref(false);
 const menuOpen = ref(false);
 const cart = ref([]);
@@ -110,6 +115,141 @@ const products = [
     tone: "rose",
     category: "travel",
   },
+  {
+    id: 10,
+    name: "Personal Alarm Clip",
+    detail: "Attachable siren for busy commutes",
+    price: 249,
+    icon: "bi-bell",
+    tone: "rose",
+    category: "personal-safety",
+  },
+  {
+    id: 11,
+    name: "Nightlight Safety Lamp",
+    detail: "Soft light for entryways and hallways",
+    price: 219,
+    icon: "bi-lightbulb",
+    tone: "gold",
+    category: "home",
+  },
+  {
+    id: 12,
+    name: "Travel Lock Box",
+    detail: "Discreet secure storage for valuables",
+    price: 329,
+    icon: "bi-lock",
+    tone: "plum",
+    category: "travel",
+  },
+  {
+    id: 13,
+    name: "Flashlight Keyring",
+    detail: "Mini torch with emergency beacon",
+    price: 129,
+    icon: "bi-flashlight",
+    tone: "cream",
+    category: "personal-safety",
+  },
+  {
+    id: 14,
+    name: "Home Entry Alarm",
+    detail: "Alerts you the moment the door opens",
+    price: 449,
+    icon: "bi-door-closed",
+    tone: "rose",
+    category: "home",
+  },
+  {
+    id: 15,
+    name: "Passport Safety Sleeve",
+    detail: "Hidden document protection for travel",
+    price: 119,
+    icon: "bi-passport",
+    tone: "gold",
+    category: "travel",
+  },
+  {
+    id: 16,
+    name: "Pepper Spray Holder",
+    detail: "Easy-grip case with quick access design",
+    price: 169,
+    icon: "bi-shield-lock",
+    tone: "plum",
+    category: "personal-safety",
+  },
+  {
+    id: 17,
+    name: "Smart Window Sensor",
+    detail: "Notifies you of movement or tampering",
+    price: 499,
+    icon: "bi-window-fullscreen",
+    tone: "rose",
+    category: "home",
+  },
+  {
+    id: 18,
+    name: "Road Trip Essentials Kit",
+    detail: "Safety basics for long-distance travel",
+    price: 399,
+    icon: "bi-car-front",
+    tone: "gold",
+    category: "travel",
+  },
+  {
+    id: 19,
+    name: "Safety Bracelet",
+    detail: "Medical alert bracelet with quick ID",
+    price: 189,
+    icon: "bi-heart-pulse",
+    tone: "cream",
+    category: "personal-safety",
+  },
+  {
+    id: 20,
+    name: "Fire Escape Plan Set",
+    detail: "Preparedness cards for your home",
+    price: 89,
+    icon: "bi-exclamation-triangle",
+    tone: "plum",
+    category: "home",
+  },
+  {
+    id: 21,
+    name: "Travel First-Aid Pouch",
+    detail: "Compact emergency essentials case",
+    price: 299,
+    icon: "bi-bandaid",
+    tone: "gold",
+    category: "travel",
+  },
+  {
+    id: 22,
+    name: "Digital Safety Sticker",
+    detail: "Visible ID and emergency response note",
+    price: 139,
+    icon: "bi-tag",
+    tone: "rose",
+    category: "personal-safety",
+  },
+  {
+    id: 23,
+    name: "Safe Home Sensor Pack",
+    detail: "Multi-room motion and alert support",
+    price: 599,
+    icon: "bi-house-door",
+    tone: "plum",
+    category: "home",
+  },
+  {
+    id: 24,
+    name: "Travel Buddy Kit",
+    detail: "All-in-one essentials for safer trips",
+    price: 359,
+    icon: "bi-bag-heart",
+    tone: "gold",
+    category: "travel",
+  },
 ];
 
 const cartCount = computed(() =>
@@ -124,13 +264,153 @@ const nearest = computed(() =>
     ? "Your exact location is active"
     : "Use live tracking to locate yourself",
 );
+function readPremiumMembership() {
+  const email = localStorage.getItem("safeher-client-email");
+  if (!email) return null;
+  try {
+    const memberships = JSON.parse(localStorage.getItem("safeher-premium-memberships") || "{}");
+    const membership = memberships[email];
+    return membership ? { ...membership, email } : null;
+  } catch {
+    return null;
+  }
+}
+const premiumMembership = ref(readPremiumMembership());
+const hasPremiumAccess = computed(() =>
+  Boolean(
+    premiumMembership.value?.expiresAt &&
+      new Date(premiumMembership.value.expiresAt) > new Date(),
+  ),
+);
+
+function updatePremiumMembership(membership) {
+  premiumMembership.value = membership
+    ? { ...membership, email: localStorage.getItem("safeher-client-email") }
+    : null;
+}
+
+function showPremiumSafetyCheck() {
+  if (!hasPremiumAccess.value) return;
+  if (!navigator.geolocation) {
+    // No geolocation API at all — still show a time-based advisory.
+    const assessment = assessDangerLevel(null);
+    showDangerAlert(assessment, true);
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    ({ coords }) => {
+      const assessment = assessDangerLevel({
+        lat: coords.latitude,
+        lng: coords.longitude,
+      });
+      showDangerAlert(assessment, false);
+    },
+    () => {
+      // Location denied or unavailable — still show a time-based advisory
+      // so Premium members always receive their sign-in danger alert.
+      const assessment = assessDangerLevel(null);
+      showDangerAlert(assessment, true);
+    },
+    { enableHighAccuracy: false, maximumAge: 300000, timeout: 10000 },
+  );
+}
+
+function showDangerAlert(assessment, locationUnavailable) {
+  const zoneLabel =
+    assessment.zone && assessment.zone.distance <= assessment.zone.radiusKm
+      ? assessment.zone.label
+      : null;
+  const factorRows = [
+    { label: "Time of day", value: assessment.factors.time.band, points: assessment.factors.time.points },
+    { label: "Weekend uplift", value: assessment.factors.day > 0 ? "Weekend" : "Weekday", points: assessment.factors.day },
+    {
+      label: "Distance to help",
+      value: `~${assessment.factors.helpDistanceKm} km`,
+      points: assessment.factors.helpDistanceKm > 2 ? (assessment.factors.zone > 0 ? assessment.factors.zone : 8) : 0,
+    },
+    {
+      label: "Advisory zone",
+      value: zoneLabel || (assessment.zone ? `${assessment.zone.distance.toFixed(1)} km from ${assessment.zone.label}` : "None"),
+      points: assessment.factors.zone,
+    },
+    { label: "Visibility", value: assessment.factors.weather > 0 ? "Rainy season" : "Clear season", points: assessment.factors.weather },
+  ].filter((row) => row.value);
+
+  Swal.fire({
+    title: "Your Premium danger alert",
+    html: `
+      <div style="font-family: 'DM Sans', sans-serif; text-align:left;">
+        ${
+          locationUnavailable
+            ? `
+          <div style="display:flex; align-items:center; gap:8px; background:#fdf3e2; border:1px solid #f0d9a8; border-radius:10px; padding:9px 12px; margin-bottom:12px; font-size:12px; color:#8a5a12;">
+            <i class="bi bi-geo-alt-fill"></i>
+            <span>Location unavailable — this advisory uses time of day only. Allow location access to get a precise location-based danger level.</span>
+          </div>
+        `
+            : ""
+        }
+        <div style="text-align:center; margin-bottom:14px;">
+          <span style="display:inline-flex; align-items:center; gap:8px; background:${assessment.chip}; color:${assessment.color}; border:1px solid ${assessment.ring}33; border-radius:999px; padding:8px 16px; font-weight:800; font-size:14px; letter-spacing:0.02em;">
+            <i class="bi ${assessment.icon}" style="font-size:16px;"></i>
+            ${assessment.level} danger level at your location
+          </span>
+        </div>
+
+        <div style="background:${assessment.chip}; border:1px solid ${assessment.ring}30; border-radius:12px; padding:14px 16px; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px;">
+            <span style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:${assessment.color};">Danger index</span>
+            <span style="font-size:20px; font-weight:800; color:${assessment.color};">${assessment.score}/100</span>
+          </div>
+          <div style="position:relative; height:10px; border-radius:999px; background:linear-gradient(90deg, #2e9e5b 0%, #e8a13c 40%, #d92d36 70%, #8e0f16 100%); overflow:visible;">
+            <div style="position:absolute; top:50%; left:${assessment.marker}%; transform:translate(-50%, -50%); width:18px; height:18px; border-radius:50%; background:#fff; border:3px solid ${assessment.ring}; box-shadow:0 2px 6px rgba(0,0,0,0.25);" title="${assessment.score}/100"></div>
+          </div>
+        </div>
+
+        <p style="margin:0 0 12px; font-size:13px; line-height:1.6; color:#5a4d5c;">${assessment.guidance}</p>
+
+        ${
+          factorRows.length
+            ? `
+          <div style="background:#f9f4fb; border:1px solid #ecd9ef; border-radius:12px; padding:10px 14px; margin-bottom:12px;">
+            <div style="font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#756d76; margin-bottom:6px;">What this is based on</div>
+            ${factorRows
+              .map(
+                (row) => `
+              <div style="display:flex; justify-content:space-between; gap:10px; font-size:12px; padding:4px 0; color:#5a4d5c;">
+                <span>${row.label}</span>
+                <strong style="color:#351536;">${row.value}${row.points > 0 ? ` · +${row.points}` : ""}</strong>
+              </div>
+            `,
+              )
+              .join("")}
+          </div>
+        `
+            : ""
+        }
+
+        <small style="display:block; color:#756d76; line-height:1.5; font-size:11px;">This advisory is generated from your location, time of day and distance to nearby help points. It is not live crime or emergency data. Always call emergency services if you are in immediate danger.</small>
+      </div>
+    `,
+    confirmButtonText: "I understand",
+    confirmButtonColor: "#351536",
+    width: 480,
+  });
+}
+
+function schedulePremiumSafetyCheck() {
+  window.setTimeout(showPremiumSafetyCheck, 5000);
+}
 
 // ----- Navigation -----
 function navigate(view) {
   if (!isAuthenticated.value && view !== "login" && view !== "registration")
     return;
   if (view === "contact") view = "services";
+  if (view === "packages" && hasPremiumAccess.value) view = "videos";
   activeView.value = view;
+  localStorage.setItem("safeher-active-view", view);
   menuOpen.value = false;
   cartOpen.value = false;
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -268,6 +548,19 @@ function messageContact(contact) {
   if (!contact?.phone) return;
   const body = "I’m checking in — please confirm you received my message.";
   window.location.href = `sms:${contact.phone}?body=${encodeURIComponent(body)}`;
+}
+function contactTrustedPerson() {
+  if (!contacts.value.length) {
+    navigate("safetyhub");
+    Swal.fire({
+      icon: "info",
+      title: "Add a trusted contact",
+      text: "Add one in Safety Hub, then SafeHer AI can help you check in with them.",
+      confirmButtonColor: "#351536",
+    });
+    return;
+  }
+  messageContact(contacts.value[0]);
 }
 
 // ----- Checkout -----
@@ -489,11 +782,20 @@ function authenticated(email) {
   isAuthenticated.value = true;
   localStorage.setItem("safeher-authenticated", "true");
   if (email) localStorage.setItem("safeher-client-email", email);
+  premiumMembership.value = readPremiumMembership();
   activeView.value = "index";
+  // Trigger the Premium danger alert directly here. The AuthPage emits
+  // "sign-in-notification-complete" after it has been unmounted (because
+  // isAuthenticated switches the view), so relying on that event alone is
+  // unreliable. This direct call guarantees the alert fires on every
+  // Premium sign-in.
+  schedulePremiumSafetyCheck();
 }
 function logout() {
   isAuthenticated.value = false;
   localStorage.removeItem("safeher-authenticated");
+  localStorage.removeItem("safeher-active-view");
+  premiumMembership.value = null;
   activeView.value = "login";
 }
 
@@ -501,6 +803,7 @@ function logout() {
 const pageComponentMap = {
   index: HomePage,
   products: ProductsPage,
+  'store-all': AllProductsPage,
   safetyhub: SafetyHubPage,
   videos: PremiumVideosPage,
   packages: PremiumPackagesPage,
@@ -525,6 +828,8 @@ const pageProps = computed(() => ({
   nearest: nearest.value,
   products: products,
   contacts: contacts.value,
+  email: localStorage.getItem("safeher-client-email"),
+  premiumMembership: premiumMembership.value,
 }));
 
 const pageEvents = {
@@ -537,6 +842,7 @@ const pageEvents = {
   share: shareRoute,
   'call-contact': callContact,
   'message-contact': messageContact,
+  'premium-updated': updatePremiumMembership,
 };
 
 // ----- Lifecycle -----
@@ -558,6 +864,7 @@ onMounted(() => {
       :mode="activeView === 'registration' ? 'registration' : 'login'"
       @navigate="navigate"
       @authenticated="authenticated"
+      @sign-in-notification-complete="schedulePremiumSafetyCheck"
     />
     <template v-else>
       <SiteHeader
@@ -595,6 +902,15 @@ onMounted(() => {
       </Transition>
 
       <SiteFooter @navigate="navigate" />
+      <SafeHerAI
+        :location="userLocation"
+        :contacts="contacts"
+        :has-premium-access="hasPremiumAccess"
+        @request-location="startTracking"
+        @activate-sos="showSos"
+        @contact-trusted="contactTrustedPerson"
+        @upgrade="navigate('packages')"
+      />
     </template>
   </div>
 </template>

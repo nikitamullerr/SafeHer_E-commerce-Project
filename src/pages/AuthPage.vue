@@ -3,7 +3,7 @@ import { computed, reactive, ref, watch } from "vue";
 import Swal from "sweetalert2";
 
 const props = defineProps({ mode: String });
-const emit = defineEmits(["navigate", "authenticated"]);
+const emit = defineEmits(["navigate", "authenticated", "sign-in-notification-complete"]);
 
 const name = ref("");
 const email = ref("");
@@ -159,9 +159,10 @@ function prevStep() {
 
 function finishAuth(accountEmail, title) {
   emit("authenticated", accountEmail);
-  Swal.fire({ icon: "success", title, confirmButtonColor: "#351536" }).then(() =>
+  Swal.fire({ icon: "success", title, confirmButtonColor: "#351536" }).then(() => {
     emit("navigate", "index"),
-  );
+    emit("sign-in-notification-complete");
+  });
 }
 
 async function submit() {

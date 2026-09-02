@@ -288,33 +288,5 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
-    <section class="hub-panel tracking-panel">
-      <div class="hub-panel-heading">
-        <h2>Order tracking</h2>
-        <span class="hub-add">{{ orders.length }} recent orders</span>
-      </div>
-
-      <div v-if="latestOrder" class="tracking-card">
-        <div class="tracking-header">
-          <strong>Latest order</strong>
-          <span>#{{ latestOrder.id }}</span>
-        </div>
-        <div class="tracking-steps">
-          <button
-            v-for="stage in orderStages"
-            :key="stage"
-            :class="{ active: latestOrder.status === stage }"
-            @click="advanceOrder(latestOrder.id)"
-          >
-            {{ stage }}
-          </button>
-        </div>
-        <p class="tracking-status">Status: {{ latestOrder.status || 'Confirmed' }}</p>
-      </div>
-      <div v-else class="hub-empty-contacts">
-        <i class="bi bi-bag"></i>
-        <p>Your confirmed orders will appear here.</p>
-      </div>
-    </section>
   </main>
 </template>
