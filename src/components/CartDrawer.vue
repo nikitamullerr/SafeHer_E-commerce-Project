@@ -18,7 +18,13 @@ const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop"]);
       <div v-if="cart.length" class="drawer-items">
         <article v-for="item in cart" :key="item.id" class="drawer-item">
           <div class="drawer-product-art" :class="item.tone">
-            <i :class="`bi ${item.icon}`"></i>
+            <img
+              v-if="item.image"
+              class="product-image"
+              :src="item.image"
+              :alt="item.name"
+            />
+            <i v-else :class="`bi ${item.icon}`"></i>
           </div>
           <div class="drawer-item-info">
             <strong>{{ item.name }}</strong

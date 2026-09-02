@@ -14,6 +14,8 @@ let animationId = null;
 let isAnimating = false;
 let clock = null;
 let totalElapsed = 0;
+let fallbackTimer = null;
+const fallbackActive = ref(false);
 
 const PULSE_COUNT = 3;
 const PULSE_STAGGER = 0.26; // seconds between each ring starting
@@ -131,7 +133,11 @@ function createRingEffect() {
     positions[i * 3 + 1] = Math.sin(angle) * radius;
     positions[i * 3 + 2] = (Math.random() - 0.5) * 0.3;
 
-    const color = new THREE.Color().setHSL(0.98, 0.85, 0.55 + Math.random() * 0.35);
+    const color = new THREE.Color().setHSL(
+      0.98,
+      0.85,
+      0.55 + Math.random() * 0.35,
+    );
     colors[i * 3] = color.r;
     colors[i * 3 + 1] = color.g;
     colors[i * 3 + 2] = color.b;
@@ -201,7 +207,10 @@ function animate() {
     }
 
     // Particle burst, fading a little faster than the rings.
-    const particleProgress = Math.min(totalElapsed / (PULSE_DURATION * 0.85), 1);
+    const particleProgress = Math.min(
+      totalElapsed / (PULSE_DURATION * 0.85),
+      1,
+    );
     const particleDone = particleProgress >= 1;
     if (!particleDone) {
       const pScale = 0.05 + easeOutCubic(particleProgress) * MAX_SCALE * 0.65;
@@ -236,7 +245,12 @@ function animate() {
 function triggerEffect() {
   if (isAnimating) return;
   if (!pulses.length || !flash || !ringParticles) {
-    log("❌ Elements not ready");
+    log("WebGL unavailable; using CSS fallback");
+    fallbackActive.value = true;
+    clearTimeout(fallbackTimer);
+    fallbackTimer = setTimeout(() => {
+      fallbackActive.value = false;
+    }, 1900);
     return;
   }
 
@@ -279,7 +293,7 @@ watch(
     log("active:", newVal);
     if (newVal) triggerEffect();
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 onMounted(() => {
@@ -296,6 +310,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (animationId) cancelAnimationFrame(animationId);
+  clearTimeout(fallbackTimer);
   if (renderer) {
     renderer.dispose();
     if (container.value && renderer.domElement) {
@@ -307,7 +322,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="container" class="sos-effect-container"></div>
+  <div ref="container" class="sos-effect-container">
+    <div v-if="fallbackActive" class="sos-fallback" aria-hidden="true">
+      <span class="sos-fallback-ring"></span>
+      <span class="sos-fallback-ring"></span>
+      <span class="sos-fallback-ring"></span>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -319,5 +340,51 @@ onUnmounted(() => {
   height: 100vh;
   pointer-events: none;
   z-index: 9999;
+}
+
+.sos-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.sos-fallback-ring {
+  position: absolute;
+  width: clamp(96px, 30vw, 280px);
+  aspect-ratio: 1;
+  border: clamp(3px, 0.8vw, 8px) solid #ff3b46;
+  border-radius: 50%;
+  box-shadow:
+    0 0 18px #ff8fa3,
+    inset 0 0 18px #ff8fa3;
+  opacity: 0;
+  animation: sos-fallback-pulse 1.8s ease-out both;
+}
+
+.sos-fallback-ring:nth-child(2) {
+  animation-delay: 0.26s;
+}
+
+.sos-fallback-ring:nth-child(3) {
+  animation-delay: 0.52s;
+}
+
+@keyframes sos-fallback-pulse {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.15);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sos-fallback-ring {
+    animation-duration: 0.01ms;
+  }
 }
 </style>

@@ -128,12 +128,12 @@ onMounted(async () => {
 
   if (!mapElement.value) return;
 
-  // Initialize map with better settings
+  // Start near the local help points until the user shares their location.
   map = L.map(mapElement.value, {
     zoomControl: false,
     preferCanvas: false,
     attributionControl: true,
-  }).fitWorld();
+  }).setView([-33.9249, 18.4241], 12);
 
   // Add zoom control
   L.control.zoom({ position: "bottomright" }).addTo(map);
@@ -208,8 +208,14 @@ onBeforeUnmount(() => {
     <div class="live-map-wrap">
       <div ref="mapElement" class="live-map"></div>
       <div class="map-actions">
-        <button class="map-locate-button" :disabled="loading" @click="emit('locate')">
-          <i :class="loading ? 'bi bi-arrow-repeat spin' : 'bi bi-crosshair2'"></i>
+        <button
+          class="map-locate-button"
+          :disabled="loading"
+          @click="emit('locate')"
+        >
+          <i
+            :class="loading ? 'bi bi-arrow-repeat spin' : 'bi bi-crosshair2'"
+          ></i>
           {{ loading ? "Finding location..." : "Use My Location" }}
         </button>
         <a
@@ -400,10 +406,22 @@ onBeforeUnmount(() => {
 }
 
 .map-locate-button:hover,
-.map-google-button:hover { background: #d92d36; color: #fff; }
-.map-locate-button:disabled { cursor: wait; opacity: 0.8; }
-.spin { animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.map-google-button:hover {
+  background: #d92d36;
+  color: #fff;
+}
+.map-locate-button:disabled {
+  cursor: wait;
+  opacity: 0.8;
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .map-location-error {
   position: absolute;
@@ -450,12 +468,32 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 575.98px) {
-  .live-map-wrap { height: 420px; }
-  .compact-map .live-map-wrap { height: 320px; }
-  .map-actions { right: 12px; left: 12px; }
-  .map-locate-button, .map-google-button { flex: 1; justify-content: center; }
-  .map-overlay { right: 12px; bottom: 12px; left: 12px; max-width: none; }
-  .map-location-error { top: 114px; left: 12px; max-width: calc(100% - 24px); }
+  .live-map-wrap {
+    height: 420px;
+  }
+  .compact-map .live-map-wrap {
+    height: 320px;
+  }
+  .map-actions {
+    right: 12px;
+    left: 12px;
+  }
+  .map-locate-button,
+  .map-google-button {
+    flex: 1;
+    justify-content: center;
+  }
+  .map-overlay {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    max-width: none;
+  }
+  .map-location-error {
+    top: 114px;
+    left: 12px;
+    max-width: calc(100% - 24px);
+  }
 }
 </style>
 

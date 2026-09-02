@@ -18,50 +18,132 @@ const selectedProduct = ref(null);
 
 const productReviews = {
   1: [
-    { name: "Sarah M.", stars: 5, text: "Absolutely reliable. Gave me peace of mind immediately." },
-    { name: "James K.", stars: 5, text: "Fast delivery and excellent build quality. Highly recommended." },
-    { name: "Amara N.", stars: 4, text: "Works great, though the battery life could be longer." },
+    {
+      name: "Sarah M.",
+      stars: 5,
+      text: "Absolutely reliable. Gave me peace of mind immediately.",
+    },
+    {
+      name: "James K.",
+      stars: 5,
+      text: "Fast delivery and excellent build quality. Highly recommended.",
+    },
+    {
+      name: "Amara N.",
+      stars: 4,
+      text: "Works great, though the battery life could be longer.",
+    },
   ],
   2: [
-    { name: "Thandi L.", stars: 5, text: "Powerful and discreet. Exactly what I needed." },
-    { name: "Maria G.", stars: 5, text: "Very easy to carry and deploy. Great safety tool." },
-    { name: "Sophie T.", stars: 4, text: "Good product, took a bit to get used to it." },
+    {
+      name: "Thandi L.",
+      stars: 5,
+      text: "Powerful and discreet. Exactly what I needed.",
+    },
+    {
+      name: "Maria G.",
+      stars: 5,
+      text: "Very easy to carry and deploy. Great safety tool.",
+    },
+    {
+      name: "Sophie T.",
+      stars: 4,
+      text: "Good product, took a bit to get used to it.",
+    },
   ],
   3: [
-    { name: "Zoe P.", stars: 5, text: "Incredibly loud and attention-grabbing. Perfect for emergencies." },
-    { name: "Leah B.", stars: 5, text: "Lightweight and portable. Every woman should have one." },
+    {
+      name: "Zoe P.",
+      stars: 5,
+      text: "Incredibly loud and attention-grabbing. Perfect for emergencies.",
+    },
+    {
+      name: "Leah B.",
+      stars: 5,
+      text: "Lightweight and portable. Every woman should have one.",
+    },
   ],
   4: [
     { name: "Nina H.", stars: 5, text: "Medical info is always with me now." },
-    { name: "Alex R.", stars: 4, text: "Nice design, good quality card stock." },
+    {
+      name: "Alex R.",
+      stars: 4,
+      text: "Nice design, good quality card stock.",
+    },
   ],
   5: [
-    { name: "Elena K.", stars: 5, text: "Smart installation and brilliant app integration." },
-    { name: "Lisa M.", stars: 5, text: "Feels secure knowing doors are monitored." },
+    {
+      name: "Elena K.",
+      stars: 5,
+      text: "Smart installation and brilliant app integration.",
+    },
+    {
+      name: "Lisa M.",
+      stars: 5,
+      text: "Feels secure knowing doors are monitored.",
+    },
   ],
   6: [
-    { name: "Jade S.", stars: 5, text: "Everything essential in one compact bag." },
-    { name: "Carmen L.", stars: 5, text: "Perfect for business trips and vacations." },
+    {
+      name: "Jade S.",
+      stars: 5,
+      text: "Everything essential in one compact bag.",
+    },
+    {
+      name: "Carmen L.",
+      stars: 5,
+      text: "Perfect for business trips and vacations.",
+    },
   ],
   7: [
-    { name: "Ruby T.", stars: 5, text: "Bright LED and emergency whistle—great combo." },
+    {
+      name: "Ruby T.",
+      stars: 5,
+      text: "Bright LED and emergency whistle—great combo.",
+    },
     { name: "Iris D.", stars: 5, text: "Durable and always ready to grab." },
   ],
   8: [
-    { name: "Nora C.", stars: 5, text: "Highly secure and difficult to tamper with." },
-    { name: "Sophia W.", stars: 4, text: "Installation took 30 minutes, very satisfied." },
+    {
+      name: "Nora C.",
+      stars: 5,
+      text: "Highly secure and difficult to tamper with.",
+    },
+    {
+      name: "Sophia W.",
+      stars: 4,
+      text: "Installation took 30 minutes, very satisfied.",
+    },
   ],
   9: [
-    { name: "Vera L.", stars: 5, text: "Fast charging and reliable backup power." },
-    { name: "Diana M.", stars: 5, text: "Essential emergency backup on every trip." },
+    {
+      name: "Vera L.",
+      stars: 5,
+      text: "Fast charging and reliable backup power.",
+    },
+    {
+      name: "Diana M.",
+      stars: 5,
+      text: "Essential emergency backup on every trip.",
+    },
   ],
 };
 
 const getReviews = (productId) => {
-  return productReviews[productId] || [
-    { name: "Verified buyer", stars: 5, text: "A reliable SafeHer essential for everyday confidence." },
-    { name: "Happy customer", stars: 4, text: "Practical, easy to use, and designed with real-life safety in mind." },
-  ];
+  return (
+    productReviews[productId] || [
+      {
+        name: "Verified buyer",
+        stars: 5,
+        text: "A reliable SafeHer essential for everyday confidence.",
+      },
+      {
+        name: "Happy customer",
+        stars: 4,
+        text: "Practical, easy to use, and designed with real-life safety in mind.",
+      },
+    ]
+  );
 };
 
 const filteredProducts = computed(() => {
@@ -113,7 +195,13 @@ function closeModal() {
     <section v-if="featuredProduct" class="featured-product-card">
       <div class="featured-product-visual" :class="featuredProduct.tone">
         <div class="featured-product-badge">Best seller</div>
-        <i :class="`bi ${featuredProduct.icon}`"></i>
+        <img
+          v-if="featuredProduct.image"
+          class="product-image"
+          :src="featuredProduct.image"
+          :alt="featuredProduct.name"
+        />
+        <i v-else :class="`bi ${featuredProduct.icon}`"></i>
         <span>SAFEHER</span>
       </div>
 
@@ -133,14 +221,23 @@ function closeModal() {
         </div>
 
         <p class="product-summary">
-          {{ featuredProduct.detail }} — designed for everyday confidence, quick access, and calm in the moments that matter most.
+          {{ featuredProduct.detail }} — designed for everyday confidence, quick
+          access, and calm in the moments that matter most.
         </p>
 
         <div class="feature-actions">
-          <button class="btn btn-dark-plum" @click="emit('add', featuredProduct)">
+          <button
+            class="btn btn-dark-plum"
+            @click="emit('add', featuredProduct)"
+          >
             <i class="bi bi-bag-plus"></i> {{ t("add") }}
           </button>
-          <button class="btn btn-light-plum" @click="openModal(featuredProduct)">View details</button>
+          <button
+            class="btn btn-light-plum"
+            @click="openModal(featuredProduct)"
+          >
+            View details
+          </button>
         </div>
       </div>
     </section>
@@ -165,7 +262,13 @@ function closeModal() {
           class="product-card"
         >
           <div class="product-art" :class="product.tone">
-            <i :class="`bi ${product.icon}`"></i>
+            <img
+              v-if="product.image"
+              class="product-image"
+              :src="product.image"
+              :alt="product.name"
+            />
+            <i v-else :class="`bi ${product.icon}`"></i>
             <span>SAFEHER</span>
           </div>
           <div class="product-info">
@@ -189,14 +292,20 @@ function closeModal() {
 
       <!-- More button -->
       <div v-if="filteredProducts.length > 6" class="products-more-section">
-        <button class="btn btn-outline-plum" @click="emit('navigate', 'store-all')">
-          <i class="bi bi-arrow-right"></i> View all products ({{ filteredProducts.length - 6 }} more)
+        <button
+          class="btn btn-outline-plum"
+          @click="emit('navigate', 'store-all')"
+        >
+          <i class="bi bi-arrow-right"></i> View all products ({{
+            filteredProducts.length - 6
+          }}
+          more)
         </button>
       </div>
     </div>
 
     <!-- Product Detail Modal -->
-    <div v-if="showModal" class="modal-backdrop" @click="closeModal">
+    <div v-if="showModal" class="product-modal-backdrop" @click="closeModal">
       <div class="product-modal" @click.stop>
         <button class="modal-close" @click="closeModal">
           <i class="bi bi-x-lg"></i>
@@ -205,7 +314,13 @@ function closeModal() {
         <div v-if="selectedProduct" class="modal-content">
           <div class="modal-product-section">
             <div class="modal-product-art" :class="selectedProduct.tone">
-              <i :class="`bi ${selectedProduct.icon}`"></i>
+              <img
+                v-if="selectedProduct.image"
+                class="product-image"
+                :src="selectedProduct.image"
+                :alt="selectedProduct.name"
+              />
+              <i v-else :class="`bi ${selectedProduct.icon}`"></i>
               <span>SAFEHER</span>
             </div>
 
@@ -216,7 +331,9 @@ function closeModal() {
               <div class="product-rating-row">
                 <span class="rating-stars">★★★★★</span>
                 <span>4.8</span>
-                <span class="rating-count">({{ getReviews(selectedProduct.id).length }} reviews)</span>
+                <span class="rating-count"
+                  >({{ getReviews(selectedProduct.id).length }} reviews)</span
+                >
               </div>
 
               <div class="product-price-row">
@@ -228,7 +345,13 @@ function closeModal() {
                 {{ selectedProduct.detail }}
               </p>
 
-              <button class="btn btn-dark-plum" @click="emit('add', selectedProduct); closeModal()">
+              <button
+                class="btn btn-dark-plum"
+                @click="
+                  emit('add', selectedProduct);
+                  closeModal();
+                "
+              >
                 <i class="bi bi-bag-plus"></i> Add to bag
               </button>
             </div>
@@ -237,10 +360,16 @@ function closeModal() {
           <div class="modal-reviews-section">
             <h3>Customer reviews</h3>
             <div class="reviews-list">
-              <article v-for="(review, idx) in getReviews(selectedProduct.id)" :key="idx" class="review-card">
+              <article
+                v-for="(review, idx) in getReviews(selectedProduct.id)"
+                :key="idx"
+                class="review-card"
+              >
                 <div class="review-header">
                   <strong>{{ review.name }}</strong>
-                  <span class="review-stars">{{ "★".repeat(review.stars) }}</span>
+                  <span class="review-stars">{{
+                    "★".repeat(review.stars)
+                  }}</span>
                 </div>
                 <p class="review-text">{{ review.text }}</p>
               </article>

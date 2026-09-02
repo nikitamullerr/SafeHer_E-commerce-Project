@@ -15,6 +15,7 @@ import AuthPage from "./pages/AuthPage.vue";
 import InfoPage from "./pages/InfoPage.vue";
 import SiteFooter from "./components/SiteFooter.vue";
 import SafeHerAI from "./components/SafeHerAI.vue";
+import SOSEffect from "./components/SOSEffect.vue";
 import { language } from "./languageConfig.js";
 import { assessDangerLevel } from "./services/dangerAssessment.js";
 
@@ -24,10 +25,15 @@ const isAuthenticated = ref(
 const darkMode = ref(localStorage.getItem("safeher-dark-mode") === "true");
 
 // Restore activeView from localStorage to prevent redirect on refresh
-const savedView = isAuthenticated.value ? localStorage.getItem("safeher-active-view") : null;
-const activeView = ref(savedView || (isAuthenticated.value ? "index" : "login"));
+const savedView = isAuthenticated.value
+  ? localStorage.getItem("safeher-active-view")
+  : null;
+const activeView = ref(
+  savedView || (isAuthenticated.value ? "index" : "login"),
+);
 const cartOpen = ref(false);
 const menuOpen = ref(false);
+const sosActive = ref(false);
 const cart = ref([]);
 const contacts = ref([]);
 const userLocation = ref(null);
@@ -41,6 +47,7 @@ const products = [
     detail: "Wearable GPS alert",
     price: 899,
     icon: "bi-broadcast-pin",
+    image: "https://i.ibb.co/yn1NHJvF/panic-button-gallery-13.jpg",
     tone: "rose",
     category: "personal-safety",
   },
@@ -50,6 +57,8 @@ const products = [
     detail: "Compact & discreet",
     price: 149,
     icon: "bi-shield-shaded",
+    image:
+      "https://i.ibb.co/5hnVXV5x/NEWSIZEFog-Heat-MK3-509e0365-f200-4a49-bdc8-b61d097a26d5.jpg",
     tone: "plum",
     category: "home",
   },
@@ -59,6 +68,7 @@ const products = [
     detail: "High-decibel alarm",
     price: 79,
     icon: "bi-megaphone",
+    image: "https://i.ibb.co/JWCp8rB0/61l2-Sp9-Sss-L.jpg",
     tone: "gold",
     category: "travel",
   },
@@ -68,6 +78,7 @@ const products = [
     detail: "Quick-access ID and medical info",
     price: 99,
     icon: "bi-person-vcard",
+    image: "https://i.ibb.co/7dcV0dzc/ICEw-Digital5pack-61593-1755633471.jpg",
     tone: "cream",
     category: "personal-safety",
   },
@@ -77,6 +88,7 @@ const products = [
     detail: "Smart entry alert for your home",
     price: 399,
     icon: "bi-door-open",
+    image: "https://i.ibb.co/Zz9wN8KZ/ooma-door-window-sensor.jpg",
     tone: "rose",
     category: "home",
   },
@@ -86,6 +98,8 @@ const products = [
     detail: "Compact essentials for on-the-go trips",
     price: 279,
     icon: "bi-bag-check",
+    image:
+      "https://i.ibb.co/wrwWMY8V/tal-pickpocketed-tout-62aad4629f384fd2bd5ca630a0e2de41.jpg",
     tone: "plum",
     category: "travel",
   },
@@ -95,6 +109,8 @@ const products = [
     detail: "Small, bright and always within reach",
     price: 199,
     icon: "bi-key",
+    image:
+      "https://i.ibb.co/yFrvhG5x/130d-B-Wireless-Sos-Button-Anti-Attack-Personal-Safety-Security-Keychain-Alarm-Devices-for-Women.webp",
     tone: "gold",
     category: "personal-safety",
   },
@@ -104,6 +120,8 @@ const products = [
     detail: "Extra deterrent for secure homes",
     price: 149,
     icon: "bi-window",
+    image:
+      "https://i.ibb.co/nsHHYhXB/cubelock-window-child-safety-lock-restrictor-2325-p.png",
     tone: "cream",
     category: "home",
   },
@@ -113,6 +131,7 @@ const products = [
     detail: "Emergency backup for daily travel",
     price: 179,
     icon: "bi-phone",
+    image: "https://i.ibb.co/XffBnJWh/5-1024x1024.png",
     tone: "rose",
     category: "travel",
   },
@@ -122,6 +141,7 @@ const products = [
     detail: "Attachable siren for busy commutes",
     price: 249,
     icon: "bi-bell",
+    image: "https://i.ibb.co/VsBBBfC/pa-clip-colors.jpg",
     tone: "rose",
     category: "personal-safety",
   },
@@ -131,6 +151,8 @@ const products = [
     detail: "Soft light for entryways and hallways",
     price: 219,
     icon: "bi-lightbulb",
+    image:
+      "https://i.ibb.co/j9bcFrJb/led-safety-night-light-plug-in-light-sensor-emergency-lamp-child-safety-lamp-8581684635341-06c-MP-M.webp",
     tone: "gold",
     category: "home",
   },
@@ -140,6 +162,7 @@ const products = [
     detail: "Discreet secure storage for valuables",
     price: 329,
     icon: "bi-lock",
+    image: "https://i.ibb.co/LX9cgZ9T/s-zoom.jpg",
     tone: "plum",
     category: "travel",
   },
@@ -149,6 +172,7 @@ const products = [
     detail: "Mini torch with emergency beacon",
     price: 129,
     icon: "bi-flashlight",
+    image: "https://i.ibb.co/7tj3d4JH/GFT-19-MF-black.png",
     tone: "cream",
     category: "personal-safety",
   },
@@ -158,6 +182,7 @@ const products = [
     detail: "Alerts you the moment the door opens",
     price: 449,
     icon: "bi-door-closed",
+    image: "https://i.ibb.co/Q7msMFDt/HS-DHA.jpg",
     tone: "rose",
     category: "home",
   },
@@ -167,6 +192,7 @@ const products = [
     detail: "Hidden document protection for travel",
     price: 119,
     icon: "bi-passport",
+    image: "https://i.ibb.co/8gSz1cMx/rfid-blocking-passport-sleeve-730782.jpg",
     tone: "gold",
     category: "travel",
   },
@@ -176,6 +202,7 @@ const products = [
     detail: "Easy-grip case with quick access design",
     price: 169,
     icon: "bi-shield-lock",
+    image: "https://i.ibb.co/Kx6HFkL2/71-CRWg3-IGRL-AC-UY1000.jpg",
     tone: "plum",
     category: "personal-safety",
   },
@@ -185,6 +212,7 @@ const products = [
     detail: "Notifies you of movement or tampering",
     price: 499,
     icon: "bi-window-fullscreen",
+    image: "https://i.ibb.co/BKf15RXx/Tuya-D06-Door-Window-sensor-2-result.jpg",
     tone: "rose",
     category: "home",
   },
@@ -194,6 +222,8 @@ const products = [
     detail: "Safety basics for long-distance travel",
     price: 399,
     icon: "bi-car-front",
+    image:
+      "https://i.ibb.co/cSHx0qCL/mountain-road-warrior-vehicle-emergency-kit.jpg",
     tone: "gold",
     category: "travel",
   },
@@ -203,6 +233,7 @@ const products = [
     detail: "Medical alert bracelet with quick ID",
     price: 189,
     icon: "bi-heart-pulse",
+    image: "https://i.ibb.co/xtY5MpX7/SOS-ID-Wristband-children-1024x1024.webp",
     tone: "cream",
     category: "personal-safety",
   },
@@ -212,6 +243,7 @@ const products = [
     detail: "Preparedness cards for your home",
     price: 89,
     icon: "bi-exclamation-triangle",
+    image: "https://i.ibb.co/fdFRTjR0/il-fullxfull-7068051978-tnfd.jpg",
     tone: "plum",
     category: "home",
   },
@@ -221,6 +253,8 @@ const products = [
     detail: "Compact emergency essentials case",
     price: 299,
     icon: "bi-bandaid",
+    image:
+      "https://i.ibb.co/KjdYCJLn/Mini-First-Aid-Kit-In-Zip-Pouch-2025-3-700x700.jpg",
     tone: "gold",
     category: "travel",
   },
@@ -230,6 +264,7 @@ const products = [
     detail: "Visible ID and emergency response note",
     price: 139,
     icon: "bi-tag",
+    image: "https://i.ibb.co/HTsVQwnY/Emergency-ID-Smart-nfc.webp",
     tone: "rose",
     category: "personal-safety",
   },
@@ -239,6 +274,8 @@ const products = [
     detail: "Multi-room motion and alert support",
     price: 599,
     icon: "bi-house-door",
+    image:
+      "https://i.ibb.co/MD8Q814h/4-AJAX-White-Alarm-System-Indoor-Starter-Kit-4-Passive-Motion-Cam.jpg",
     tone: "plum",
     category: "home",
   },
@@ -248,6 +285,7 @@ const products = [
     detail: "All-in-one essentials for safer trips",
     price: 359,
     icon: "bi-bag-heart",
+    image: "https://i.ibb.co/PdjqWYK/HBK001-Holts-Travel-Buddy-Boot-Kit.png",
     tone: "gold",
     category: "travel",
   },
@@ -269,7 +307,9 @@ function readPremiumMembership() {
   const email = localStorage.getItem("safeher-client-email");
   if (!email) return null;
   try {
-    const memberships = JSON.parse(localStorage.getItem("safeher-premium-memberships") || "{}");
+    const memberships = JSON.parse(
+      localStorage.getItem("safeher-premium-memberships") || "{}",
+    );
     const membership = memberships[email];
     return membership ? { ...membership, email } : null;
   } catch {
@@ -280,7 +320,7 @@ const premiumMembership = ref(readPremiumMembership());
 const hasPremiumAccess = computed(() =>
   Boolean(
     premiumMembership.value?.expiresAt &&
-      new Date(premiumMembership.value.expiresAt) > new Date(),
+    new Date(premiumMembership.value.expiresAt) > new Date(),
   ),
 );
 
@@ -323,19 +363,40 @@ function showDangerAlert(assessment, locationUnavailable) {
       ? assessment.zone.label
       : null;
   const factorRows = [
-    { label: "Time of day", value: assessment.factors.time.band, points: assessment.factors.time.points },
-    { label: "Weekend uplift", value: assessment.factors.day > 0 ? "Weekend" : "Weekday", points: assessment.factors.day },
+    {
+      label: "Time of day",
+      value: assessment.factors.time.band,
+      points: assessment.factors.time.points,
+    },
+    {
+      label: "Weekend uplift",
+      value: assessment.factors.day > 0 ? "Weekend" : "Weekday",
+      points: assessment.factors.day,
+    },
     {
       label: "Distance to help",
       value: `~${assessment.factors.helpDistanceKm} km`,
-      points: assessment.factors.helpDistanceKm > 2 ? (assessment.factors.zone > 0 ? assessment.factors.zone : 8) : 0,
+      points:
+        assessment.factors.helpDistanceKm > 2
+          ? assessment.factors.zone > 0
+            ? assessment.factors.zone
+            : 8
+          : 0,
     },
     {
       label: "Advisory zone",
-      value: zoneLabel || (assessment.zone ? `${assessment.zone.distance.toFixed(1)} km from ${assessment.zone.label}` : "None"),
+      value:
+        zoneLabel ||
+        (assessment.zone
+          ? `${assessment.zone.distance.toFixed(1)} km from ${assessment.zone.label}`
+          : "None"),
       points: assessment.factors.zone,
     },
-    { label: "Visibility", value: assessment.factors.weather > 0 ? "Rainy season" : "Clear season", points: assessment.factors.weather },
+    {
+      label: "Visibility",
+      value: assessment.factors.weather > 0 ? "Rainy season" : "Clear season",
+      points: assessment.factors.weather,
+    },
   ].filter((row) => row.value);
 
   Swal.fire({
@@ -478,34 +539,48 @@ function toggleTracking() {
   startTracking();
 }
 function showSos() {
+  const countdownSeconds = 5;
+  let countdownTimer;
+
   Swal.fire({
-    title: "Send an SOS?",
-    text: "Your trusted contacts and nearby help will be alerted.",
+    title: "SOS activating",
+    html: `Your SOS will be sent in <strong id="sos-countdown">${countdownSeconds}</strong> seconds.`,
     icon: "warning",
+    showConfirmButton: false,
     showCancelButton: true,
-    confirmButtonText: "Send SOS now",
-    confirmButtonColor: "#d92d36",
+    cancelButtonText: "Cancel SOS",
     cancelButtonColor: "#351536",
+    timer: countdownSeconds * 1000,
+    timerProgressBar: true,
+    didOpen: () => {
+      const countdownElement =
+        Swal.getHtmlContainer()?.querySelector("#sos-countdown");
+      let secondsLeft = countdownSeconds;
+      countdownTimer = setInterval(() => {
+        secondsLeft -= 1;
+        if (countdownElement)
+          countdownElement.textContent = String(Math.max(secondsLeft, 0));
+      }, 1000);
+    },
+    willClose: () => {
+      clearInterval(countdownTimer);
+    },
   }).then((result) => {
-    if (result.isConfirmed) {
-      // Show success message WITHOUT blocking the effect
+    if (result.dismiss === Swal.DismissReason.timer) {
+      sosActive.value = true;
+
       Swal.fire({
+        toast: true,
+        position: "top-end",
         title: "SOS activated",
         text: "Your safety circle has been notified.",
         icon: "success",
-        confirmButtonColor: "#351536",
         timer: 1500,
-        timerProgressBar: true,
-        willClose: () => {
-          // --- TRIGGER THE 3D EFFECT AFTER THE ALERT CLOSES ---
-          sosActive.value = true;
-
-          // Reset after 3 seconds
-          setTimeout(() => {
-            sosActive.value = false;
-          }, 3000);
-        },
       });
+
+      setTimeout(() => {
+        sosActive.value = false;
+      }, 3000);
     }
   });
 }
@@ -583,11 +658,28 @@ function checkout() {
   if (!cart.value.length) return;
   const orderTotal = cartTotal.value;
   const deliveryOptions = [
-    { value: "standard", label: "Standard delivery", fee: 49, eta: "2-4 working days" },
-    { value: "express", label: "Express delivery", fee: 99, eta: "1-2 working days" },
-    { value: "pickup", label: "Click & collect", fee: 0, eta: "Ready in 24 hours" },
+    {
+      value: "standard",
+      label: "Standard delivery",
+      fee: 49,
+      eta: "2-4 working days",
+    },
+    {
+      value: "express",
+      label: "Express delivery",
+      fee: 99,
+      eta: "1-2 working days",
+    },
+    {
+      value: "pickup",
+      label: "Click & collect",
+      fee: 0,
+      eta: "Ready in 24 hours",
+    },
   ];
-  const savedAddresses = JSON.parse(localStorage.getItem("safeher-delivery-addresses") || "[]");
+  const savedAddresses = JSON.parse(
+    localStorage.getItem("safeher-delivery-addresses") || "[]",
+  );
 
   Swal.fire({
     title: "Secure checkout",
@@ -705,20 +797,28 @@ function checkout() {
       const addressField = document.getElementById("delivery-address");
 
       const updateDeliveryMeta = () => {
-        const selected = deliveryOptions.find((option) => option.value === deliveryMethod.value);
+        const selected = deliveryOptions.find(
+          (option) => option.value === deliveryMethod.value,
+        );
         if (!selected) return;
         if (deliveryEta) deliveryEta.textContent = selected.eta;
-        if (deliveryFee) deliveryFee.textContent = `R${selected.fee.toLocaleString()}`;
-        if (totalValue) totalValue.textContent = `Pay R${(orderTotal + selected.fee).toLocaleString()}`;
+        if (deliveryFee)
+          deliveryFee.textContent = `R${selected.fee.toLocaleString()}`;
+        if (totalValue)
+          totalValue.textContent = `Pay R${(orderTotal + selected.fee).toLocaleString()}`;
       };
 
-      if (deliveryMethod) deliveryMethod.addEventListener("change", updateDeliveryMeta);
+      if (deliveryMethod)
+        deliveryMethod.addEventListener("change", updateDeliveryMeta);
       if (savedSelect) {
         savedSelect.addEventListener("change", (event) => {
           const selectedId = event.target.value;
           if (!selectedId) return;
-          const selectedAddress = savedAddresses.find((address) => String(address.id) === String(selectedId));
-          if (selectedAddress && addressField) addressField.value = selectedAddress.address;
+          const selectedAddress = savedAddresses.find(
+            (address) => String(address.id) === String(selectedId),
+          );
+          if (selectedAddress && addressField)
+            addressField.value = selectedAddress.address;
         });
       }
 
@@ -739,25 +839,39 @@ function checkout() {
         Swal.showValidationMessage("Add a delivery address to continue.");
         return false;
       }
-      if (!name || number.length < 12 || !/^\d{2}\/\d{2}$/.test(expiry) || !/^\d{3,4}$/.test(cvv)) {
+      if (
+        !name ||
+        number.length < 12 ||
+        !/^\d{2}\/\d{2}$/.test(expiry) ||
+        !/^\d{3,4}$/.test(cvv)
+      ) {
         Swal.showValidationMessage("Enter valid payment details to continue.");
         return false;
       }
       if (saveAddress) {
-        const addresses = JSON.parse(localStorage.getItem("safeher-delivery-addresses") || "[]");
+        const addresses = JSON.parse(
+          localStorage.getItem("safeher-delivery-addresses") || "[]",
+        );
         const cleanAddress = address.replace(/\s+/g, " ").trim();
         const newAddress = {
           id: Date.now(),
-          label: cleanAddress.split(",").slice(0, 2).join(", ").slice(0, 40) || "Saved address",
+          label:
+            cleanAddress.split(",").slice(0, 2).join(", ").slice(0, 40) ||
+            "Saved address",
           address: cleanAddress,
         };
         if (!addresses.some((item) => item.address === cleanAddress)) {
           addresses.push(newAddress);
-          localStorage.setItem("safeher-delivery-addresses", JSON.stringify(addresses));
+          localStorage.setItem(
+            "safeher-delivery-addresses",
+            JSON.stringify(addresses),
+          );
         }
       }
 
-      const selectedDelivery = deliveryOptions.find((option) => option.value === deliveryMethod);
+      const selectedDelivery = deliveryOptions.find(
+        (option) => option.value === deliveryMethod,
+      );
       return {
         name,
         method: document.getElementById("payment-method").value,
@@ -776,7 +890,11 @@ function checkout() {
       total: finalTotal,
       deliveryMethod: result.value.deliveryMethod,
       deliveryAddress: result.value.address,
-      items: cart.value.map(({ id, name, quantity }) => ({ id, name, quantity })),
+      items: cart.value.map(({ id, name, quantity }) => ({
+        id,
+        name,
+        quantity,
+      })),
       paymentMethod: result.value.method,
       createdAt: new Date().toISOString(),
     });
@@ -818,7 +936,7 @@ function logout() {
 const pageComponentMap = {
   index: HomePage,
   products: ProductsPage,
-  'store-all': AllProductsPage,
+  "store-all": AllProductsPage,
   safetyhub: SafetyHubPage,
   videos: PremiumVideosPage,
   packages: PremiumPackagesPage,
@@ -829,7 +947,11 @@ const pageComponentMap = {
 };
 // InfoPage handles any other views (services, guide, etc.)
 const currentPageComponent = computed(() => {
-  if (activeView.value === 'services' || activeView.value === 'guide' || activeView.value === 'contact') {
+  if (
+    activeView.value === "services" ||
+    activeView.value === "guide" ||
+    activeView.value === "contact"
+  ) {
     return InfoPage;
   }
   return pageComponentMap[activeView.value] || InfoPage;
@@ -854,12 +976,12 @@ const pageEvents = {
   track: toggleTracking,
   navigate: navigate,
   add: addToCart,
-  'add-contact': addContact,
-  'remove-contact': removeContact,
+  "add-contact": addContact,
+  "remove-contact": removeContact,
   share: shareRoute,
-  'call-contact': callContact,
-  'message-contact': messageContact,
-  'premium-updated': updatePremiumMembership,
+  "call-contact": callContact,
+  "message-contact": messageContact,
+  "premium-updated": updatePremiumMembership,
 };
 
 // ----- Lifecycle -----
@@ -919,6 +1041,7 @@ onMounted(() => {
       </Transition>
 
       <SiteFooter @navigate="navigate" />
+      <SOSEffect :active="sosActive" />
       <SafeHerAI
         :location="userLocation"
         :contacts="contacts"
