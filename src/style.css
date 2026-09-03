@@ -5542,9 +5542,9 @@ body,
   }
 }
 
-/* ============================================
+/* 
    ORDERS PAGE
-   ============================================ */
+  */
 .orders-page {
   background: var(--blush, #fdf6f8);
   padding-top: 70px;
@@ -5919,9 +5919,9 @@ body,
   }
 }
 
-/* ============================================
+/* 
    PRODUCTS PAGE - VIEW MORE & FEATURED DARK MODE
-   ============================================ */
+  */
 .products-more-section {
   display: flex;
   justify-content: center;
@@ -7331,9 +7331,9 @@ body,
 .dark-mode .featured-product-copy .product-price-row span {
   color: #2eaa6c;
 }
-/* ============================================
+/* 
    PRODUCT DETAILS MODAL
-   ============================================ */
+  */
 .product-modal-backdrop {
   position: fixed;
   inset: 0;
