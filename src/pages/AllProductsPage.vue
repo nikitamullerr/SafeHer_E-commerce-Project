@@ -331,7 +331,7 @@ function closeModal() {
 }
 
 .inner-heading h1 {
-  color: #f2b6c6;
+  color: var(--plum);
   font-family: "Syne", sans-serif;
   font-weight: 700;
   font-size: clamp(28px, 4vw, 48px);

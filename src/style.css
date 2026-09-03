@@ -7654,6 +7654,32 @@ body,
   max-width: none;
 }
 
+.page-heading h1,
+.inner-heading h1,
+.guide-heading h1,
+.premium-heading h1,
+.premium-heading h1 em,
+.packages-heading h1,
+.packages-heading h1 em,
+.reviews-header h1,
+.hub-header h1,
+.orders-header h1 {
+  color: var(--plum) !important;
+}
+
+.dark-mode .page-heading h1,
+.dark-mode .inner-heading h1,
+.dark-mode .guide-heading h1,
+.dark-mode .premium-heading h1,
+.dark-mode .premium-heading h1 em,
+.dark-mode .packages-heading h1,
+.dark-mode .packages-heading h1 em,
+.dark-mode .reviews-header h1,
+.dark-mode .hub-header h1,
+.dark-mode .orders-header h1 {
+  color: var(--plum) !important;
+}
+
 @media (max-width: 600px) {
   .page-heading h1,
   .inner-heading h1,
@@ -7665,4 +7691,23 @@ body,
   .orders-header h1 {
     font-size: 32px;
   }
+}
+
+.app-shell.dark-mode h1,
+.app-shell.dark-mode h2,
+.app-shell.dark-mode h3,
+.app-shell.dark-mode h4,
+.app-shell.dark-mode h5,
+.app-shell.dark-mode h6,
+.app-shell.dark-mode h1 em,
+.app-shell.dark-mode h2 em,
+.app-shell.dark-mode h3 em,
+.app-shell.dark-mode h4 em,
+.app-shell.dark-mode h5 em,
+.app-shell.dark-mode h6 em {
+  color: var(--plum) !important;
+}
+
+.app-shell.dark-mode .featured-product-copy h2 {
+  color: var(--plum) !important;
 }
