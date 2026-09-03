@@ -7,6 +7,8 @@ const props = defineProps({
   contacts: Array,
   locationReady: Boolean,
   userLocation: Object,
+  locationLoading: Boolean,
+  locationError: String,
 });
 const emit = defineEmits([
   "add-contact",
@@ -166,7 +168,7 @@ onBeforeUnmount(() => {
     </section>
     <section class="hub-main-grid">
       <article class="hub-panel location-panel">
-        <LiveMap :location="props.userLocation" compact @request-location="emit('track')" />
+        <LiveMap :location="props.userLocation" :location-loading="props.locationLoading" :location-error="props.locationError" compact @request-location="emit('track')" />
         <div class="hub-map-footer">
           <span
             ><i class="bi bi-crosshair2"></i
@@ -175,8 +177,8 @@ onBeforeUnmount(() => {
                 ? "Live GPS tracking active"
                 : "Location sharing is private"
             }}</span
-          ><button @click="emit('track')">
-            {{ locationReady ? "Stop tracking" : "Locate me" }}
+          ><button :disabled="locationLoading" @click="emit('track')">
+            {{ locationLoading ? "Locating…" : "Locate me" }}
           </button>
         </div>
       </article>

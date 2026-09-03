@@ -3,6 +3,8 @@ import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import L from "leaflet";
 const props = defineProps({
   location: Object,
+  locationLoading: Boolean,
+  locationError: String,
   nearest: String,
   compact: Boolean,
 });
@@ -33,7 +35,7 @@ function update() {
       zIndexOffset: 1000,
     })
       .addTo(map)
-      .bindPopup("<strong>You are here</strong><br>Live location");
+      .bindPopup("<strong>You are here</strong>");
     circle = L.circle(position, {
       radius: props.location.accuracy,
       color: "#d92d36",
@@ -75,6 +77,7 @@ function update() {
     }
   });
   map.setView(position, Math.max(map.getZoom(), 16), { animate: true });
+  marker.openPopup();
 }
 async function findLocationName(location) {
   if (!location) {
@@ -102,7 +105,7 @@ function openGoogleMaps() {
     ? `${props.location.lat},${props.location.lng}`
     : "";
   const url = coordinates
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coordinates)}`
+    ? `https://www.google.com/maps?q=${encodeURIComponent(coordinates)}`
     : "https://www.google.com/maps";
   window.open(url, "_blank", "noopener,noreferrer");
 }
@@ -112,10 +115,9 @@ onMounted(() => {
     5,
   );
   L.control.zoom({ position: "bottomright" }).addTo(map);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-    attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
-    subdomains: "abcd",
-    maxZoom: 20,
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
   }).addTo(map);
   helpMarkers = points.map((point) => {
     const helpMarker = L.marker([point.lat, point.lng], {
@@ -165,7 +167,7 @@ onBeforeUnmount(() => {
       </div>
       <span class="map-status" :class="{ active: location }"
         ><i class="bi bi-circle-fill"></i
-        >{{ location ? "Live now" : "Location private" }}</span
+        >{{ location ? "LIVE LOCATION" : "Location private" }}</span
       >
     </div>
     <div class="live-map-wrap">
@@ -183,10 +185,17 @@ onBeforeUnmount(() => {
           }}</small></span
         >
       </div>
+      <div v-if="locationLoading" class="map-location-message" role="status">
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Finding your location…
+      </div>
+      <div v-else-if="locationError" class="map-location-message error" role="alert">
+        {{ locationError }}
+      </div>
       <div class="map-actions">
-        <button class="btn btn-track" @click="emit('request-location')">
+        <button class="btn btn-track" :disabled="locationLoading" @click="emit('request-location')">
           <i class="bi bi-crosshair"></i>
-          {{ location ? "Refresh location" : "Use my location" }}
+          {{ locationLoading ? "Locating…" : location ? "Locate me" : "Use my location" }}
         </button>
         <button class="btn btn-outline-plum" @click="openGoogleMaps">
           <i class="bi bi-map"></i> Open Google Maps
@@ -199,5 +208,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .map-actions { position:absolute; right:16px; bottom:16px; z-index:500; display:flex; gap:8px; flex-wrap:wrap; }
 .map-actions .btn { font-size:12px; box-shadow:0 4px 14px rgba(53,21,54,.2); }
+.map-location-message { position:absolute; z-index:500; top:16px; left:16px; max-width:min(360px, calc(100% - 32px)); padding:9px 12px; background:#fff; color:#351536; box-shadow:0 4px 14px rgba(53,21,54,.2); font-size:12px; font-weight:600; }
+.map-location-message .spinner-border { margin-right:7px; vertical-align:-2px; }
+.map-location-message.error { color:#a51d26; border-left:3px solid #d92d36; }
 @media (max-width: 576px) { .map-actions { left:12px; right:12px; bottom:12px; } .map-actions .btn { flex:1; padding:7px 8px; } }
 </style>
