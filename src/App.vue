@@ -18,6 +18,7 @@ import SafeHerAI from "./components/SafeHerAI.vue";
 import SOSEffect from "./components/SOSEffect.vue";
 import { language } from "./languageConfig.js";
 import { assessDangerLevel } from "./services/dangerAssessment.js";
+import api from "./services/api.js";
 
 const isAuthenticated = ref(
   localStorage.getItem("safeher-authenticated") === "true",
@@ -40,7 +41,7 @@ const userLocation = ref(null);
 const locationLoading = ref(false);
 const locationError = ref("");
 
-const products = [
+const products = ref([
   {
     id: 1,
     name: "Smart Panic Button",
@@ -289,7 +290,7 @@ const products = [
     tone: "gold",
     category: "travel",
   },
-];
+]);
 
 const cartCount = computed(() =>
   cart.value.reduce((sum, item) => sum + item.quantity, 0),
@@ -880,33 +881,35 @@ function checkout() {
         address,
       };
     },
-  }).then((result) => {
+  }).then(async (result) => {
     if (!result.isConfirmed) return;
     const finalTotal = orderTotal + result.value.deliveryFee;
-    const orders = JSON.parse(localStorage.getItem("safeher-orders") || "[]");
-    orders.push({
-      id: Date.now(),
-      email: localStorage.getItem("safeher-client-email"),
-      total: finalTotal,
-      deliveryMethod: result.value.deliveryMethod,
-      deliveryAddress: result.value.address,
-      items: cart.value.map(({ id, name, quantity }) => ({
-        id,
-        name,
-        quantity,
-      })),
-      paymentMethod: result.value.method,
-      createdAt: new Date().toISOString(),
-    });
-    localStorage.setItem("safeher-orders", JSON.stringify(orders));
-    cart.value = [];
-    cartOpen.value = false;
-    Swal.fire({
-      title: "Payment successful",
-      text: `Your order is confirmed. Delivery: ${result.value.deliveryMethod} • Total: R${finalTotal.toLocaleString()}`,
-      icon: "success",
-      confirmButtonColor: "#351536",
-    });
+    try {
+      await api.post("/orders", {
+        items: cart.value.map(({ id, quantity }) => ({
+          productId: id,
+          quantity,
+        })),
+        deliveryAddress: result.value.address,
+        deliveryMethod: result.value.deliveryMethod,
+        paymentMethod: result.value.method,
+      });
+      cart.value = [];
+      cartOpen.value = false;
+      Swal.fire({
+        title: "Payment successful",
+        text: `Your order is confirmed. Delivery: ${result.value.deliveryMethod} • Total: R${finalTotal.toLocaleString()}`,
+        icon: "success",
+        confirmButtonColor: "#351536",
+      });
+    } catch (error) {
+      Swal.fire({
+        title: "Order could not be placed",
+        text: error.response?.data?.error || "Please try again.",
+        icon: "error",
+        confirmButtonColor: "#351536",
+      });
+    }
   });
 }
 
@@ -965,7 +968,7 @@ const pageProps = computed(() => ({
   locationLoading: locationLoading.value,
   locationError: locationError.value,
   nearest: nearest.value,
-  products: products,
+  products: products.value,
   contacts: contacts.value,
   email: localStorage.getItem("safeher-client-email"),
   premiumMembership: premiumMembership.value,
@@ -993,6 +996,14 @@ onMounted(() => {
   } catch {
     contacts.value = [];
   }
+
+  api.get("/products")
+    .then(({ data }) => {
+      if (data.success && data.products?.length) products.value = data.products;
+    })
+    .catch((error) => {
+      console.error("Could not load products from API:", error);
+    });
 });
 </script>
 
