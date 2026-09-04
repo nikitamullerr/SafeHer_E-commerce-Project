@@ -53,9 +53,9 @@ function initScene() {
 
     window.addEventListener("resize", onResize);
     createRingEffect();
-    log("✅ Scene ready");
+    log("Scene ready");
   } catch (err) {
-    log("❌ Error: " + err.message);
+    log("Error: " + err.message);
   }
 }
 
@@ -160,7 +160,7 @@ function createRingEffect() {
   ringParticles.visible = false;
   scene.add(ringParticles);
 
-  log("✅ Ring effect created");
+  log("Ring effect created");
 }
 
 function animate() {
@@ -233,7 +233,7 @@ function animate() {
         ringParticles.visible = false;
         flash.visible = false;
       }, 100);
-      log("✅ Animation complete");
+      log("Animation complete");
     }
   }
 
@@ -254,7 +254,7 @@ function triggerEffect() {
     return;
   }
 
-  log("🚨 SOS EFFECT TRIGGERED!");
+  log("SOS EFFECT TRIGGERED!");
 
   totalElapsed = 0;
   isAnimating = true;
@@ -303,7 +303,7 @@ onMounted(() => {
       initScene();
       animate();
     } else {
-      log("❌ container null");
+      log("container null");
     }
   }, 100);
 });

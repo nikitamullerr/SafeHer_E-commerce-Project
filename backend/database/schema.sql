@@ -378,3 +378,6 @@ SELECT
 FROM products p
 LEFT JOIN categories c ON p.category_id = c.id
 ORDER BY p.id;
+
+-- checking all users
+SELECT id, name, email, phone, is_admin, created_at FROM users;

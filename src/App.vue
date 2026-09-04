@@ -1030,7 +1030,7 @@ onMounted(() => {
         @shop="navigate('products')"
       />
 
-      <!-- ===== PAGE TRANSITION ===== -->
+      <!--  PAGE TRANSITION  -->
       <Transition name="page" mode="out-in">
         <component
           :is="currentPageComponent"
@@ -1056,9 +1056,9 @@ onMounted(() => {
 </template>
 
 <style>
-/* ============================================
+/* 
    PAGE TRANSITION ANIMATIONS
-   ============================================ */
+  */
 .page-enter-active,
 .page-leave-active {
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);

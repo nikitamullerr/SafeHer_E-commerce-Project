@@ -1,9 +1,14 @@
 <script setup>
 import { computed, reactive, ref, watch } from "vue";
 import Swal from "sweetalert2";
+import { authService } from "../services/authService.js";
 
 const props = defineProps({ mode: String });
-const emit = defineEmits(["navigate", "authenticated", "sign-in-notification-complete"]);
+const emit = defineEmits([
+  "navigate",
+  "authenticated",
+  "sign-in-notification-complete",
+]);
 
 const name = ref("");
 const email = ref("");
@@ -30,19 +35,6 @@ const benefits = [
 ];
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function readAccounts() {
-  try {
-    const accounts = JSON.parse(localStorage.getItem("safeher-accounts") || "[]");
-    return Array.isArray(accounts) ? accounts : [];
-  } catch {
-    return [];
-  }
-}
-
-function normalizedEmail(value) {
-  return value.trim().toLowerCase();
-}
 
 function clearError(field) {
   errors[field] = "";
@@ -103,12 +95,6 @@ function validateStep1() {
   } else if (!emailPattern.test(email.value.trim())) {
     errors.email = "Enter a valid email address";
     valid = false;
-  } else if (props.mode === "registration") {
-    const accountEmail = normalizedEmail(email.value);
-    if (readAccounts().some((item) => item.email === accountEmail)) {
-      errors.email = "An account with this email already exists";
-      valid = false;
-    }
   }
   return valid;
 }
@@ -157,41 +143,68 @@ function prevStep() {
   errors.form = "";
 }
 
-function finishAuth(accountEmail, title) {
-  emit("authenticated", accountEmail);
-  Swal.fire({ icon: "success", title, confirmButtonColor: "#351536" }).then(() => {
-    emit("navigate", "index"),
+function finishAuth(user, title) {
+  localStorage.setItem("safeher-token", user.token);
+  localStorage.setItem("safeher-user", JSON.stringify(user.user));
+
+  emit("authenticated", user.user);
+  Swal.fire({
+    icon: "success",
+    title,
+    confirmButtonColor: "#351536",
+  }).then(() => {
+    emit("navigate", "index");
     emit("sign-in-notification-complete");
   });
 }
 
 async function submit() {
   errors.form = "";
+
   if (props.mode === "login") {
     if (!validateLogin()) return;
     submitting.value = true;
-    const accountEmail = normalizedEmail(email.value);
-    const account = readAccounts().find((item) => item.email === accountEmail);
-    submitting.value = false;
-    if (!account || account.password !== password.value) {
-      errors.form = "Incorrect email or password";
-      return;
+
+    try {
+      const response = await authService.login({
+        email: email.value,
+        password: password.value,
+      });
+
+      submitting.value = false;
+      finishAuth(response, "Welcome back to SafeHer");
+    } catch (error) {
+      submitting.value = false;
+      errors.form =
+        error.response?.data?.error || "Incorrect email or password";
     }
-    finishAuth(accountEmail, "Welcome back to SafeHer");
     return;
   }
+
+  // Registration
   if (!validateStep1()) {
     currentStep.value = 1;
     return;
   }
   if (!validateStep2()) return;
+
   submitting.value = true;
-  const accountEmail = normalizedEmail(email.value);
-  const accounts = readAccounts();
-  accounts.push({ name: name.value.trim(), email: accountEmail, password: password.value });
-  localStorage.setItem("safeher-accounts", JSON.stringify(accounts));
-  submitting.value = false;
-  finishAuth(accountEmail, "Your SafeHer account is ready");
+
+  try {
+    const response = await authService.register({
+      name: name.value.trim(),
+      email: email.value,
+      password: password.value,
+      phone: "",
+    });
+
+    submitting.value = false;
+    finishAuth(response, "Your SafeHer account is ready");
+  } catch (error) {
+    submitting.value = false;
+    errors.form =
+      error.response?.data?.error || "Registration failed. Please try again.";
+  }
 }
 
 const googleLoading = ref(false);
@@ -201,26 +214,49 @@ let googleTokenClient = null;
 function loadGoogleScript() {
   return new Promise((resolve, reject) => {
     if (window.google?.accounts?.oauth2) {
+      console.log("Google script already loaded");
       resolve();
       return;
     }
 
     const existingScript = document.querySelector(
-      'script[src="https://accounts.google.com/gsi/client"]'
+      'script[src="https://accounts.google.com/gsi/client"]',
     );
 
     if (existingScript) {
-      existingScript.addEventListener("load", resolve, { once: true });
-      existingScript.addEventListener("error", reject, { once: true });
+      console.log("⏳ Waiting for existing Google script...");
+      existingScript.addEventListener(
+        "load",
+        () => {
+          console.log("Existing Google script loaded");
+          resolve();
+        },
+        { once: true },
+      );
+      existingScript.addEventListener(
+        "error",
+        () => {
+          console.error("Existing Google script failed");
+          reject(new Error("Failed to load Google script"));
+        },
+        { once: true },
+      );
       return;
     }
 
+    console.log("Loading Google script...");
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
     script.defer = true;
-    script.onload = resolve;
-    script.onerror = reject;
+    script.onload = () => {
+      console.log("Google script loaded successfully");
+      resolve();
+    };
+    script.onerror = () => {
+      console.error("Google script failed to load");
+      reject(new Error("Failed to load Google script"));
+    };
     document.head.appendChild(script);
   });
 }
@@ -234,66 +270,121 @@ async function continueWithGoogle() {
 
     if (!clientId) {
       throw new Error(
-        "Google Sign-In is not configured. Add VITE_GOOGLE_CLIENT_ID to your .env file."
+        "Google Sign-In is not configured. Add VITE_GOOGLE_CLIENT_ID to your .env file.",
       );
     }
 
+    console.log("Loading Google script...");
     await loadGoogleScript();
+    console.log("Google script loaded");
 
     googleTokenClient = window.google.accounts.oauth2.initTokenClient({
       client_id: clientId,
       scope: "openid email profile",
       callback: async (response) => {
+        console.log("Google callback received");
+
         if (response.error) {
-          throw new Error(response.error_description || "Google sign-in was cancelled.");
+          console.error("Google error:", response);
+          errors.form =
+            response.error_description || "Google sign-in was cancelled.";
+          googleLoading.value = false;
+          return;
         }
 
-        const userResponse = await fetch(
-          "https://openidconnect.googleapis.com/v1/userinfo",
-          {
-            headers: {
-              Authorization: `Bearer ${response.access_token}`,
+        try {
+          console.log("Fetching user info...");
+          const userResponse = await fetch(
+            "https://openidconnect.googleapis.com/v1/userinfo",
+            {
+              headers: {
+                Authorization: `Bearer ${response.access_token}`,
+              },
             },
-          }
-        );
-
-        if (!userResponse.ok) {
-          throw new Error("Unable to retrieve your Google account.");
-        }
-
-        const googleUser = await userResponse.json();
-
-        if (!googleUser.email) {
-          throw new Error("Google did not provide an email address.");
-        }
-
-        const accountEmail = normalizedEmail(googleUser.email);
-
-        // Keep Google users compatible with the existing local auth flow.
-        const accounts = readAccounts();
-        const existingAccount = accounts.find(
-          (account) => account.email === accountEmail
-        );
-
-        if (!existingAccount) {
-          accounts.push({
-            name: googleUser.name || googleUser.email.split("@")[0],
-            email: accountEmail,
-            password: "",
-            provider: "google",
-            googleId: googleUser.sub,
-          });
-
-          localStorage.setItem(
-            "safeher-accounts",
-            JSON.stringify(accounts)
           );
-        }
 
-        finishAuth(accountEmail, "Welcome to SafeHer");
+          if (!userResponse.ok) {
+            throw new Error("Unable to retrieve your Google account.");
+          }
+
+          const googleUser = await userResponse.json();
+          console.log("Google user:", googleUser);
+
+          if (!googleUser.email) {
+            throw new Error("Google did not provide an email address.");
+          }
+
+          // Try to login with Google email
+          try {
+            console.log("Attempting login...");
+            const loginResponse = await authService.login({
+              email: googleUser.email,
+              password: "google_oauth_" + (googleUser.sub || googleUser.id),
+            });
+
+            console.log("Login successful");
+            localStorage.setItem("safeher-token", loginResponse.token);
+            localStorage.setItem(
+              "safeher-user",
+              JSON.stringify(loginResponse.user),
+            );
+
+            emit("authenticated", loginResponse.user);
+            Swal.fire({
+              icon: "success",
+              title: "Welcome back to SafeHer",
+              confirmButtonColor: "#351536",
+            }).then(() => {
+              emit("navigate", "index");
+              emit("sign-in-notification-complete");
+            });
+          } catch (loginError) {
+            console.log("ℹ️ User not found, registering...");
+
+            // If login fails, register the user
+            try {
+              const registerResponse = await authService.register({
+                name: googleUser.name || googleUser.email.split("@")[0],
+                email: googleUser.email,
+                password: "google_oauth_" + (googleUser.sub || googleUser.id),
+                phone: "",
+              });
+
+              console.log("Registration successful");
+              localStorage.setItem("safeher-token", registerResponse.token);
+              localStorage.setItem(
+                "safeher-user",
+                JSON.stringify(registerResponse.user),
+              );
+
+              emit("authenticated", registerResponse.user);
+              Swal.fire({
+                icon: "success",
+                title: "Your SafeHer account is ready",
+                confirmButtonColor: "#351536",
+              }).then(() => {
+                emit("navigate", "index");
+                emit("sign-in-notification-complete");
+              });
+            } catch (registerError) {
+              console.error("Registration error:", registerError);
+              throw new Error(
+                registerError.response?.data?.error ||
+                  "Failed to create account",
+              );
+            }
+          }
+        } catch (error) {
+          console.error("Google sign-in error:", error);
+          errors.form =
+            error?.message ||
+            "Unable to continue with Google. Please try again.";
+          googleLoading.value = false;
+        }
       },
     });
 
+    console.log("Requesting access token...");
     googleTokenClient.requestAccessToken({
       prompt: "select_account",
     });
@@ -301,7 +392,6 @@ async function continueWithGoogle() {
     console.error("Google sign-in error:", error);
     errors.form =
       error?.message || "Unable to continue with Google. Please try again.";
-  } finally {
     googleLoading.value = false;
   }
 }
@@ -315,41 +405,29 @@ async function forgotPassword() {
     showCancelButton: true,
     confirmButtonText: "Find account",
     confirmButtonColor: "#351536",
-    inputValidator: (value) => (!value ? "Please enter your email address" : undefined),
+    inputValidator: (value) =>
+      !value ? "Please enter your email address" : undefined,
   });
+
   if (!emailResult.isConfirmed) return;
-  const accountEmail = normalizedEmail(emailResult.value);
-  const accounts = readAccounts();
-  const account = accounts.find((item) => item.email === accountEmail);
-  if (!account) {
+
+  try {
+    await authService.forgotPassword(emailResult.value);
+
+    Swal.fire({
+      icon: "success",
+      title: "Password reset email sent",
+      text: "Check your email for instructions to reset your password.",
+      confirmButtonColor: "#351536",
+    });
+  } catch (error) {
     Swal.fire({
       icon: "error",
       title: "Account not found",
       text: "Check the email address or create a new account.",
       confirmButtonColor: "#351536",
     });
-    return;
   }
-  const passwordResult = await Swal.fire({
-    title: "Choose a new password",
-    input: "password",
-    inputLabel: "Your new password must be at least 6 characters",
-    inputPlaceholder: "At least 6 characters",
-    inputAttributes: { minlength: 6, autocomplete: "new-password" },
-    showCancelButton: true,
-    confirmButtonText: "Update password",
-    confirmButtonColor: "#351536",
-    inputValidator: (value) => (value.length < 6 ? "Use at least 6 characters" : undefined),
-  });
-  if (!passwordResult.isConfirmed) return;
-  account.password = passwordResult.value;
-  localStorage.setItem("safeher-accounts", JSON.stringify(accounts));
-  Swal.fire({
-    icon: "success",
-    title: "Password updated",
-    text: "You can now sign in with your new password.",
-    confirmButtonColor: "#351536",
-  });
 }
 </script>
 
@@ -363,7 +441,11 @@ async function forgotPassword() {
         <span class="sf-ring sf-ring-1"></span>
         <span class="sf-ring sf-ring-2"></span>
         <span class="sf-core"
-          ><i :class="mode === 'login' ? 'bi bi-shield-fill' : 'bi bi-person-plus-fill'"></i
+          ><i
+            :class="
+              mode === 'login' ? 'bi bi-shield-fill' : 'bi bi-person-plus-fill'
+            "
+          ></i
         ></span>
       </div>
 
@@ -390,7 +472,9 @@ async function forgotPassword() {
       <transition name="sf-crossfade" mode="out-in">
         <div :key="mode" class="sf-mode-body">
           <div class="sf-copy">
-            <h1>{{ mode === "login" ? "Welcome back." : "Join the network." }}</h1>
+            <h1>
+              {{ mode === "login" ? "Welcome back." : "Join the network." }}
+            </h1>
             <p>
               {{
                 mode === "login"
@@ -406,9 +490,16 @@ async function forgotPassword() {
             >
           </div>
 
-          <div v-if="mode === 'registration'" class="sf-progress" aria-hidden="true">
+          <div
+            v-if="mode === 'registration'"
+            class="sf-progress"
+            aria-hidden="true"
+          >
             <div class="sf-progress-track">
-              <div class="sf-progress-fill" :style="{ width: currentStep === 1 ? '50%' : '100%' }"></div>
+              <div
+                class="sf-progress-fill"
+                :style="{ width: currentStep === 1 ? '50%' : '100%' }"
+              ></div>
             </div>
             <div class="sf-progress-labels">
               <span :class="{ active: currentStep >= 1 }">Your info</span>
@@ -421,7 +512,13 @@ async function forgotPassword() {
           </div>
 
           <transition name="sf-slide" mode="out-in">
-            <form v-if="mode === 'login'" key="login" class="sf-form" @submit.prevent="submit" novalidate>
+            <form
+              v-if="mode === 'login'"
+              key="login"
+              class="sf-form"
+              @submit.prevent="submit"
+              novalidate
+            >
               <label class="sf-field"
                 >Email address
                 <input
@@ -433,7 +530,9 @@ async function forgotPassword() {
                   :aria-invalid="Boolean(errors.email)"
                   @input="clearError('email')"
                 />
-                <span v-if="errors.email" class="sf-error" role="alert">{{ errors.email }}</span>
+                <span v-if="errors.email" class="sf-error" role="alert">{{
+                  errors.email
+                }}</span>
               </label>
               <label class="sf-field"
                 >Password
@@ -452,14 +551,22 @@ async function forgotPassword() {
                     @click="showPassword = !showPassword"
                     aria-label="Toggle password visibility"
                   >
-                    <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                    <i
+                      :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"
+                    ></i>
                   </button>
                 </div>
-                <span v-if="errors.password" class="sf-error" role="alert">{{ errors.password }}</span>
+                <span v-if="errors.password" class="sf-error" role="alert">{{
+                  errors.password
+                }}</span>
               </label>
               <div class="sf-row">
-                <label class="sf-check"><input type="checkbox" /> Remember me</label>
-                <button type="button" class="sf-link" @click="forgotPassword">Forgot password?</button>
+                <label class="sf-check"
+                  ><input type="checkbox" /> Remember me</label
+                >
+                <button type="button" class="sf-link" @click="forgotPassword">
+                  Forgot password?
+                </button>
               </div>
               <button class="sf-submit" type="submit" :disabled="submitting">
                 Sign in <i class="bi bi-arrow-right"></i>
@@ -484,7 +591,9 @@ async function forgotPassword() {
                   :aria-invalid="Boolean(errors.name)"
                   @input="clearError('name')"
                 />
-                <span v-if="errors.name" class="sf-error" role="alert">{{ errors.name }}</span>
+                <span v-if="errors.name" class="sf-error" role="alert">{{
+                  errors.name
+                }}</span>
               </label>
               <label class="sf-field"
                 >Email address
@@ -497,14 +606,22 @@ async function forgotPassword() {
                   :aria-invalid="Boolean(errors.email)"
                   @input="clearError('email')"
                 />
-                <span v-if="errors.email" class="sf-error" role="alert">{{ errors.email }}</span>
+                <span v-if="errors.email" class="sf-error" role="alert">{{
+                  errors.email
+                }}</span>
               </label>
               <button class="sf-submit" type="submit">
                 Continue <i class="bi bi-arrow-right"></i>
               </button>
             </form>
 
-            <form v-else key="step2" class="sf-form" @submit.prevent="submit" novalidate>
+            <form
+              v-else
+              key="step2"
+              class="sf-form"
+              @submit.prevent="submit"
+              novalidate
+            >
               <label class="sf-field"
                 >Password
                 <div class="sf-password-wrap">
@@ -522,19 +639,30 @@ async function forgotPassword() {
                     @click="showPassword = !showPassword"
                     aria-label="Toggle password visibility"
                   >
-                    <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                    <i
+                      :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"
+                    ></i>
                   </button>
                 </div>
                 <div v-if="password" class="sf-strength">
                   <div class="sf-strength-track">
                     <div
                       class="sf-strength-fill"
-                      :style="{ width: `${(passwordStrength.score / 4) * 100}%`, background: passwordStrength.color }"
+                      :style="{
+                        width: `${(passwordStrength.score / 4) * 100}%`,
+                        background: passwordStrength.color,
+                      }"
                     ></div>
                   </div>
-                  <span class="sf-strength-label" :style="{ color: passwordStrength.color }">{{ passwordStrength.label }}</span>
+                  <span
+                    class="sf-strength-label"
+                    :style="{ color: passwordStrength.color }"
+                    >{{ passwordStrength.label }}</span
+                  >
                 </div>
-                <span v-if="errors.password" class="sf-error" role="alert">{{ errors.password }}</span>
+                <span v-if="errors.password" class="sf-error" role="alert">{{
+                  errors.password
+                }}</span>
               </label>
               <label class="sf-field"
                 >Confirm password
@@ -552,38 +680,64 @@ async function forgotPassword() {
                   class="sf-match"
                   :class="passwordsMatch ? 'match' : 'mismatch'"
                 >
-                  <i :class="passwordsMatch ? 'bi bi-check-circle-fill' : 'bi bi-x-circle-fill'"></i>
-                  {{ passwordsMatch ? "Passwords match" : "Passwords don't match yet" }}
+                  <i
+                    :class="
+                      passwordsMatch
+                        ? 'bi bi-check-circle-fill'
+                        : 'bi bi-x-circle-fill'
+                    "
+                  ></i>
+                  {{
+                    passwordsMatch
+                      ? "Passwords match"
+                      : "Passwords don't match yet"
+                  }}
                 </span>
-                <span v-if="errors.confirm" class="sf-error" role="alert">{{ errors.confirm }}</span>
+                <span v-if="errors.confirm" class="sf-error" role="alert">{{
+                  errors.confirm
+                }}</span>
               </label>
               <label class="sf-check sf-check-terms">
-                <input type="checkbox" v-model="agreeTerms" @change="clearError('terms')" />
+                <input
+                  type="checkbox"
+                  v-model="agreeTerms"
+                  @change="clearError('terms')"
+                />
                 I agree to the terms and privacy policy
               </label>
-              <span v-if="errors.terms" class="sf-error" role="alert">{{ errors.terms }}</span>
+              <span v-if="errors.terms" class="sf-error" role="alert">{{
+                errors.terms
+              }}</span>
               <div class="sf-actions">
                 <button class="sf-ghost" type="button" @click="prevStep">
                   <i class="bi bi-arrow-left"></i> Back
                 </button>
-                <button class="sf-submit" type="submit" :disabled="submitting">Create account</button>
+                <button class="sf-submit" type="submit" :disabled="submitting">
+                  Create account
+                </button>
               </div>
             </form>
           </transition>
 
           <div class="sf-divider"><span>or</span></div>
           <button
-  type="button"
-  class="sf-google"
-  @click="continueWithGoogle"
-  :disabled="googleLoading"
->
-  <b>G</b>
-  {{ googleLoading ? "Connecting..." : "Continue with Google" }}
-</button>
+            type="button"
+            class="sf-google"
+            @click="continueWithGoogle"
+            :disabled="googleLoading"
+          >
+            <b>G</b>
+            {{ googleLoading ? "Connecting..." : "Continue with Google" }}
+          </button>
           <p class="sf-switch">
-            {{ mode === "login" ? "New to SafeHer?" : "Already have an account?" }}
-            <button type="button" class="sf-link" @click="switchMode(mode === 'login' ? 'registration' : 'login')">
+            {{
+              mode === "login" ? "New to SafeHer?" : "Already have an account?"
+            }}
+            <button
+              type="button"
+              class="sf-link"
+              @click="switchMode(mode === 'login' ? 'registration' : 'login')"
+            >
               {{ mode === "login" ? "Create an account" : "Sign in" }}
             </button>
           </p>
@@ -609,7 +763,11 @@ async function forgotPassword() {
   position: absolute;
   z-index: -1;
   border: 1px solid var(--line);
-  background: radial-gradient(circle at 30% 30%, var(--pink) 0%, transparent 70%);
+  background: radial-gradient(
+    circle at 30% 30%,
+    var(--pink) 0%,
+    transparent 70%
+  );
   border-radius: 50%;
   animation: sf-float 7s ease-in-out infinite alternate;
 }
@@ -639,7 +797,12 @@ async function forgotPassword() {
 
 .sf-card {
   width: min(560px, 100%);
-  background: linear-gradient(165deg, var(--surface) 0%, var(--surface) 62%, var(--pink) 165%);
+  background: linear-gradient(
+    165deg,
+    var(--surface) 0%,
+    var(--surface) 62%,
+    var(--pink) 165%
+  );
   border: 1px solid var(--line);
   border-radius: 20px;
   padding: 44px 52px;
@@ -739,7 +902,9 @@ async function forgotPassword() {
   margin-bottom: 20px;
 }
 .sf-copy h1 {
-  font: 700 26px "Syne", sans-serif;
+  font:
+    700 26px "Syne",
+    sans-serif;
   color: var(--plum);
   margin: 0 0 10px;
   position: relative;
@@ -859,12 +1024,16 @@ async function forgotPassword() {
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 12px 13px;
-  font: 12px "DM Sans", sans-serif;
+  font:
+    12px "DM Sans",
+    sans-serif;
   color: var(--ink);
   background: var(--surface);
   outline: 0;
   box-sizing: border-box;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .sf-field input:focus {
   border-color: var(--red);
@@ -925,7 +1094,9 @@ async function forgotPassword() {
 .sf-strength-fill {
   height: 100%;
   border-radius: 2px;
-  transition: width 0.25s ease, background 0.25s ease;
+  transition:
+    width 0.25s ease,
+    background 0.25s ease;
 }
 .sf-strength-label {
   display: block;
@@ -993,7 +1164,9 @@ async function forgotPassword() {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: transform 0.15s ease, background 0.2s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.2s ease;
 }
 .sf-submit:hover {
   background: #b9232b;
@@ -1017,7 +1190,9 @@ async function forgotPassword() {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
 }
 .sf-ghost:hover {
   background: var(--pink);
@@ -1058,7 +1233,9 @@ async function forgotPassword() {
   color: var(--ink);
   font-size: 12px;
   font-weight: 700;
-  transition: transform 0.15s ease, background 0.2s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.2s ease;
 }
 .sf-google:hover {
   background: var(--cream);
@@ -1080,7 +1257,9 @@ async function forgotPassword() {
 
 .sf-crossfade-enter-active,
 .sf-crossfade-leave-active {
-  transition: opacity 0.22s ease, transform 0.22s ease;
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
 }
 .sf-crossfade-enter-from {
   opacity: 0;
@@ -1092,7 +1271,9 @@ async function forgotPassword() {
 }
 .sf-slide-enter-active,
 .sf-slide-leave-active {
-  transition: opacity 0.28s ease, transform 0.28s ease;
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease;
 }
 .sf-slide-enter-from {
   opacity: 0;
