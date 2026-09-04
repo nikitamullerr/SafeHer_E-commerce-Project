@@ -11,11 +11,9 @@ import {
 
 const router = express.Router();
 
-// PUBLIC ROUTES (No token required)
 router.post('/register', register);
 router.post('/login', login);
 
-// PROTECTED ROUTES (Token required)
 router.get('/me', verifyToken, getMe);
 router.put('/me', verifyToken, updateProfile);
 router.put('/change-password', verifyToken, changePassword);

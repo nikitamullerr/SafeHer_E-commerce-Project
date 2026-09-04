@@ -1,5 +1,6 @@
 import express from 'express';
 import authRoutes from './authRoutes.js';
+import premiumRoutes from './premiumRoutes.js';
 
 const router = express.Router();
 
@@ -13,5 +14,8 @@ router.get('/health', (req, res) => {
 
 // Auth routes
 router.use('/auth', authRoutes);
+
+// Premium routes
+router.use('/premium', premiumRoutes);
 
 export default router;
