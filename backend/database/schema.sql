@@ -75,6 +75,9 @@ CREATE TABLE orders (
     payment_method VARCHAR(50),
     payment_status ENUM('pending','paid','failed','refunded') DEFAULT 'pending',
     notes TEXT,
+    confirmation_email_sent BOOLEAN DEFAULT FALSE,
+    confirmation_email_sent_at TIMESTAMP NULL,
+    confirmation_email_error TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

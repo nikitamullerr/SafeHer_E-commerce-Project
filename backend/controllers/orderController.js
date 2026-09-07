@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import { sendOrderConfirmationEmail, resendOrderConfirmationEmail } from "../utils/orderEmailService.js";
 
 const ORDER_STATUSES = ["Confirmed", "Packed", "Out for delivery", "Delivered"];
 const DELIVERY_FEES = {
@@ -146,6 +147,16 @@ export const createOrder = async (req, res) => {
 
 		const order = await getOrderWithItems(connection, orderResult.insertId, req.user.id);
 		await connection.commit();
+		
+		// Send confirmation email asynchronously (non-blocking)
+		// Email sending failure should not fail the order
+		const customerEmail = req.user.email || null;
+		setImmediate(() => {
+			sendOrderConfirmationEmail(orderResult.insertId, req.user.id, customerEmail).catch((error) => {
+				console.error(`Failed to send confirmation email for order ${order.orderNumber}:`, error);
+			});
+		});
+		
 		return res.status(201).json({ success: true, order });
 	} catch (error) {
 		await connection.rollback();
@@ -233,3 +244,49 @@ export const updateOrderStatus = async (req, res) => {
 		return res.status(500).json({ success: false, error: "Failed to update order status" });
 	}
 };
+
+/**
+ * Resend order confirmation email
+ * 
+ * POST /orders/:id/resend-confirmation-email
+ * 
+ * Allows customers to resend their order confirmation email.
+ * Useful if the email was not received or needs to be resent.
+ * Prevents duplicate sends automatically.
+ */
+export const resendConfirmationEmail = async (req, res) => {
+	try {
+		const orderId = req.params.id;
+		const userId = req.user.id;
+
+		// Verify order belongs to user
+		const [orders] = await pool.query(
+			"SELECT id FROM orders WHERE id = ? AND user_id = ?",
+			[orderId, userId],
+		);
+
+		if (!orders.length) {
+			return res.status(404).json({ success: false, error: "Order not found" });
+		}
+
+		// Resend the email
+		const result = await resendOrderConfirmationEmail(orderId, userId);
+
+		if (result.emailSent) {
+			return res.json({
+				success: true,
+				message: "Confirmation email has been resent",
+				emailSent: true,
+			});
+		} else {
+			return res.status(500).json({
+				success: false,
+				error: result.error || "Failed to resend confirmation email",
+			});
+		}
+	} catch (error) {
+		console.error("Resend confirmation email error:", error);
+		return res.status(500).json({ success: false, error: "Failed to resend confirmation email" });
+	}
+};
+
