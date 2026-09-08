@@ -1,6 +1,10 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import Swal from "sweetalert2";
+import {
+  getLessons,
+  markLessonComplete,
+} from "../../backend/services/premiumClient.js";
 const emit = defineEmits(["navigate"]);
 const props = defineProps({ premiumMembership: Object });
 const completedVideos = ref(readCompletedVideos());
@@ -25,8 +29,9 @@ function readCompletedVideos() {
   }
 }
 
-const videos = [
+const videos = ref([
   {
+    id: 1,
     title: "Self-Defense Myths You Need to Know",
     detail:
       "A must-watch for every woman — separate fact from fiction and learn what really keeps you safe.",
@@ -35,6 +40,7 @@ const videos = [
     youtubeId: "q7YpyV3UBss",
   },
   {
+    id: 2,
     title: "Personal Safety Tips for Women",
     detail:
       "Practical, everyday safety habits to help you move through the world with confidence.",
@@ -43,6 +49,7 @@ const videos = [
     youtubeId: "N4hWOp9Hvg4",
   },
   {
+    id: 3,
     title: "Safety Tips for Women Part 1",
     detail:
       "Foundational safety guidance and awareness techniques every woman should know.",
@@ -51,6 +58,7 @@ const videos = [
     youtubeId: "9_7voAJOLQs",
   },
   {
+    id: 4,
     title: "5 Self-Defense Moves Every Woman Should Know",
     detail:
       "HER Network walks you through five essential self-defense moves to help you break free and get to safety.",
@@ -58,7 +66,31 @@ const videos = [
     icon: "bi-people-fill",
     youtubeId: "KVpxP3ZZtAc",
   },
-];
+]);
+
+onMounted(async () => {
+  if (!hasPremiumAccess.value) return;
+
+  try {
+    const response = await getLessons();
+    if (response.success && response.lessons?.length) {
+      videos.value = response.lessons.map((lesson) => ({
+        id: lesson.id,
+        title: lesson.title,
+        detail: lesson.detail || lesson.description || "",
+        duration: lesson.duration || "",
+        icon: lesson.icon || "bi-play-circle",
+        youtubeId: lesson.youtube_id,
+        completed: lesson.completed,
+      }));
+      completedVideos.value = response.lessons
+        .filter((lesson) => lesson.completed)
+        .map((lesson) => lesson.title);
+    }
+  } catch {
+    // Keep the bundled lesson list available when the API is unavailable.
+  }
+});
 
 function openVideo(video) {
   if (hasPremiumAccess.value) {
@@ -68,6 +100,11 @@ function openVideo(video) {
         completedKey(),
         JSON.stringify(completedVideos.value),
       );
+      if (video.id) {
+        markLessonComplete(video.id).catch(() => {
+          // Local progress remains available if the request fails.
+        });
+      }
     }
     activeVideo.value = video;
     return;
