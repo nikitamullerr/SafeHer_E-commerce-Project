@@ -16,8 +16,12 @@ import InfoPage from "./pages/InfoPage.vue";
 import SiteFooter from "./components/SiteFooter.vue";
 import SafeHerAI from "./components/SafeHerAI.vue";
 import SOSEffect from "./components/SOSEffect.vue";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage.vue";
+import PaymentCancelledPage from "./pages/PaymentCancelledPage.vue";
+import { createPayfastPayment } from "./services/paymentClient";
 import { language } from "./languageConfig.js";
 import { assessDangerLevel } from "./services/dangerAssessment.js";
+import { paygateService } from './services/paygateClient.js';
 
 const isAuthenticated = ref(
   localStorage.getItem("safeher-authenticated") === "true",
@@ -28,9 +32,12 @@ const darkMode = ref(localStorage.getItem("safeher-dark-mode") === "true");
 const savedView = isAuthenticated.value
   ? localStorage.getItem("safeher-active-view")
   : null;
-const activeView = ref(
-  savedView || (isAuthenticated.value ? "index" : "login"),
-);
+const paymentReturnView = window.location.pathname === "/payment-success"
+  ? "payment-success"
+  : window.location.pathname === "/payment-cancel"
+    ? "payment-cancel"
+    : null;
+const activeView = ref(paymentReturnView || savedView || (isAuthenticated.value ? "index" : "login"));
 const cartOpen = ref(false);
 const menuOpen = ref(false);
 const sosActive = ref(false);
@@ -303,6 +310,7 @@ const nearest = computed(() =>
     ? "Your exact location is active"
     : "Use live tracking to locate yourself",
 );
+
 function readPremiumMembership() {
   const email = localStorage.getItem("safeher-client-email");
   if (!email) return null;
@@ -653,7 +661,7 @@ function contactTrustedPerson() {
   messageContact(contacts.value[0]);
 }
 
-// ----- Checkout -----
+// ----- Checkout (PayFast) -----
 function checkout() {
   if (!cart.value.length) return;
   const orderTotal = cartTotal.value;
@@ -763,28 +771,13 @@ function checkout() {
           </span>
         </div>
 
-        <div style="width:100%; box-sizing:border-box;">
-          <label style="display:block; font-size:12px; color:#5a4d5c; font-weight:600; margin-bottom:8px;">Payment method</label>
-          <select id="payment-method" class="swal2-input" style="width:100%; margin:0; font-size:13px; box-sizing:border-box;">
-            <option value="card">Credit or debit card</option>
-            <option value="mobile">Mobile money / wallet</option>
-            <option value="eft">Instant EFT</option>
-          </select>
-        </div>
-
-        <div style="display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); gap:8px; width:100%; box-sizing:border-box;">
-          <input id="payment-name" class="swal2-input" style="margin:0; width:100%; box-sizing:border-box;" placeholder="Cardholder name" autocomplete="cc-name">
-          <input id="payment-number" class="swal2-input" style="margin:0; width:100%; box-sizing:border-box;" placeholder="Card number" inputmode="numeric" autocomplete="cc-number" maxlength="19">
-        </div>
-
-        <div style="display:flex; gap:8px; justify-content:center; width:100%; box-sizing:border-box;">
-          <input id="payment-expiry" class="swal2-input" style="width:48%; margin:0; box-sizing:border-box;" placeholder="MM/YY" inputmode="numeric" autocomplete="cc-exp">
-          <input id="payment-cvv" class="swal2-input" style="width:48%; margin:0; box-sizing:border-box;" placeholder="CVV" inputmode="numeric" autocomplete="cc-csc" maxlength="4">
+        <div style="background:#f3fbf7; border:1px solid #d7f0df; border-radius:10px; padding:10px 12px; color:#1d5c3d; font-size:13px;">
+          <i class="bi bi-shield-lock"></i> You will complete payment securely on PayFast. SafeHer never receives or stores your card details.
         </div>
       </div>
     `,
     showCancelButton: true,
-    confirmButtonText: `Pay R${(orderTotal + 49).toLocaleString()}`,
+    confirmButtonText: `Continue to PayFast`,
     confirmButtonColor: "#d92d36",
     cancelButtonText: "Back to bag",
     focusConfirm: false,
@@ -827,25 +820,10 @@ function checkout() {
     preConfirm: () => {
       const deliveryMethod = document.getElementById("delivery-method").value;
       const address = document.getElementById("delivery-address").value.trim();
-      const name = document.getElementById("payment-name").value.trim();
-      const number = document
-        .getElementById("payment-number")
-        .value.replace(/\s/g, "");
-      const expiry = document.getElementById("payment-expiry").value.trim();
-      const cvv = document.getElementById("payment-cvv").value.trim();
       const saveAddress = document.getElementById("save-address")?.checked;
 
       if (!address) {
         Swal.showValidationMessage("Add a delivery address to continue.");
-        return false;
-      }
-      if (
-        !name ||
-        number.length < 12 ||
-        !/^\d{2}\/\d{2}$/.test(expiry) ||
-        !/^\d{3,4}$/.test(cvv)
-      ) {
-        Swal.showValidationMessage("Enter valid payment details to continue.");
         return false;
       }
       if (saveAddress) {
@@ -873,41 +851,66 @@ function checkout() {
         (option) => option.value === deliveryMethod,
       );
       return {
-        name,
-        method: document.getElementById("payment-method").value,
+        deliveryMethodCode: deliveryMethod,
         deliveryMethod: selectedDelivery.label,
         deliveryFee: selectedDelivery.fee,
         address,
       };
     },
-  }).then((result) => {
+  }).then(async (result) => {
     if (!result.isConfirmed) return;
-    const finalTotal = orderTotal + result.value.deliveryFee;
-    const orders = JSON.parse(localStorage.getItem("safeher-orders") || "[]");
-    orders.push({
-      id: Date.now(),
-      email: localStorage.getItem("safeher-client-email"),
-      total: finalTotal,
-      deliveryMethod: result.value.deliveryMethod,
-      deliveryAddress: result.value.address,
-      items: cart.value.map(({ id, name, quantity }) => ({
-        id,
-        name,
-        quantity,
-      })),
-      paymentMethod: result.value.method,
-      createdAt: new Date().toISOString(),
-    });
-    localStorage.setItem("safeher-orders", JSON.stringify(orders));
-    cart.value = [];
-    cartOpen.value = false;
-    Swal.fire({
-      title: "Payment successful",
-      text: `Your order is confirmed. Delivery: ${result.value.deliveryMethod} • Total: R${finalTotal.toLocaleString()}`,
-      icon: "success",
-      confirmButtonColor: "#351536",
-    });
+    try {
+      const payment = await createPayfastPayment({
+        items: cart.value.map(({ id, quantity }) => ({ product_id: id, quantity })),
+        delivery_method: result.value.deliveryMethodCode,
+        delivery_address: result.value.address,
+      });
+      cart.value = [];
+      cartOpen.value = false;
+      window.location.assign(payment.paymentUrl);
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Unable to start payment",
+        text: error.response?.data?.error || "Please sign in and try again.",
+        confirmButtonColor: "#351536",
+      });
+    }
   });
+}
+
+// ----- PayGate Payment -----
+async function payWithPayGate() {
+    try {
+        // Get the user email from localStorage correctly
+        const user = JSON.parse(localStorage.getItem("safeher-user") || '{}');
+        const email = user?.email || 'test@example.com';
+
+        const response = await paygateService.createPayment({
+            amount: cartTotal.value,
+            email: email,  // ← Now it's a proper string
+            reference: `PG-${Date.now()}`,
+        });
+
+        if (response.success) {
+            window.location.href = response.redirectUrl;
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Payment initiation failed',
+                text: response.error || 'Please try again.',
+                confirmButtonColor: '#351536',
+            });
+        }
+    } catch (error) {
+        console.error('PayGate error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Payment error',
+            text: error.response?.data?.error || 'An unexpected error occurred.',
+            confirmButtonColor: '#351536',
+        });
+    }
 }
 
 // ----- Auth -----
@@ -916,14 +919,11 @@ function authenticated(email) {
   localStorage.setItem("safeher-authenticated", "true");
   if (email) localStorage.setItem("safeher-client-email", email);
   premiumMembership.value = readPremiumMembership();
-  activeView.value = "index";
-  // Trigger the Premium danger alert directly here. The AuthPage emits
-  // "sign-in-notification-complete" after it has been unmounted (because
-  // isAuthenticated switches the view), so relying on that event alone is
-  // unreliable. This direct call guarantees the alert fires on every
-  // Premium sign-in.
+  // Use navigate to update both activeView and localStorage
+  navigate("index");
   schedulePremiumSafetyCheck();
 }
+
 function logout() {
   isAuthenticated.value = false;
   localStorage.removeItem("safeher-authenticated");
@@ -942,6 +942,8 @@ const pageComponentMap = {
   packages: PremiumPackagesPage,
   reviews: ReviewsPage,
   orders: OrdersPage,
+  "payment-success": PaymentSuccessPage,
+  "payment-cancel": PaymentCancelledPage,
   // 'services' is handled by InfoPage with view prop
   // 'contact' is redirected to services
 };
@@ -1028,8 +1030,8 @@ onMounted(() => {
         @remove="removeFromCart"
         @checkout="checkout"
         @shop="navigate('products')"
+        @paygate="payWithPayGate"
       />
-
       <!--  PAGE TRANSITION  -->
       <Transition name="page" mode="out-in">
         <component
