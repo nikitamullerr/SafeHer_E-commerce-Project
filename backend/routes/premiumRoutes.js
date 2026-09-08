@@ -1,5 +1,5 @@
 import express from "express";
-import { verifyToken } from "../middleware/verifyToken.js";
+import { optionalVerifyToken, verifyToken } from "../middleware/verifyToken.js";
 import {
   getLessons,
   getLessonById,
@@ -15,7 +15,9 @@ const router = express.Router();
 // ============================================
 // LESSON ROUTES
 // ============================================
-router.get("/lessons", verifyToken, getLessons);
+// Lessons may be displayed to everyone; premium access is enforced by the
+// client before playback, while authenticated users also receive progress.
+router.get("/lessons", optionalVerifyToken, getLessons);
 router.get("/lessons/:id", verifyToken, getLessonById);
 
 // ============================================

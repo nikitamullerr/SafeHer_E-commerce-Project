@@ -1,14 +1,16 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import Swal from "sweetalert2";
-import {
-  getLessons,
-  markLessonComplete,
-} from "../../backend/services/premiumClient.js";
+import { getLessons, markLessonComplete } from "../services/premiumClient";
 const emit = defineEmits(["navigate"]);
 const props = defineProps({ premiumMembership: Object });
-const completedVideos = ref(readCompletedVideos());
+const videos = ref([]);
+const progress = ref({ completed: 0, total: 0 });
+const isLoading = ref(false);
+const loadError = ref("");
 const activeVideo = ref(null);
+const videoPlayer = ref(null);
+const isSavingProgress = ref(false);
 
 const hasPremiumAccess = computed(() =>
   Boolean(
@@ -17,104 +19,136 @@ const hasPremiumAccess = computed(() =>
   ),
 );
 
-function completedKey() {
-  return `safeher-premium-video-progress:${props.premiumMembership?.email || "guest"}`;
-}
+async function loadLessons() {
+  isLoading.value = true;
+  loadError.value = "";
 
-function readCompletedVideos() {
   try {
-    return JSON.parse(localStorage.getItem(completedKey()) || "[]");
-  } catch {
-    return [];
+    const data = await getLessons();
+    videos.value = data.lessons || [];
+    progress.value = data.progress || {
+      completed: 0,
+      total: videos.value.length,
+    };
+  } catch (error) {
+    loadError.value =
+      error.response?.data?.error ||
+      "Unable to load premium videos. Please try again.";
+  } finally {
+    isLoading.value = false;
   }
 }
 
-const videos = ref([
-  {
-    id: 1,
-    title: "Self-Defense Myths You Need to Know",
-    detail:
-      "A must-watch for every woman — separate fact from fiction and learn what really keeps you safe.",
-    duration: "05:59",
-    icon: "bi-journal-check",
-    youtubeId: "q7YpyV3UBss",
-  },
-  {
-    id: 2,
-    title: "Personal Safety Tips for Women",
-    detail:
-      "Practical, everyday safety habits to help you move through the world with confidence.",
-    duration: "07:16",
-    icon: "bi-person-walking",
-    youtubeId: "N4hWOp9Hvg4",
-  },
-  {
-    id: 3,
-    title: "Safety Tips for Women Part 1",
-    detail:
-      "Foundational safety guidance and awareness techniques every woman should know.",
-    duration: "08:59",
-    icon: "bi-shield-check",
-    youtubeId: "9_7voAJOLQs",
-  },
-  {
-    id: 4,
-    title: "5 Self-Defense Moves Every Woman Should Know",
-    detail:
-      "HER Network walks you through five essential self-defense moves to help you break free and get to safety.",
-    duration: "10:37",
-    icon: "bi-people-fill",
-    youtubeId: "KVpxP3ZZtAc",
-  },
-]);
+const playerUrl = computed(() => {
+  if (!activeVideo.value?.youtube_id) return "";
 
-onMounted(async () => {
-  if (!hasPremiumAccess.value) return;
-
-  try {
-    const response = await getLessons();
-    if (response.success && response.lessons?.length) {
-      videos.value = response.lessons.map((lesson) => ({
-        id: lesson.id,
-        title: lesson.title,
-        detail: lesson.detail || lesson.description || "",
-        duration: lesson.duration || "",
-        icon: lesson.icon || "bi-play-circle",
-        youtubeId: lesson.youtube_id,
-        completed: lesson.completed,
-      }));
-      completedVideos.value = response.lessons
-        .filter((lesson) => lesson.completed)
-        .map((lesson) => lesson.title);
-    }
-  } catch {
-    // Keep the bundled lesson list available when the API is unavailable.
-  }
+  return `https://www.youtube.com/embed/${activeVideo.value.youtube_id}?autoplay=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
 });
 
-function openVideo(video) {
-  if (hasPremiumAccess.value) {
-    if (!completedVideos.value.includes(video.title)) {
-      completedVideos.value = [...completedVideos.value, video.title];
-      localStorage.setItem(
-        completedKey(),
-        JSON.stringify(completedVideos.value),
-      );
-      if (video.id) {
-        markLessonComplete(video.id).catch(() => {
-          // Local progress remains available if the request fails.
-        });
+async function markActiveVideoComplete() {
+  const video = activeVideo.value;
+  if (!video || video.completed || isSavingProgress.value) return;
+
+  isSavingProgress.value = true;
+  try {
+    const data = await markLessonComplete(video.id);
+    
+    // Update the video's completed status locally
+    video.completed = true;
+    
+    // Update progress from backend response
+    if (data.progress) {
+      progress.value = data.progress;
+    }
+    
+    // Refresh the lessons list to get updated completed statuses
+    await loadLessons();
+    
+    // Show a success message
+    Swal.fire({
+      icon: "success",
+      title: "Lesson completed!",
+      text: "You've completed this lesson.",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Unable to update progress",
+      text: error.response?.data?.error || "Please try again.",
+      confirmButtonColor: "#351536",
+    });
+  } finally {
+    isSavingProgress.value = false;
+  }
+}
+
+function onPlayerLoaded() {
+  const playerWindow = videoPlayer.value?.contentWindow;
+  if (!playerWindow) return;
+
+  playerWindow.postMessage(JSON.stringify({ event: "listening" }), "https://www.youtube.com");
+  playerWindow.postMessage(
+    JSON.stringify({
+      event: "command",
+      func: "addEventListener",
+      args: ["onStateChange"],
+    }),
+    "https://www.youtube.com",
+  );
+}
+
+function onPlayerMessage(event) {
+  if (event.origin !== "https://www.youtube.com") return;
+
+  try {
+    const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+    
+    // Handle state change events
+    if (data.event === "onStateChange") {
+      console.log('Video state changed:', data.info);
+      
+      // State 0 = video ended
+      if (data.info === 0) {
+        console.log('Video ended, marking complete...');
+        markActiveVideoComplete();
       }
     }
-    activeVideo.value = video;
+  } catch {
+    // Ignore YouTube iframe messages that are not player events.
+  }
+}
+
+onMounted(() => {
+  loadLessons();
+  window.addEventListener("message", onPlayerMessage);
+});
+
+onBeforeUnmount(() => window.removeEventListener("message", onPlayerMessage));
+
+function openVideo(video) {
+  console.log('🎬 Video clicked:', video);
+  
+  // Check if Swal is available
+  if (typeof Swal === 'undefined') {
+    console.warn('SweetAlert2 not loaded, using fallback alert');
+    alert('Premium access required. Please subscribe to watch this video.');
     return;
   }
-  Swal.fire({
-    icon: "info",
-    title: "Premium access required",
-    text: "These safety videos are included in the SafeHer Premium package.",
-    confirmButtonColor: "#351536",
-  });
+  
+  if (!hasPremiumAccess.value) {
+    Swal.fire({
+      icon: "info",
+      title: "Premium access required",
+      text: "These safety videos are included in the SafeHer Premium package.",
+      confirmButtonColor: "#351536",
+    });
+    return;
+  }
+  
+  // Has premium access - open the video
+  activeVideo.value = video;
 }
 
 function closePlayer() {
@@ -175,14 +209,22 @@ function closePlayer() {
         <i class="bi bi-stars"></i> Explore Premium
       </button>
       <span v-else class="btn btn-outline-plum disabled" aria-disabled="true">
-        <i class="bi bi-check2-circle"></i> {{ completedVideos.length }}/{{
-          videos.length
+        <i class="bi bi-check2-circle"></i> {{ progress.completed }}/{{
+          progress.total
         }}
         completed
       </span>
     </section>
-    <section class="video-grid">
-      <article v-for="video in videos" :key="video.title" class="video-card">
+    <p v-if="isLoading" class="premium-videos-status">Loading premium videos...</p>
+    <div v-else-if="loadError" class="premium-videos-status">
+      <p>{{ loadError }}</p>
+      <button class="btn btn-sos" @click="loadLessons">Try again</button>
+    </div>
+    <p v-else-if="!videos.length" class="premium-videos-status">
+      No premium videos are available yet.
+    </p>
+    <section v-else class="video-grid">
+      <article v-for="video in videos" :key="video.id" class="video-card">
         <div
           class="video-art"
           :class="{ 'video-art-clickable': hasPremiumAccess }"
@@ -199,7 +241,7 @@ function closePlayer() {
         <div class="video-card-copy">
           <p class="eyebrow">PREMIUM LESSON</p>
           <h2>{{ video.title }}</h2>
-          <p>{{ video.detail }}</p>
+          <p>{{ video.detail || video.description }}</p>
           <button class="video-action" @click="openVideo(video)">
             <i
               :class="
@@ -208,7 +250,7 @@ function closePlayer() {
             ></i>
             {{
               hasPremiumAccess
-                ? completedVideos.includes(video.title)
+                ? video.completed
                   ? "Watch again"
                   : "Play lesson"
                 : "Unlock video"
@@ -240,8 +282,10 @@ function closePlayer() {
           </button>
           <div class="video-player-frame">
             <iframe
-              :src="`https://www.youtube.com/embed/${activeVideo.youtubeId}?autoplay=1&rel=0`"
+              ref="videoPlayer"
+              :src="playerUrl"
               :title="activeVideo.title"
+              @load="onPlayerLoaded"
               frameborder="0"
               allow="
                 accelerometer;
@@ -255,11 +299,17 @@ function closePlayer() {
               allowfullscreen
             ></iframe>
           </div>
-          <div class="video-player-meta">
-            <p class="eyebrow">NOW PLAYING</p>
-            <h3>{{ activeVideo.title }}</h3>
-            <p>{{ activeVideo.detail }}</p>
-          </div>
+          <div class="video-player-actions" style="padding-top: 12px; display: flex; gap: 12px;">
+  <button 
+    class="btn btn-sos" 
+    @click="markActiveVideoComplete" 
+    :disabled="isSavingProgress || activeVideo?.completed"
+    style="font-size: 12px; padding: 8px 16px;"
+  >
+    <i class="bi bi-check2-circle"></i>
+    {{ isSavingProgress ? 'Saving...' : activeVideo?.completed ? 'Completed ✓' : 'Mark as Complete' }}
+  </button>
+</div>
         </div>
       </div>
     </Transition>
@@ -269,6 +319,11 @@ function closePlayer() {
 <style scoped>
 .video-art-clickable {
   cursor: pointer;
+}
+.premium-videos-status {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #f8ebf2;
 }
 .video-player-overlay {
   position: fixed;

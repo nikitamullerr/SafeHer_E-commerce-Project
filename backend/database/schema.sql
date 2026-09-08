@@ -68,6 +68,10 @@ CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     order_number VARCHAR(50) UNIQUE NOT NULL,
+    customer_name VARCHAR(100),
+    customer_email VARCHAR(150),
+    subtotal DECIMAL(10,2) NOT NULL DEFAULT 0,
+    delivery_fee DECIMAL(10,2) NOT NULL DEFAULT 0,
     total DECIMAL(10,2) NOT NULL,
     status ENUM('Confirmed','Packed','Out for delivery','Delivered') DEFAULT 'Confirmed',
     delivery_address TEXT NOT NULL,
@@ -77,6 +81,10 @@ CREATE TABLE orders (
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    confirmation_email_sent BOOLEAN NOT NULL DEFAULT FALSE,
+    confirmation_email_sent_at TIMESTAMP NULL,
+    confirmation_email_error VARCHAR(255) NULL,
+    payfast_payment_id VARCHAR(100) NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
