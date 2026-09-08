@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import LiveMap from "../components/LiveMap.vue";
 import { t } from "../languageConfig.js";
-import api from "../api.js";
+import api from "../services/api.js";
 
 const props = defineProps({
   contacts: Array,
