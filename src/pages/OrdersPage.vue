@@ -1,24 +1,36 @@
 <script setup>
 import { t } from "../languageConfig.js";
 import { computed, onMounted, ref } from "vue";
+import api from "../services/api.js";
 
 const orders = ref([]);
 const statuses = ["Confirmed", "Packed", "Out for delivery", "Delivered"];
 
-function loadOrders() {
+async function loadOrders() {
   try {
-    orders.value = JSON.parse(localStorage.getItem("safeher-orders") || "[]");
-  } catch {
+    const { data } = await api.get("/orders");
+    orders.value = data.orders || [];
+  } catch (error) {
     orders.value = [];
+    console.error("Could not load orders from API:", error);
   }
 }
 
-function nextStatus(order) {
+async function nextStatus(order) {
   const currentIndex = statuses.indexOf(order.status || "Confirmed");
   if (currentIndex < 0) return;
   const nextIndex = Math.min(currentIndex + 1, statuses.length - 1);
-  order.status = statuses[nextIndex];
-  localStorage.setItem("safeher-orders", JSON.stringify(orders.value));
+  try {
+    const { data } = await api.patch(`/orders/${order.id}/status`, {
+      status: statuses[nextIndex],
+    });
+    if (data.success && data.order) {
+      const index = orders.value.findIndex((item) => item.id === order.id);
+      if (index >= 0) orders.value[index] = data.order;
+    }
+  } catch (error) {
+    console.error("Could not update order status:", error);
+  }
 }
 
 function getStatusProgress(order) {

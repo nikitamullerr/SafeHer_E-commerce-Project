@@ -14,9 +14,8 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.0",
-    "nodemailer": "^10.0.1",
-    "pdfkit": "^0.20.2",
-    "three": "^0.186.0"
+    "nodemailer": "^6.10.1",
+    "pdfkit": "^0.13.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
