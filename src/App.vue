@@ -885,7 +885,7 @@ function checkout() {
     if (!result.isConfirmed) return;
     const finalTotal = orderTotal + result.value.deliveryFee;
     try {
-      await api.post("/orders", {
+      const { data } = await api.post("/orders", {
         items: cart.value.map(({ id, quantity }) => ({
           productId: id,
           quantity,
@@ -894,13 +894,57 @@ function checkout() {
         deliveryMethod: result.value.deliveryMethod,
         paymentMethod: result.value.method,
       });
+      
+      const createdOrder = data.order;
       cart.value = [];
       cartOpen.value = false;
+      
+      // Get customer email
+      const customerEmail = localStorage.getItem("safeher-client-email") || "your email";
+      
       Swal.fire({
-        title: "Payment successful",
-        text: `Your order is confirmed. Delivery: ${result.value.deliveryMethod} • Total: R${finalTotal.toLocaleString()}`,
+        title: "Order Confirmed!",
+        html: `
+          <div style="text-align: left; max-width: 100%; margin: 0 auto;">
+            <p style="font-size: 14px; color: #5a4d5c; margin-bottom: 16px;">
+              Thank you for your order. Your SafeHer order has been successfully placed.
+            </p>
+            
+            <div style="background: #f9f4fb; border: 1px solid #ecd9ef; border-radius: 12px; padding: 14px; margin-bottom: 16px;">
+              <div style="font-size: 11px; color: #756d76; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Order Number</div>
+              <div style="font-size: 16px; font-weight: 700; color: #351536;">${createdOrder.orderNumber}</div>
+            </div>
+            
+            <div style="background: #f3fbf7; border: 1px solid #d7f0df; border-radius: 12px; padding: 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px;">
+              <i class="bi bi-check-circle" style="color: #1d5c3d; font-size: 18px;"></i>
+              <div style="text-align: left;">
+                <div style="font-size: 11px; color: #1d5c3d; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; margin-bottom: 2px;">Confirmation Email Sent</div>
+                <div style="font-size: 13px; color: #1d5c3d;">${customerEmail}</div>
+              </div>
+            </div>
+            
+            <div style="background: #fdf3e2; border: 1px solid #f0d9a8; border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+              <div style="font-size: 12px; color: #8a5a12; line-height: 1.5;">
+                <strong>What's next?</strong><br>
+                • Check your email for order receipt and details<br>
+                • We'll start packing your order right away<br>
+                • You'll receive tracking info once shipped<br>
+                • Track your order in your SafeHer account
+              </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px;">
+              <a href="#" onclick="document.location.hash='#/orders'; return false;" style="background: #351536; color: #fff; padding: 10px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; text-align: center; display: block;">View Order</a>
+              <a href="#" onclick="document.location.hash='#/'; return false;" style="background: #ecd9ef; color: #351536; padding: 10px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; text-align: center; display: block;">Continue Shopping</a>
+            </div>
+          </div>
+        `,
         icon: "success",
         confirmButtonColor: "#351536",
+        confirmButtonText: "Got it",
+        showConfirmButton: true,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
       });
     } catch (error) {
       Swal.fire({
