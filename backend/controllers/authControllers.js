@@ -33,22 +33,27 @@ export const register = async (req, res) => {
         const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        const [result] = await pool.query(
-            `INSERT INTO users (name, email, password_hash, phone) 
-             VALUES (?, ?, ?, ?)`,
-            [name, email.toLowerCase(), hashedPassword, phone || null]
-        );
+    console.log("Creating user...");
+    const userId = await UserModel.create({
+      name,
+      email,
+      password_hash: hashedPassword,
+      phone,
+    });
 
-        const [user] = await pool.query(
-            'SELECT id, name, email, phone, created_at FROM users WHERE id = ?',
-            [result.insertId]
-        );
+    console.log("Getting user...");
+    const user = await UserModel.findById(userId);
 
-        const token = jwt.sign(
-            { id: user[0].id, email: user[0].email },
-            process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-        );
+    console.log("Generating token...");
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
+    );
 
         res.status(201).json({
             success: true,
@@ -112,11 +117,15 @@ export const login = async (req, res) => {
 
         delete user.password_hash;
 
-        const token = jwt.sign(
-            { id: user.id, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-        );
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
+    );
 
         res.json({
             success: true,
