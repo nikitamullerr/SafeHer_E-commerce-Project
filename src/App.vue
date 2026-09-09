@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import Swal from "sweetalert2";
 import SiteHeader from "./components/SiteHeader.vue";
 import CartDrawer from "./components/CartDrawer.vue";
+import PaymentForm from "./components/PaymentForm.vue"; 
 import HomePage from "./pages/HomePage.vue";
 import ProductsPage from "./pages/ProductsPage.vue";
 import AllProductsPage from "./pages/AllProductsPage.vue";
@@ -21,7 +22,6 @@ import PaymentCancelledPage from "./pages/PaymentCancelledPage.vue";
 import { createPayfastPayment } from "./services/paymentClient";
 import { language } from "./languageConfig.js";
 import { assessDangerLevel } from "./services/dangerAssessment.js";
-import { paygateService } from './services/paygateClient.js';
 
 const isAuthenticated = ref(
   localStorage.getItem("safeher-authenticated") === "true",
@@ -46,6 +46,9 @@ const contacts = ref([]);
 const userLocation = ref(null);
 const locationLoading = ref(false);
 const locationError = ref("");
+
+// card payment modal
+const showCardPayment = ref(false);
 
 const products = [
   {
@@ -573,24 +576,36 @@ function showSos() {
     willClose: () => {
       clearInterval(countdownTimer);
     },
-  }).then((result) => {
-    if (result.dismiss === Swal.DismissReason.timer) {
-      sosActive.value = true;
+  }).then(async (result) => {
+  if (!result.isConfirmed) return;
+  try {
+    const payload = {
+      items: cart.value.map(({ id, quantity }) => ({ product_id: id, quantity })),
+      delivery_method: result.value.deliveryMethodCode,
+      delivery_address: result.value.address,
+    };
+    console.log('📦 Sending payload:', payload);
 
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        title: "SOS activated",
-        text: "Your safety circle has been notified.",
-        icon: "success",
-        timer: 1500,
-      });
+    const payment = await createPayfastPayment(payload);
+    console.log('🔍 Payment response:', payment);
 
-      setTimeout(() => {
-        sosActive.value = false;
-      }, 3000);
+    if (payment.paymentUrl) {
+      cart.value = [];
+      cartOpen.value = false;
+      window.location.assign(payment.paymentUrl);
+    } else {
+      throw new Error('Payment URL not returned by backend');
     }
-  });
+  } catch (error) {
+    console.error('Payment error:', error);
+    Swal.fire({
+      icon: "error",
+      title: "Unable to start payment",
+      text: error.message || error.response?.data?.error || "Please sign in and try again.",
+      confirmButtonColor: "#351536",
+    });
+  }
+});
 }
 
 // ----- Contacts -----
@@ -865,6 +880,7 @@ function checkout() {
         delivery_method: result.value.deliveryMethodCode,
         delivery_address: result.value.address,
       });
+      console.log('🔍 Payment response:', payment);
       cart.value = [];
       cartOpen.value = false;
       window.location.assign(payment.paymentUrl);
@@ -879,38 +895,31 @@ function checkout() {
   });
 }
 
-// ----- PayGate Payment -----
-async function payWithPayGate() {
-    try {
-        // Get the user email from localStorage correctly
-        const user = JSON.parse(localStorage.getItem("safeher-user") || '{}');
-        const email = user?.email || 'test@example.com';
+// ----- Card Payment Methods -----
+function openCardPayment() {
+  showCardPayment.value = true;
+  cartOpen.value = false;
+}
 
-        const response = await paygateService.createPayment({
-            amount: cartTotal.value,
-            email: email,  // ← Now it's a proper string
-            reference: `PG-${Date.now()}`,
-        });
+function handleCardPaymentSuccess(response) {
+  showCardPayment.value = false;
+  cart.value = [];
+  Swal.fire({
+    icon: 'success',
+    title: 'Payment Successful!',
+    text: `Order ${response.orderNumber} confirmed.`,
+    confirmButtonColor: '#351536'
+  });
+}
 
-        if (response.success) {
-            window.location.href = response.redirectUrl;
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Payment initiation failed',
-                text: response.error || 'Please try again.',
-                confirmButtonColor: '#351536',
-            });
-        }
-    } catch (error) {
-        console.error('PayGate error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Payment error',
-            text: error.response?.data?.error || 'An unexpected error occurred.',
-            confirmButtonColor: '#351536',
-        });
-    }
+function handleCardPaymentError(message) {
+  showCardPayment.value = false;
+  Swal.fire({
+    icon: 'error',
+    title: 'Payment Failed',
+    text: message || 'Please try again.',
+    confirmButtonColor: '#351536'
+  });
 }
 
 // ----- Auth -----
@@ -1030,7 +1039,7 @@ onMounted(() => {
         @remove="removeFromCart"
         @checkout="checkout"
         @shop="navigate('products')"
-        @paygate="payWithPayGate"
+        @card-payment="openCardPayment"
       />
       <!--  PAGE TRANSITION  -->
       <Transition name="page" mode="out-in">
@@ -1053,6 +1062,22 @@ onMounted(() => {
         @contact-trusted="contactTrustedPerson"
         @upgrade="navigate('packages')"
       />
+
+      <!-- ✅ NEW: Card Payment Modal -->
+      <div v-if="showCardPayment" class="payment-modal-overlay" @click.self="showCardPayment = false">
+        <div class="payment-modal-content">
+          <button class="payment-modal-close" @click="showCardPayment = false">
+            <i class="bi bi-x-lg"></i>
+          </button>
+          <PaymentForm
+            :items="cart"
+            delivery-method="standard"
+            :delivery-address="'123 Main St, Cape Town'"
+            @success="handleCardPaymentSuccess"
+            @error="handleCardPaymentError"
+          />
+        </div>
+      </div>
     </template>
   </div>
 </template>
@@ -1085,5 +1110,47 @@ onMounted(() => {
     opacity: 1 !important;
     transform: none !important;
   }
+}
+
+/* Payment Modal Styles */
+.payment-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.payment-modal-content {
+  background: var(--surface, #fff);
+  border-radius: 16px;
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.payment-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  color: var(--muted, #756d76);
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Safety net in case --surface doesn't inherit for any reason */
+.dark-mode .payment-modal-content {
+  background: #1b121b;
+}
+.dark-mode .payment-modal-close {
+  color: #c7b8c0;
 }
 </style>

@@ -1,11 +1,29 @@
-import api from "./api";
+import api from './api.js';
 
-export async function createPayfastPayment(order) {
-  const { data } = await api.post("/payments/payfast/create", order);
-  return data;
+// PayFast
+export async function createPayfastPayment(orderData) {
+    const response = await api.post('/payments/payfast/create', orderData);
+    return response.data;
+}
+
+// Card Payment (simulation)
+export async function createCardPayment(orderData) {
+    const response = await api.post('/payments/create', {
+        ...orderData,
+        payment_method: 'payfast'
+    });
+    return response.data;
 }
 
 export async function getPaymentStatus(orderNumber) {
-  const { data } = await api.get(`/payments/${encodeURIComponent(orderNumber)}/status`);
-  return data;
+    const response = await api.get(`/payments/${orderNumber}/status`);
+    return response.data;
 }
+
+export const paymentService = {
+    createPayfastPayment,
+    createCardPayment,
+    getPaymentStatus
+};
+
+export default paymentService;

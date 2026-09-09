@@ -1,6 +1,6 @@
 <script setup>
 defineProps({ open: Boolean, cart: Array, total: Number });
-const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop", "paygate"]);
+const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop", "card-payment"]);
 </script>
 
 <template>
@@ -73,9 +73,9 @@ const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop", "p
         <!-- Divider -->
         <div class="drawer-divider">or</div>
 
-        <!-- PayGate Checkout -->
-        <button class="btn btn-outline-plum w-100" @click="emit('paygate')">
-          <i class="bi bi-credit-card"></i> Pay with PayGate (Test)
+        <!-- card payment -->
+        <button class="btn btn-outline-plum w-100" @click="emit('card-payment')">
+          <i class="bi bi-credit-card"></i> Pay with Card (Visa/Mastercard)
         </button>
 
         <button class="drawer-continue" @click="emit('shop')">
