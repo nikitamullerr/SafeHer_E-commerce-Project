@@ -1,7 +1,7 @@
 <script setup>
 import { computed, reactive, ref, watch } from "vue";
 import Swal from "sweetalert2";
-import { authService } from "../services/authService.js";
+import { authService } from "../../backend/services/authService.js";
 
 const props = defineProps({ mode: String });
 const emit = defineEmits([
