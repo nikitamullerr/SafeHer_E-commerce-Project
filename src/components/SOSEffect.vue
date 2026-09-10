@@ -15,6 +15,7 @@ let isAnimating = false;
 let clock = null;
 let totalElapsed = 0;
 let fallbackTimer = null;
+let mountTimer = null;
 const fallbackActive = ref(false);
 
 const PULSE_COUNT = 3;
@@ -250,7 +251,8 @@ function triggerEffect() {
     clearTimeout(fallbackTimer);
     fallbackTimer = setTimeout(() => {
       fallbackActive.value = false;
-    }, 1900);
+      emit("complete");
+    }, 2400);
     return;
   }
 
@@ -292,13 +294,21 @@ watch(
   (newVal) => {
     log("active:", newVal);
     if (newVal) triggerEffect();
+    else {
+      isAnimating = false;
+      fallbackActive.value = false;
+      clearTimeout(fallbackTimer);
+      pulses.forEach(({ ring, glow }) => { ring.visible = false; glow.visible = false; });
+      if (flash) flash.visible = false;
+      if (ringParticles) ringParticles.visible = false;
+    }
   },
   { immediate: true },
 );
 
 onMounted(() => {
   log("mounted");
-  setTimeout(() => {
+  mountTimer = setTimeout(() => {
     if (container.value) {
       initScene();
       animate();
@@ -311,6 +321,12 @@ onMounted(() => {
 onUnmounted(() => {
   if (animationId) cancelAnimationFrame(animationId);
   clearTimeout(fallbackTimer);
+  clearTimeout(mountTimer);
+  scene?.traverse((object) => {
+    object.geometry?.dispose();
+    if (Array.isArray(object.material)) object.material.forEach((material) => material.dispose());
+    else object.material?.dispose();
+  });
   if (renderer) {
     renderer.dispose();
     if (container.value && renderer.domElement) {

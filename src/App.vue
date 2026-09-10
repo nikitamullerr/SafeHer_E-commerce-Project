@@ -1,9 +1,10 @@
 <script setup>
+import { t } from "./languageConfig.js";
 import { computed, onMounted, ref } from "vue";
-import Swal from "sweetalert2";
+import Swal from "./services/localizedSwal.js";
 import SiteHeader from "./components/SiteHeader.vue";
 import CartDrawer from "./components/CartDrawer.vue";
-import PaymentForm from "./components/PaymentForm.vue"; 
+import CheckoutModal from "./components/CheckoutModal.vue";
 import HomePage from "./pages/HomePage.vue";
 import ProductsPage from "./pages/ProductsPage.vue";
 import AllProductsPage from "./pages/AllProductsPage.vue";
@@ -19,13 +20,12 @@ import SafeHerAI from "./components/SafeHerAI.vue";
 import SOSEffect from "./components/SOSEffect.vue";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage.vue";
 import PaymentCancelledPage from "./pages/PaymentCancelledPage.vue";
-import { createPayfastPayment } from "./services/paymentClient";
 import { language } from "./languageConfig.js";
 import { assessDangerLevel } from "./services/dangerAssessment.js";
 import api from "./services/api.js";
 
 const isAuthenticated = ref(
-  localStorage.getItem("safeher-authenticated") === "true",
+  Boolean(localStorage.getItem("safeher-token")),
 );
 const darkMode = ref(localStorage.getItem("safeher-dark-mode") === "true");
 
@@ -48,256 +48,21 @@ const userLocation = ref(null);
 const locationLoading = ref(false);
 const locationError = ref("");
 
-const products = ref([
-  {
-    id: 1,
-    name: "Smart Panic Button",
-    detail: "Wearable GPS alert",
-    price: 899,
-    icon: "bi-broadcast-pin",
-    image: "https://i.ibb.co/yn1NHJvF/panic-button-gallery-13.jpg",
-    tone: "rose",
-    category: "personal-safety",
-  },
-  {
-    id: 2,
-    name: "Defender Spray",
-    detail: "Compact & discreet",
-    price: 149,
-    icon: "bi-shield-shaded",
-    image:
-      "https://i.ibb.co/5hnVXV5x/NEWSIZEFog-Heat-MK3-509e0365-f200-4a49-bdc8-b61d097a26d5.jpg",
-    tone: "plum",
-    category: "home",
-  },
-  {
-    id: 3,
-    name: "Safety Whistle",
-    detail: "High-decibel alarm",
-    price: 79,
-    icon: "bi-megaphone",
-    image: "https://i.ibb.co/JWCp8rB0/61l2-Sp9-Sss-L.jpg",
-    tone: "gold",
-    category: "travel",
-  },
-  {
-    id: 4,
-    name: "Emergency Contact Card",
-    detail: "Quick-access ID and medical info",
-    price: 99,
-    icon: "bi-person-vcard",
-    image: "https://i.ibb.co/7dcV0dzc/ICEw-Digital5pack-61593-1755633471.jpg",
-    tone: "cream",
-    category: "personal-safety",
-  },
-  {
-    id: 5,
-    name: "Door Alarm Sensor",
-    detail: "Smart entry alert for your home",
-    price: 399,
-    icon: "bi-door-open",
-    image: "https://i.ibb.co/Zz9wN8KZ/ooma-door-window-sensor.jpg",
-    tone: "rose",
-    category: "home",
-  },
-  {
-    id: 6,
-    name: "Travel Safety Kit",
-    detail: "Compact essentials for on-the-go trips",
-    price: 279,
-    icon: "bi-bag-check",
-    image:
-      "https://i.ibb.co/wrwWMY8V/tal-pickpocketed-tout-62aad4629f384fd2bd5ca630a0e2de41.jpg",
-    tone: "plum",
-    category: "travel",
-  },
-  {
-    id: 7,
-    name: "Keychain SOS Beacon",
-    detail: "Small, bright and always within reach",
-    price: 199,
-    icon: "bi-key",
-    image:
-      "https://i.ibb.co/yFrvhG5x/130d-B-Wireless-Sos-Button-Anti-Attack-Personal-Safety-Security-Keychain-Alarm-Devices-for-Women.webp",
-    tone: "gold",
-    category: "personal-safety",
-  },
-  {
-    id: 8,
-    name: "Window Safety Lock",
-    detail: "Extra deterrent for secure homes",
-    price: 149,
-    icon: "bi-window",
-    image:
-      "https://i.ibb.co/nsHHYhXB/cubelock-window-child-safety-lock-restrictor-2325-p.png",
-    tone: "cream",
-    category: "home",
-  },
-  {
-    id: 9,
-    name: "Portable Phone Charger",
-    detail: "Emergency backup for daily travel",
-    price: 179,
-    icon: "bi-phone",
-    image: "https://i.ibb.co/XffBnJWh/5-1024x1024.png",
-    tone: "rose",
-    category: "travel",
-  },
-  {
-    id: 10,
-    name: "Personal Alarm Clip",
-    detail: "Attachable siren for busy commutes",
-    price: 249,
-    icon: "bi-bell",
-    image: "https://i.ibb.co/VsBBBfC/pa-clip-colors.jpg",
-    tone: "rose",
-    category: "personal-safety",
-  },
-  {
-    id: 11,
-    name: "Nightlight Safety Lamp",
-    detail: "Soft light for entryways and hallways",
-    price: 219,
-    icon: "bi-lightbulb",
-    image:
-      "https://i.ibb.co/j9bcFrJb/led-safety-night-light-plug-in-light-sensor-emergency-lamp-child-safety-lamp-8581684635341-06c-MP-M.webp",
-    tone: "gold",
-    category: "home",
-  },
-  {
-    id: 12,
-    name: "Travel Lock Box",
-    detail: "Discreet secure storage for valuables",
-    price: 329,
-    icon: "bi-lock",
-    image: "https://i.ibb.co/LX9cgZ9T/s-zoom.jpg",
-    tone: "plum",
-    category: "travel",
-  },
-  {
-    id: 13,
-    name: "Flashlight Keyring",
-    detail: "Mini torch with emergency beacon",
-    price: 129,
-    icon: "bi-flashlight",
-    image: "https://i.ibb.co/7tj3d4JH/GFT-19-MF-black.png",
-    tone: "cream",
-    category: "personal-safety",
-  },
-  {
-    id: 14,
-    name: "Home Entry Alarm",
-    detail: "Alerts you the moment the door opens",
-    price: 449,
-    icon: "bi-door-closed",
-    image: "https://i.ibb.co/Q7msMFDt/HS-DHA.jpg",
-    tone: "rose",
-    category: "home",
-  },
-  {
-    id: 15,
-    name: "Passport Safety Sleeve",
-    detail: "Hidden document protection for travel",
-    price: 119,
-    icon: "bi-passport",
-    image: "https://i.ibb.co/8gSz1cMx/rfid-blocking-passport-sleeve-730782.jpg",
-    tone: "gold",
-    category: "travel",
-  },
-  {
-    id: 16,
-    name: "Pepper Spray Holder",
-    detail: "Easy-grip case with quick access design",
-    price: 169,
-    icon: "bi-shield-lock",
-    image: "https://i.ibb.co/Kx6HFkL2/71-CRWg3-IGRL-AC-UY1000.jpg",
-    tone: "plum",
-    category: "personal-safety",
-  },
-  {
-    id: 17,
-    name: "Smart Window Sensor",
-    detail: "Notifies you of movement or tampering",
-    price: 499,
-    icon: "bi-window-fullscreen",
-    image: "https://i.ibb.co/BKf15RXx/Tuya-D06-Door-Window-sensor-2-result.jpg",
-    tone: "rose",
-    category: "home",
-  },
-  {
-    id: 18,
-    name: "Road Trip Essentials Kit",
-    detail: "Safety basics for long-distance travel",
-    price: 399,
-    icon: "bi-car-front",
-    image:
-      "https://i.ibb.co/cSHx0qCL/mountain-road-warrior-vehicle-emergency-kit.jpg",
-    tone: "gold",
-    category: "travel",
-  },
-  {
-    id: 19,
-    name: "Safety Bracelet",
-    detail: "Medical alert bracelet with quick ID",
-    price: 189,
-    icon: "bi-heart-pulse",
-    image: "https://i.ibb.co/xtY5MpX7/SOS-ID-Wristband-children-1024x1024.webp",
-    tone: "cream",
-    category: "personal-safety",
-  },
-  {
-    id: 20,
-    name: "Fire Escape Plan Set",
-    detail: "Preparedness cards for your home",
-    price: 89,
-    icon: "bi-exclamation-triangle",
-    image: "https://i.ibb.co/fdFRTjR0/il-fullxfull-7068051978-tnfd.jpg",
-    tone: "plum",
-    category: "home",
-  },
-  {
-    id: 21,
-    name: "Travel First-Aid Pouch",
-    detail: "Compact emergency essentials case",
-    price: 299,
-    icon: "bi-bandaid",
-    image:
-      "https://i.ibb.co/KjdYCJLn/Mini-First-Aid-Kit-In-Zip-Pouch-2025-3-700x700.jpg",
-    tone: "gold",
-    category: "travel",
-  },
-  {
-    id: 22,
-    name: "Digital Safety Sticker",
-    detail: "Visible ID and emergency response note",
-    price: 139,
-    icon: "bi-tag",
-    image: "https://i.ibb.co/HTsVQwnY/Emergency-ID-Smart-nfc.webp",
-    tone: "rose",
-    category: "personal-safety",
-  },
-  {
-    id: 23,
-    name: "Safe Home Sensor Pack",
-    detail: "Multi-room motion and alert support",
-    price: 599,
-    icon: "bi-house-door",
-    image:
-      "https://i.ibb.co/MD8Q814h/4-AJAX-White-Alarm-System-Indoor-Starter-Kit-4-Passive-Motion-Cam.jpg",
-    tone: "plum",
-    category: "home",
-  },
-  {
-    id: 24,
-    name: "Travel Buddy Kit",
-    detail: "All-in-one essentials for safer trips",
-    price: 359,
-    icon: "bi-bag-heart",
-    image: "https://i.ibb.co/PdjqWYK/HBK001-Holts-Travel-Buddy-Boot-Kit.png",
-    tone: "gold",
-    category: "travel",
-  },
-]);
+const products = ref([]);
+const productsLoading = ref(true);
+const productsError = ref("");
+async function loadProducts() {
+  productsLoading.value = true;
+  productsError.value = "";
+  try {
+    const { data } = await api.get("/products");
+    if (!data.success || !Array.isArray(data.products)) throw new Error("Invalid product response");
+    products.value = data.products;
+  } catch {
+    products.value = [];
+    productsError.value = "Could not load the store. Check the backend and try again.";
+  } finally { productsLoading.value = false; }
+}
 
 const cartCount = computed(() =>
   cart.value.reduce((sum, item) => sum + item.quantity, 0),
@@ -547,13 +312,14 @@ function startTracking() {
 function toggleTracking() {
   startTracking();
 }
-function showSos() {
+async function showSos() {
+  if (Swal.isVisible()) return;
+  sosActive.value = true;
   const countdownSeconds = 5;
   let countdownTimer;
-
-  Swal.fire({
+  await Swal.fire({
     title: "SOS activating",
-    html: `Your SOS will be sent in <strong id="sos-countdown">${countdownSeconds}</strong> seconds.`,
+    html: `SOS countdown: <strong id="sos-countdown">${countdownSeconds}</strong> seconds. No alert is sent automatically.`,
     icon: "warning",
     showConfirmButton: false,
     showCancelButton: true,
@@ -562,48 +328,16 @@ function showSos() {
     timer: countdownSeconds * 1000,
     timerProgressBar: true,
     didOpen: () => {
-      const countdownElement =
-        Swal.getHtmlContainer()?.querySelector("#sos-countdown");
       let secondsLeft = countdownSeconds;
       countdownTimer = setInterval(() => {
-        secondsLeft -= 1;
-        if (countdownElement)
-          countdownElement.textContent = String(Math.max(secondsLeft, 0));
+        const counter = Swal.getHtmlContainer()?.querySelector("#sos-countdown");
+        if (counter) counter.textContent = String(Math.max(--secondsLeft, 0));
       }, 1000);
     },
-    willClose: () => {
-      clearInterval(countdownTimer);
-    },
-  }).then(async (result) => {
-  if (!result.isConfirmed) return;
-  try {
-    const payload = {
-      items: cart.value.map(({ id, quantity }) => ({ product_id: id, quantity })),
-      delivery_method: result.value.deliveryMethodCode,
-      delivery_address: result.value.address,
-    };
-    console.log('📦 Sending payload:', payload);
+    willClose: () => clearInterval(countdownTimer),
+  });
+  sosActive.value = false;
 
-    const payment = await createPayfastPayment(payload);
-    console.log('🔍 Payment response:', payment);
-
-    if (payment.paymentUrl) {
-      cart.value = [];
-      cartOpen.value = false;
-      window.location.assign(payment.paymentUrl);
-    } else {
-      throw new Error('Payment URL not returned by backend');
-    }
-  } catch (error) {
-    console.error('Payment error:', error);
-    Swal.fire({
-      icon: "error",
-      title: "Unable to start payment",
-      text: error.message || error.response?.data?.error || "Please sign in and try again.",
-      confirmButtonColor: "#351536",
-    });
-  }
-});
 }
 
 // ----- Contacts -----
@@ -674,280 +408,31 @@ function contactTrustedPerson() {
   messageContact(contacts.value[0]);
 }
 
-// ----- Checkout (PayFast) -----
+// ----- Checkout -----
+const checkoutOpen = ref(false);
+const checkoutMethod = ref("payfast");
 function checkout() {
   if (!cart.value.length) return;
-  const orderTotal = cartTotal.value;
-  const deliveryOptions = [
-    {
-      value: "standard",
-      label: "Standard delivery",
-      fee: 49,
-      eta: "2-4 working days",
-    },
-    {
-      value: "express",
-      label: "Express delivery",
-      fee: 99,
-      eta: "1-2 working days",
-    },
-    {
-      value: "pickup",
-      label: "Click & collect",
-      fee: 0,
-      eta: "Ready in 24 hours",
-    },
-  ];
-  const savedAddresses = JSON.parse(
-    localStorage.getItem("safeher-delivery-addresses") || "[]",
-  );
-
-  Swal.fire({
-    title: "Secure checkout",
-    html: `
-      <div style="display:grid; gap:12px; text-align:left; width:100%; max-width:100%; box-sizing:border-box; margin:0 auto;">
-        <div style="display:flex; gap:8px; align-items:center; justify-content:space-between; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:#756d76;">
-          <span style="display:inline-flex; align-items:center; justify-content:center; min-width:32px; height:24px; border-radius:999px; background:#351536; color:#fff; padding:0 10px; font-weight:700;">1</span>
-          <span style="flex:1; height:2px; background:#ecd9ef; border-radius:999px; display:block;"></span>
-          <span style="display:inline-flex; align-items:center; justify-content:center; min-width:32px; height:24px; border-radius:999px; background:#f0e7f1; color:#351536; padding:0 10px; font-weight:700;">2</span>
-          <span style="flex:1; height:2px; background:#ecd9ef; border-radius:999px; display:block;"></span>
-          <span style="display:inline-flex; align-items:center; justify-content:center; min-width:32px; height:24px; border-radius:999px; background:#f0e7f1; color:#351536; padding:0 10px; font-weight:700;">3</span>
-        </div>
-
-        <div style="background:#f9f4fb; border:1px solid #ecd9ef; border-radius:12px; padding:12px 14px; color:#351536; width:100%; box-sizing:border-box;">
-          <div style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.7; margin-bottom:6px;">Order summary</div>
-          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:13px; color:#5a4d5c;">
-            <span>Subtotal</span>
-            <strong>R${orderTotal.toLocaleString()}</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:13px; color:#5a4d5c; margin-top:6px;">
-            <span>Delivery</span>
-            <strong id="checkout-delivery-fee">R49</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px; border-top:1px solid #ecd9ef; padding-top:8px;">
-            <span style="font-size:13px; color:#351536; font-weight:700;">Total</span>
-            <strong style="font-size:22px; color:#351536;">R${(orderTotal + 49).toLocaleString()}</strong>
-          </div>
-        </div>
-
-        <div style="width:100%; box-sizing:border-box;">
-          <label style="display:block; font-size:12px; color:#5a4d5c; font-weight:600; margin-bottom:8px;">Delivery method</label>
-          <select id="delivery-method" class="swal2-input" style="width:100%; margin:0; box-sizing:border-box;">
-            ${deliveryOptions
-              .map(
-                (option) =>
-                  `<option value="${option.value}">${option.label} - R${option.fee.toLocaleString()}</option>`,
-              )
-              .join("")}
-          </select>
-        </div>
-
-        <div style="width:100%; box-sizing:border-box;">
-          <label style="display:block; font-size:12px; color:#5a4d5c; font-weight:600; margin-bottom:8px;">Estimated delivery</label>
-          <div id="delivery-eta" style="background:#f3fbf7; border:1px solid #d7f0df; border-radius:10px; padding:10px 12px; color:#1d5c3d; font-size:13px; font-weight:600;">
-            2-4 working days
-          </div>
-        </div>
-
-        <div style="width:100%; box-sizing:border-box;">
-          <label style="display:block; font-size:12px; color:#5a4d5c; font-weight:600; margin-bottom:8px;">Saved addresses</label>
-          <select id="saved-delivery-address" class="swal2-input" style="width:100%; margin:0; box-sizing:border-box;">
-            <option value="">Use a new address</option>
-            ${savedAddresses
-              .map(
-                (address) =>
-                  `<option value="${address.id}">${address.label}</option>`,
-              )
-              .join("")}
-          </select>
-        </div>
-
-        <div style="width:100%; box-sizing:border-box;">
-          <label style="display:block; font-size:12px; color:#5a4d5c; font-weight:600; margin-bottom:8px;">Delivery address</label>
-          <textarea id="delivery-address" class="swal2-textarea" rows="3" placeholder="Your street address, suburb, city, province" style="width:100%; max-width:100%; min-height:80px; resize:vertical; box-sizing:border-box; margin:0; text-align:left;"></textarea>
-        </div>
-
-        <div style="display:flex; align-items:center; gap:8px; color:#5a4d5c; font-size:12px;">
-          <input id="save-address" type="checkbox" style="accent-color:#351536;">
-          <label for="save-address">Save this address for next time</label>
-        </div>
-
-        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; color:#5a4d5c; font-size:12px;">
-          <span style="display:inline-flex; align-items:center; gap:6px; background:#f8f5fa; border:1px solid #eee2f4; border-radius:999px; padding:5px 8px;">
-            <i class="bi bi-shield-check" style="color:#351536;"></i> Secure checkout
-          </span>
-          <span style="display:inline-flex; align-items:center; gap:6px; background:#f8f5fa; border:1px solid #eee2f4; border-radius:999px; padding:5px 8px;">
-            <i class="bi bi-credit-card" style="color:#351536;"></i> SA banks
-          </span>
-          <span style="display:inline-flex; align-items:center; gap:6px; background:#f8f5fa; border:1px solid #eee2f4; border-radius:999px; padding:5px 8px;">
-            <i class="bi bi-truck" style="color:#351536;"></i> Fast dispatch
-          </span>
-        </div>
-
-        <div style="background:#f3fbf7; border:1px solid #d7f0df; border-radius:10px; padding:10px 12px; color:#1d5c3d; font-size:13px;">
-          <i class="bi bi-shield-lock"></i> You will complete payment securely on PayFast. SafeHer never receives or stores your card details.
-        </div>
-      </div>
-    `,
-    showCancelButton: true,
-    confirmButtonText: `Continue to PayFast`,
-    confirmButtonColor: "#d92d36",
-    cancelButtonText: "Back to bag",
-    focusConfirm: false,
-    didOpen: () => {
-      const deliveryMethod = document.getElementById("delivery-method");
-      const deliveryEta = document.getElementById("delivery-eta");
-      const deliveryFee = document.getElementById("checkout-delivery-fee");
-      const totalValue = document.querySelector(".swal2-confirm");
-      const savedSelect = document.getElementById("saved-delivery-address");
-      const addressField = document.getElementById("delivery-address");
-
-      const updateDeliveryMeta = () => {
-        const selected = deliveryOptions.find(
-          (option) => option.value === deliveryMethod.value,
-        );
-        if (!selected) return;
-        if (deliveryEta) deliveryEta.textContent = selected.eta;
-        if (deliveryFee)
-          deliveryFee.textContent = `R${selected.fee.toLocaleString()}`;
-        if (totalValue)
-          totalValue.textContent = `Pay R${(orderTotal + selected.fee).toLocaleString()}`;
-      };
-
-      if (deliveryMethod)
-        deliveryMethod.addEventListener("change", updateDeliveryMeta);
-      if (savedSelect) {
-        savedSelect.addEventListener("change", (event) => {
-          const selectedId = event.target.value;
-          if (!selectedId) return;
-          const selectedAddress = savedAddresses.find(
-            (address) => String(address.id) === String(selectedId),
-          );
-          if (selectedAddress && addressField)
-            addressField.value = selectedAddress.address;
-        });
-      }
-
-      updateDeliveryMeta();
-    },
-    preConfirm: () => {
-      const deliveryMethod = document.getElementById("delivery-method").value;
-      const address = document.getElementById("delivery-address").value.trim();
-      const saveAddress = document.getElementById("save-address")?.checked;
-
-      if (!address) {
-        Swal.showValidationMessage("Add a delivery address to continue.");
-        return false;
-      }
-      if (saveAddress) {
-        const addresses = JSON.parse(
-          localStorage.getItem("safeher-delivery-addresses") || "[]",
-        );
-        const cleanAddress = address.replace(/\s+/g, " ").trim();
-        const newAddress = {
-          id: Date.now(),
-          label:
-            cleanAddress.split(",").slice(0, 2).join(", ").slice(0, 40) ||
-            "Saved address",
-          address: cleanAddress,
-        };
-        if (!addresses.some((item) => item.address === cleanAddress)) {
-          addresses.push(newAddress);
-          localStorage.setItem(
-            "safeher-delivery-addresses",
-            JSON.stringify(addresses),
-          );
-        }
-      }
-
-      const selectedDelivery = deliveryOptions.find(
-        (option) => option.value === deliveryMethod,
-      );
-      return {
-        deliveryMethodCode: deliveryMethod,
-        deliveryMethod: selectedDelivery.label,
-        deliveryFee: selectedDelivery.fee,
-        address,
-      };
-    },
-  }).then(async (result) => {
-    if (!result.isConfirmed) return;
-    const finalTotal = orderTotal + result.value.deliveryFee;
-    try {
-      const { data } = await api.post("/orders", {
-        items: cart.value.map(({ id, quantity }) => ({
-          productId: id,
-          quantity,
-        })),
-        deliveryAddress: result.value.address,
-        deliveryMethod: result.value.deliveryMethod,
-        paymentMethod: result.value.method,
-      });
-      
-      const createdOrder = data.order;
-      cart.value = [];
-      cartOpen.value = false;
-      
-      // Get customer email
-      const customerEmail = localStorage.getItem("safeher-client-email") || "your email";
-      
-      Swal.fire({
-        title: "Order Confirmed!",
-        html: `
-          <div style="text-align: left; max-width: 100%; margin: 0 auto;">
-            <p style="font-size: 14px; color: #5a4d5c; margin-bottom: 16px;">
-              Thank you for your order. Your SafeHer order has been successfully placed.
-            </p>
-            
-            <div style="background: #f9f4fb; border: 1px solid #ecd9ef; border-radius: 12px; padding: 14px; margin-bottom: 16px;">
-              <div style="font-size: 11px; color: #756d76; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Order Number</div>
-              <div style="font-size: 16px; font-weight: 700; color: #351536;">${createdOrder.orderNumber}</div>
-            </div>
-            
-            <div style="background: #f3fbf7; border: 1px solid #d7f0df; border-radius: 12px; padding: 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px;">
-              <i class="bi bi-check-circle" style="color: #1d5c3d; font-size: 18px;"></i>
-              <div style="text-align: left;">
-                <div style="font-size: 11px; color: #1d5c3d; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; margin-bottom: 2px;">Confirmation Email Sent</div>
-                <div style="font-size: 13px; color: #1d5c3d;">${customerEmail}</div>
-              </div>
-            </div>
-            
-            <div style="background: #fdf3e2; border: 1px solid #f0d9a8; border-radius: 12px; padding: 12px; margin-bottom: 14px;">
-              <div style="font-size: 12px; color: #8a5a12; line-height: 1.5;">
-                <strong>What's next?</strong><br>
-                • Check your email for order receipt and details<br>
-                • We'll start packing your order right away<br>
-                • You'll receive tracking info once shipped<br>
-                • Track your order in your SafeHer account
-              </div>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px;">
-              <a href="#" onclick="document.location.hash='#/orders'; return false;" style="background: #351536; color: #fff; padding: 10px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; text-align: center; display: block;">View Order</a>
-              <a href="#" onclick="document.location.hash='#/'; return false;" style="background: #ecd9ef; color: #351536; padding: 10px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; text-align: center; display: block;">Continue Shopping</a>
-            </div>
-          </div>
-        `,
-        icon: "success",
-        confirmButtonColor: "#351536",
-        confirmButtonText: "Got it",
-        showConfirmButton: true,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-      });
-    } catch (error) {
-      Swal.fire({
-        title: "Order could not be placed",
-        text: error.response?.data?.error || "Please try again.",
-        icon: "error",
-        confirmButtonColor: "#351536",
-      });
-    }
-  });
+  checkoutMethod.value = "payfast";
+  checkoutOpen.value = true;
+  cartOpen.value = false;
+}
+function openCardPayment() {
+  if (!cart.value.length) return;
+  checkoutMethod.value = "card_demo";
+  checkoutOpen.value = true;
+  cartOpen.value = false;
+}
+function checkoutComplete(result) {
+  checkoutOpen.value = false;
+  cart.value = [];
+  navigate("orders");
+  if (result.simulated) Swal.fire({ icon: "info", title: "Demo order created", text: result.emailSent ? "No money was charged. A labelled demo confirmation was sent to your account email." : "No money was charged. The email could not be sent; use Send demo confirmation in your order history to retry.", confirmButtonColor: "#351536" });
 }
 
 // ----- Auth -----
-function authenticated(email) {
+function authenticated(user) {
+  const email = typeof user === "string" ? user : user?.email;
   isAuthenticated.value = true;
   localStorage.setItem("safeher-authenticated", "true");
   if (email) localStorage.setItem("safeher-client-email", email);
@@ -958,6 +443,9 @@ function authenticated(email) {
 }
 
 function logout() {
+  localStorage.removeItem("safeher-token");
+  localStorage.removeItem("safeher-user");
+  localStorage.removeItem("safeher-client-email");
   isAuthenticated.value = false;
   localStorage.removeItem("safeher-authenticated");
   localStorage.removeItem("safeher-active-view");
@@ -1029,13 +517,7 @@ onMounted(() => {
     contacts.value = [];
   }
 
-  api.get("/products")
-    .then(({ data }) => {
-      if (data.success && data.products?.length) products.value = data.products;
-    })
-    .catch((error) => {
-      console.error("Could not load products from API:", error);
-    });
+  loadProducts();
 });
 </script>
 
@@ -1073,6 +555,11 @@ onMounted(() => {
         @shop="navigate('products')"
         @card-payment="openCardPayment"
       />
+      <section v-if="['products', 'store-all'].includes(activeView)" class="container-fluid px-4 py-3" aria-live="polite">
+        <p v-if="productsLoading" role="status">{{ t("Loading products...") }}</p>
+        <div v-else-if="productsError" role="alert"><p>{{ t(productsError) }}</p><button class="btn btn-outline-plum" @click="loadProducts">{{ t("Retry loading products") }}</button></div>
+        <p v-else-if="!products.length">{{ t("No products are available right now.") }}</p>
+      </section>
       <!--  PAGE TRANSITION  -->
       <Transition name="page" mode="out-in">
         <component
@@ -1084,7 +571,7 @@ onMounted(() => {
       </Transition>
 
       <SiteFooter @navigate="navigate" />
-      <SOSEffect :active="sosActive" />
+      <SOSEffect :active="sosActive" @complete="sosActive = false" />
       <SafeHerAI
         :location="userLocation"
         :contacts="contacts"
@@ -1095,21 +582,7 @@ onMounted(() => {
         @upgrade="navigate('packages')"
       />
 
-      <!-- ✅ NEW: Card Payment Modal -->
-      <div v-if="showCardPayment" class="payment-modal-overlay" @click.self="showCardPayment = false">
-        <div class="payment-modal-content">
-          <button class="payment-modal-close" @click="showCardPayment = false">
-            <i class="bi bi-x-lg"></i>
-          </button>
-          <PaymentForm
-            :items="cart"
-            delivery-method="standard"
-            :delivery-address="'123 Main St, Cape Town'"
-            @success="handleCardPaymentSuccess"
-            @error="handleCardPaymentError"
-          />
-        </div>
-      </div>
+      <CheckoutModal v-if="checkoutOpen" :items="cart" :initial-method="checkoutMethod" @close="checkoutOpen = false" @success="checkoutComplete" />
     </template>
   </div>
 </template>

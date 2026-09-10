@@ -3,6 +3,9 @@ import express from 'express';
 import authRoutes from './authRoutes.js';
 import orderRoutes from './orderRoutes.js';
 import productRoutes from './productRoutes.js';
+import premiumRoutes from './premiumRoutes.js';
+import paymentRoutes from './paymentRoutes.js';
+import addressRoutes from './addressRoutes.js';
 
 const router = express.Router();
 
@@ -18,5 +21,8 @@ router.get('/health', (req, res) => {
 router.use('/auth', authRoutes);
 router.use('/orders', orderRoutes);
 router.use('/products', productRoutes);
+router.use('/premium', premiumRoutes);
+router.use('/payments', paymentRoutes);
+router.use('/addresses', addressRoutes);
 
 export default router;

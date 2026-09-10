@@ -1,6 +1,21 @@
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
+import interfaceMessages from "./translations/interface.js";
 
-export const language = ref("English");
+export const languageCodes = Object.freeze({ English: "en-ZA", isiZulu: "zu-ZA", Afrikaans: "af-ZA", isiXhosa: "xh-ZA" });
+export const supportedLanguages = Object.keys(languageCodes);
+const storageKey = "safeher-language";
+function savedLanguage() {
+  try { const saved = globalThis.localStorage?.getItem(storageKey); return supportedLanguages.includes(saved) ? saved : "English"; }
+  catch { return "English"; }
+}
+export const language = ref(savedLanguage());
+export const locale = computed(() => languageCodes[language.value] || languageCodes.English);
+const stopLanguageWatch = watch(language, (value) => {
+  if (!supportedLanguages.includes(value)) { language.value = "English"; return; }
+  try { globalThis.localStorage?.setItem(storageKey, value); } catch { /* Storage may be blocked by the browser. */ }
+  if (typeof document !== "undefined") document.documentElement.lang = languageCodes[value].split("-")[0];
+}, { immediate: true, flush: "sync" });
+if (import.meta.hot) import.meta.hot.dispose(stopLanguageWatch);
 
 // Page copy is kept in one place so the selector updates every translated view.
 const messages = {
@@ -294,6 +309,23 @@ const messages = {
   },
 };
 
-export function t(key) {
-  return messages[language.value]?.[key] || messages.English[key] || key;
+const englishKeys = new Map(Object.entries(messages.English).map(([key, value]) => [value, key]));
+
+// Translate interface copy at render time. Unknown content keeps its original text.
+export function t(key, params = {}) {
+  if (typeof key !== "string") return key;
+  const normalized = key.trim().replace(/\s+/g, " ");
+  const messageKey = Object.hasOwn(messages.English, normalized) ? normalized : englishKeys.get(normalized);
+  const english = messageKey ? messages.English[messageKey] : normalized;
+  const translated = interfaceMessages[english]?.[language.value]
+    || (messageKey && messages[language.value]?.[messageKey]) || english;
+  return translated.replace(/\{(\w+)\}/g, (match, name) => Object.hasOwn(params, name) ? String(params[name]) : match);
+}
+
+export function formatDate(value, options = {}) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat(locale.value, options).format(date);
+}
+export function formatMoney(value) {
+  return new Intl.NumberFormat(locale.value, { style: "currency", currency: "ZAR" }).format(Number(value) || 0);
 }

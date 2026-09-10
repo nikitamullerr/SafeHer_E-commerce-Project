@@ -1,7 +1,8 @@
 <script setup>
+import { t } from "../languageConfig.js";
 import { computed, reactive, ref, watch } from "vue";
-import Swal from "sweetalert2";
-import { authService } from "../../backend/services/authService.js";
+import Swal from "../services/localizedSwal.js";
+import { authService } from "../services/authService.js";
 
 const props = defineProps({ mode: String });
 const emit = defineEmits([
@@ -167,7 +168,7 @@ async function submit() {
 
     try {
       const response = await authService.login({
-        email: email.value,
+        email: email.value.trim().toLowerCase(),
         password: password.value,
       });
 
@@ -176,7 +177,8 @@ async function submit() {
     } catch (error) {
       submitting.value = false;
       errors.form =
-        error.response?.data?.error || "Incorrect email or password";
+        error.response?.data?.error ||
+        (error.response ? "Login failed. Please try again." : "Cannot reach the server. Check that the backend is running and try again.");
     }
     return;
   }
@@ -193,7 +195,7 @@ async function submit() {
   try {
     const response = await authService.register({
       name: name.value.trim(),
-      email: email.value,
+      email: email.value.trim().toLowerCase(),
       password: password.value,
       phone: "",
     });
@@ -455,17 +457,13 @@ async function forgotPassword() {
           :aria-selected="mode === 'login'"
           :class="{ active: mode === 'login' }"
           @click="switchMode('login')"
-        >
-          Sign in
-        </button>
+        > {{ t("Sign in") }} </button>
         <button
           role="tab"
           :aria-selected="mode === 'registration'"
           :class="{ active: mode === 'registration' }"
           @click="switchMode('registration')"
-        >
-          Create account
-        </button>
+        > {{ t("Create account") }} </button>
         <span class="sf-thumb" :class="mode"></span>
       </div>
 
@@ -473,20 +471,20 @@ async function forgotPassword() {
         <div :key="mode" class="sf-mode-body">
           <div class="sf-copy">
             <h1>
-              {{ mode === "login" ? "Welcome back." : "Join the network." }}
+              {{ t(mode === "login" ? "Welcome back." : "Join the network.") }}
             </h1>
             <p>
               {{
-                mode === "login"
+                t(mode === "login"
                   ? "Sign in to access your Safety Hub and order history."
-                  : "12,400+ members protected. Your profile starts here."
+                  : "12,400+ members protected. Your profile starts here.")
               }}
             </p>
           </div>
 
           <div v-if="mode === 'registration'" class="sf-benefits">
             <span v-for="item in benefits" :key="item.title"
-              ><i :class="`bi ${item.icon}`"></i>{{ item.title }}</span
+              ><i :class="`bi ${item.icon}`"></i>{{ t(item.title) }}</span
             >
           </div>
 
@@ -502,13 +500,13 @@ async function forgotPassword() {
               ></div>
             </div>
             <div class="sf-progress-labels">
-              <span :class="{ active: currentStep >= 1 }">Your info</span>
-              <span :class="{ active: currentStep >= 2 }">Security</span>
+              <span :class="{ active: currentStep >= 1 }">{{ t("Your info") }}</span>
+              <span :class="{ active: currentStep >= 2 }">{{ t("Security") }}</span>
             </div>
           </div>
 
           <div v-if="errors.form" class="sf-alert" role="alert">
-            <i class="bi bi-exclamation-circle"></i> {{ errors.form }}
+            <i class="bi bi-exclamation-circle"></i> {{ t(errors.form) }}
           </div>
 
           <transition name="sf-slide" mode="out-in">
@@ -520,8 +518,7 @@ async function forgotPassword() {
               novalidate
             >
               <label class="sf-field"
-                >Email address
-                <input
+                >{{ t("Email address") }} <input
                   v-model="email"
                   type="email"
                   placeholder="you@example.com"
@@ -531,16 +528,15 @@ async function forgotPassword() {
                   @input="clearError('email')"
                 />
                 <span v-if="errors.email" class="sf-error" role="alert">{{
-                  errors.email
+                  t(errors.email)
                 }}</span>
               </label>
               <label class="sf-field"
-                >Password
-                <div class="sf-password-wrap">
+                >{{ t("Password") }} <div class="sf-password-wrap">
                   <input
                     v-model="password"
                     :type="showPassword ? 'text' : 'password'"
-                    placeholder="At least 6 characters"
+                    :placeholder="t(&quot;At least 6 characters&quot;)"
                     autocomplete="current-password"
                     :class="{ 'sf-invalid': errors.password }"
                     :aria-invalid="Boolean(errors.password)"
@@ -549,7 +545,7 @@ async function forgotPassword() {
                     type="button"
                     class="sf-eye"
                     @click="showPassword = !showPassword"
-                    aria-label="Toggle password visibility"
+                    :aria-label="t(&quot;Toggle password visibility&quot;)"
                   >
                     <i
                       :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"
@@ -557,19 +553,16 @@ async function forgotPassword() {
                   </button>
                 </div>
                 <span v-if="errors.password" class="sf-error" role="alert">{{
-                  errors.password
+                  t(errors.password)
                 }}</span>
               </label>
               <div class="sf-row">
                 <label class="sf-check"
-                  ><input type="checkbox" /> Remember me</label
+                  ><input type="checkbox" /> {{ t("Remember me") }}</label
                 >
-                <button type="button" class="sf-link" @click="forgotPassword">
-                  Forgot password?
-                </button>
+                <button type="button" class="sf-link" @click="forgotPassword"> {{ t("Forgot password?") }} </button>
               </div>
-              <button class="sf-submit" type="submit" :disabled="submitting">
-                Sign in <i class="bi bi-arrow-right"></i>
+              <button class="sf-submit" type="submit" :disabled="submitting"> {{ t("Sign in") }} <i class="bi bi-arrow-right"></i>
               </button>
             </form>
 
@@ -581,23 +574,21 @@ async function forgotPassword() {
               novalidate
             >
               <label class="sf-field"
-                >Full name
-                <input
+                >{{ t("Full name") }} <input
                   v-model="name"
                   type="text"
-                  placeholder="Your full name"
+                  :placeholder="t(&quot;Your full name&quot;)"
                   autocomplete="name"
                   :class="{ 'sf-invalid': errors.name }"
                   :aria-invalid="Boolean(errors.name)"
                   @input="clearError('name')"
                 />
                 <span v-if="errors.name" class="sf-error" role="alert">{{
-                  errors.name
+                  t(errors.name)
                 }}</span>
               </label>
               <label class="sf-field"
-                >Email address
-                <input
+                >{{ t("Email address") }} <input
                   v-model="email"
                   type="email"
                   placeholder="you@example.com"
@@ -607,11 +598,10 @@ async function forgotPassword() {
                   @input="clearError('email')"
                 />
                 <span v-if="errors.email" class="sf-error" role="alert">{{
-                  errors.email
+                  t(errors.email)
                 }}</span>
               </label>
-              <button class="sf-submit" type="submit">
-                Continue <i class="bi bi-arrow-right"></i>
+              <button class="sf-submit" type="submit"> {{ t("Continue") }} <i class="bi bi-arrow-right"></i>
               </button>
             </form>
 
@@ -623,12 +613,11 @@ async function forgotPassword() {
               novalidate
             >
               <label class="sf-field"
-                >Password
-                <div class="sf-password-wrap">
+                >{{ t("Password") }} <div class="sf-password-wrap">
                   <input
                     v-model="password"
                     :type="showPassword ? 'text' : 'password'"
-                    placeholder="At least 6 characters"
+                    :placeholder="t(&quot;At least 6 characters&quot;)"
                     autocomplete="new-password"
                     :class="{ 'sf-invalid': errors.password }"
                     :aria-invalid="Boolean(errors.password)"
@@ -637,7 +626,7 @@ async function forgotPassword() {
                     type="button"
                     class="sf-eye"
                     @click="showPassword = !showPassword"
-                    aria-label="Toggle password visibility"
+                    :aria-label="t(&quot;Toggle password visibility&quot;)"
                   >
                     <i
                       :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"
@@ -657,19 +646,18 @@ async function forgotPassword() {
                   <span
                     class="sf-strength-label"
                     :style="{ color: passwordStrength.color }"
-                    >{{ passwordStrength.label }}</span
+                    >{{ t(passwordStrength.label) }}</span
                   >
                 </div>
                 <span v-if="errors.password" class="sf-error" role="alert">{{
-                  errors.password
+                  t(errors.password)
                 }}</span>
               </label>
               <label class="sf-field"
-                >Confirm password
-                <input
+                >{{ t("Confirm password") }} <input
                   v-model="confirm"
                   type="password"
-                  placeholder="Repeat your password"
+                  :placeholder="t(&quot;Repeat your password&quot;)"
                   autocomplete="new-password"
                   :class="{ 'sf-invalid': errors.confirm }"
                   :aria-invalid="Boolean(errors.confirm)"
@@ -688,13 +676,13 @@ async function forgotPassword() {
                     "
                   ></i>
                   {{
-                    passwordsMatch
+                    t(passwordsMatch
                       ? "Passwords match"
-                      : "Passwords don't match yet"
+                      : "Passwords don't match yet")
                   }}
                 </span>
                 <span v-if="errors.confirm" class="sf-error" role="alert">{{
-                  errors.confirm
+                  t(errors.confirm)
                 }}</span>
               </label>
               <label class="sf-check sf-check-terms">
@@ -702,24 +690,19 @@ async function forgotPassword() {
                   type="checkbox"
                   v-model="agreeTerms"
                   @change="clearError('terms')"
-                />
-                I agree to the terms and privacy policy
-              </label>
+                /> {{ t("I agree to the terms and privacy policy") }} </label>
               <span v-if="errors.terms" class="sf-error" role="alert">{{
-                errors.terms
+                t(errors.terms)
               }}</span>
               <div class="sf-actions">
                 <button class="sf-ghost" type="button" @click="prevStep">
-                  <i class="bi bi-arrow-left"></i> Back
-                </button>
-                <button class="sf-submit" type="submit" :disabled="submitting">
-                  Create account
-                </button>
+                  <i class="bi bi-arrow-left"></i> {{ t("Back") }} </button>
+                <button class="sf-submit" type="submit" :disabled="submitting"> {{ t("Create account") }} </button>
               </div>
             </form>
           </transition>
 
-          <div class="sf-divider"><span>or</span></div>
+          <div class="sf-divider"><span>{{ t("or") }}</span></div>
           <button
             type="button"
             class="sf-google"
@@ -727,18 +710,18 @@ async function forgotPassword() {
             :disabled="googleLoading"
           >
             <b>G</b>
-            {{ googleLoading ? "Connecting..." : "Continue with Google" }}
+            {{ t(googleLoading ? "Connecting..." : "Continue with Google") }}
           </button>
           <p class="sf-switch">
             {{
-              mode === "login" ? "New to SafeHer?" : "Already have an account?"
+              t(mode === "login" ? "New to SafeHer?" : "Already have an account?")
             }}
             <button
               type="button"
               class="sf-link"
               @click="switchMode(mode === 'login' ? 'registration' : 'login')"
             >
-              {{ mode === "login" ? "Create an account" : "Sign in" }}
+              {{ t(mode === "login" ? "Create an account" : "Sign in") }}
             </button>
           </p>
         </div>
@@ -852,7 +835,7 @@ async function forgotPassword() {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(145deg, var(--plum), var(--red));
+  background: linear-gradient(145deg, var(--brand-solid), var(--danger-solid));
   color: #fff;
   display: grid;
   place-items: center;
@@ -889,7 +872,7 @@ async function forgotPassword() {
   bottom: 4px;
   left: 4px;
   width: calc(50% - 4px);
-  background: linear-gradient(120deg, var(--plum), #5a2a5c);
+  background: linear-gradient(120deg, var(--brand-solid), #5a2a5c);
   border-radius: 999px;
   transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -917,7 +900,7 @@ async function forgotPassword() {
   height: 3px;
   border-radius: 2px;
   margin: 8px auto 0;
-  background: linear-gradient(90deg, var(--red), var(--plum));
+  background: linear-gradient(90deg, var(--danger-solid), var(--brand-solid));
 }
 .sf-copy p {
   font-size: 12px;
@@ -970,7 +953,7 @@ async function forgotPassword() {
 .sf-progress-fill {
   height: 100%;
   border-radius: 2px;
-  background: var(--red);
+  background: var(--danger-solid);
   transition: width 0.35s ease;
 }
 .sf-progress-labels {
@@ -1154,7 +1137,7 @@ async function forgotPassword() {
   border: 0;
   border-radius: 999px;
   padding: 14px;
-  background: var(--red);
+  background: var(--danger-solid);
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -1244,7 +1227,7 @@ async function forgotPassword() {
   transform: scale(0.98);
 }
 .sf-google b {
-  color: #4285f4;
+  color: #2560bd;
   font-size: 16px;
   margin-right: 8px;
 }

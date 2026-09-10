@@ -16,17 +16,13 @@ const emit = defineEmits(["sos"]);
           ><i class="bi bi-exclamation-lg"></i
         ></span>
         <div>
-          <p class="eyebrow">NEED HELP NOW?</p>
-          <h2>Your safety comes first.</h2>
-          <p>
-            Use SafeHer SOS to notify your trusted people and start your
-            emergency response.
-          </p>
+          <p class="eyebrow">{{ t("NEED HELP NOW?") }}</p>
+          <h2>{{ t("Your safety comes first.") }}</h2>
+          <p> {{ t("Use SafeHer SOS to notify your trusted people and start your emergency response.") }} </p>
         </div>
       </div>
       <button class="guide-sos-action" @click="emit('sos')">
-        <i class="bi bi-broadcast-pin"></i> Get help now
-      </button>
+        <i class="bi bi-broadcast-pin"></i> {{ t("Get help now") }} </button>
     </section>
     <section class="guide-feature-grid">
       <article class="guide-feature guide-feature-main">
@@ -50,9 +46,9 @@ const emit = defineEmits(["sos"]);
     </section>
     <section class="steps-panel">
       <div class="steps-heading">
-        <p class="eyebrow">A SIMPLE PLAN</p>
-        <h2>When something feels wrong.</h2>
-        <p>Keep these steps calm, simple and repeatable.</p>
+        <p class="eyebrow">{{ t("A SIMPLE PLAN") }}</p>
+        <h2>{{ t("When something feels wrong.") }}</h2>
+        <p>{{ t("Keep these steps calm, simple and repeatable.") }}</p>
       </div>
       <div class="steps-list">
         <article>
@@ -82,28 +78,25 @@ const emit = defineEmits(["sos"]);
       <article>
         <div class="guide-detail-heading">
           <i class="bi bi-bag-heart-fill"></i>
-          <h2>Use your safety items</h2>
+          <h2>{{ t("Use your safety items") }}</h2>
         </div>
         <ul>
           <li>
-            <strong>Smart Panic Button</strong
+            <strong>{{ t("Smart Panic Button") }}</strong
             ><span
-              >Keep it charged and accessible. Press it when you need your
-              emergency circle to know you need help.</span
+              >{{ t("Keep it charged and accessible. Press it when you need your emergency circle to know you need help.") }}</span
             >
           </li>
           <li>
-            <strong>Defender Spray</strong
+            <strong>{{ t("Defender Spray") }}</strong
             ><span
-              >Carry it where you can reach it quickly. Aim away from yourself,
-              create distance and leave.</span
+              >{{ t("Carry it where you can reach it quickly. Aim away from yourself, create distance and leave.") }}</span
             >
           </li>
           <li>
-            <strong>Safety Whistle</strong
+            <strong>{{ t("Safety Whistle") }}</strong
             ><span
-              >Use three sharp blasts to attract attention, then move toward a
-              public, well-lit place.</span
+              >{{ t("Use three sharp blasts to attract attention, then move toward a public, well-lit place.") }}</span
             >
           </li>
         </ul>
@@ -111,28 +104,25 @@ const emit = defineEmits(["sos"]);
       <article>
         <div class="guide-detail-heading">
           <i class="bi bi-check2-circle"></i>
-          <h2>A safer everyday routine</h2>
+          <h2>{{ t("A safer everyday routine") }}</h2>
         </div>
         <ul>
           <li>
-            <strong>Before you leave</strong
+            <strong>{{ t("Before you leave") }}</strong
             ><span
-              >Charge your phone, tell someone your plan and check that your
-              location tools are ready.</span
+              >{{ t("Charge your phone, tell someone your plan and check that your location tools are ready.") }}</span
             >
           </li>
           <li>
-            <strong>While travelling</strong
+            <strong>{{ t("While travelling") }}</strong
             ><span
-              >Stay aware, keep one ear free and use your check-in timer for
-              longer journeys.</span
+              >{{ t("Stay aware, keep one ear free and use your check-in timer for longer journeys.") }}</span
             >
           </li>
           <li>
-            <strong>When you arrive</strong
+            <strong>{{ t("When you arrive") }}</strong
             ><span
-              >Check in with your people and stop sharing your route when you
-              are safely home.</span
+              >{{ t("Check in with your people and stop sharing your route when you are safely home.") }}</span
             >
           </li>
         </ul>
@@ -141,12 +131,9 @@ const emit = defineEmits(["sos"]);
     <section class="guide-callout">
       <i class="bi bi-play-circle-fill"></i>
       <div>
-        <p class="eyebrow">PRACTICE MAKES READY</p>
-        <h2>Learn how your tools work before you need them.</h2>
-        <p>
-          Visit the Safety Hub to add emergency contacts, start a check-in timer
-          and share your live route.
-        </p>
+        <p class="eyebrow">{{ t("PRACTICE MAKES READY") }}</p>
+        <h2>{{ t("Learn how your tools work before you need them.") }}</h2>
+        <p> {{ t("Visit the Safety Hub to add emergency contacts, start a check-in timer and share your live route.") }} </p>
       </div>
     </section>
   </main>

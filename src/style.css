@@ -38,7 +38,7 @@
   flex-direction: column;
 }
 .guide-feature-main {
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
 }
 .guide-feature-main .eyebrow {
@@ -153,7 +153,7 @@
   gap: 25px;
   margin-bottom: 18px;
   padding: 22px 25px;
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
   box-shadow: 0 12px 24px #35153625;
 }
@@ -169,7 +169,7 @@
   height: 58px;
   flex: 0 0 58px;
   border-radius: 50%;
-  background: var(--red);
+  background: var(--danger-solid);
   box-shadow:
     0 0 0 8px #d92d3630,
     0 0 0 15px #d92d3614;
@@ -190,7 +190,7 @@
 }
 .guide-sos-action {
   padding: 15px 21px;
-  background: var(--red);
+  background: var(--danger-solid);
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -391,12 +391,14 @@
   --deep: #221523;
   --pink: #f6dce3;
   --blush: #fff1f3;
-  --red: #d92d36;
+  --red: #b51e2b;
   --ink: #161317;
-  --muted: #756d76;
+  --muted: #625a64;
   --line: #e9e0e5;
   --cream: #f5eee6;
   --surface: #fff;
+  --brand-solid: #351536;
+  --danger-solid: #bd2030;
 }
 * {
   box-sizing: border-box;
@@ -408,7 +410,7 @@ body {
   background: #fff;
 }
 .dark-mode {
-  --plum: #d95778;
+  --plum: #f2b8cc;
   --deep: #090709;
   --pink: #351536;
   --blush: #120d12;
@@ -484,7 +486,7 @@ p {
   margin-top: 0;
 }
 .top-strip {
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #f8e9ed;
   font-size: 12px;
   padding: 8px 0;
@@ -524,7 +526,7 @@ p {
 .brand-mark {
   width: 31px;
   height: 35px;
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
   display: grid;
   place-items: center;
@@ -577,7 +579,7 @@ p {
   position: absolute;
   top: -5px;
   right: -4px;
-  background: var(--red);
+  background: var(--danger-solid);
   color: #fff;
   border-radius: 50%;
   font: 10px "DM Sans";
@@ -810,7 +812,7 @@ p {
   letter-spacing: 0.05em;
 }
 .btn-sos {
-  background: var(--red);
+  background: var(--danger-solid);
   color: #fff;
   box-shadow: 0 8px 18px #d92d3640;
 }
@@ -823,11 +825,11 @@ p {
   color: var(--plum);
 }
 .btn-outline-plum:hover {
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
 }
 .btn-dark-plum {
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
 }
 .hero-meta {
@@ -887,7 +889,7 @@ p {
   font-size: 10px;
 }
 .btn-track {
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
 }
 .btn-track:hover {
@@ -1003,7 +1005,7 @@ p {
   place-items: center;
   border: 3px solid #fff;
   border-radius: 50%;
-  background: var(--red);
+  background: var(--danger-solid);
   color: #fff;
   box-shadow:
     0 0 0 6px #d92d3635,
@@ -1015,13 +1017,13 @@ p {
   place-items: center;
   border: 2px solid #fff;
   border-radius: 50%;
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
   box-shadow: 0 3px 9px #35153645;
   font-size: 14px;
 }
 .help-marker.nearest-police-marker {
-  background: var(--red);
+  background: var(--danger-solid);
   box-shadow:
     0 0 0 5px #d92d3630,
     0 4px 12px #35153655;
@@ -1283,7 +1285,7 @@ p {
 }
 .alert-panel {
   padding: 28px;
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
 }
 .alert-icon {
@@ -1355,7 +1357,7 @@ p {
   box-shadow: 0 18px 40px #35153618;
 }
 .auth-intro {
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
   padding: 52px 48px;
   display: flex;
@@ -1532,7 +1534,7 @@ p {
   font: 600 7px "DM Sans";
 }
 .phone-card {
-  background: var(--plum);
+  background: var(--brand-solid);
   border-radius: 13px;
   padding: 18px 14px;
   color: #fff;
@@ -1551,7 +1553,7 @@ p {
 .mini-sos {
   margin: 9px 0 13px;
   width: 100%;
-  background: var(--red);
+  background: var(--danger-solid);
   color: #fff;
   font-size: 9px;
   font-weight: 700;
@@ -1690,14 +1692,14 @@ p {
   background: var(--cream);
 }
 .card-red {
-  background: var(--red);
+  background: var(--danger-solid);
   color: #fff;
 }
 .card-red small {
   color: #ffe0e3;
 }
 .story-band {
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
   padding: 80px 0;
 }
@@ -1769,7 +1771,7 @@ p {
 .avatar {
   display: grid;
   place-items: center;
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
   border-radius: 50%;
   width: 33px;
@@ -2174,7 +2176,7 @@ p {
   font-weight: 600;
 }
 .filter-group button.active {
-  background: var(--plum);
+  background: var(--brand-solid);
   border-color: var(--plum);
   color: #fff;
 }
@@ -2347,7 +2349,7 @@ p {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--plum), #7a3d66);
+  background: linear-gradient(135deg, var(--brand-solid), #7a3d66);
   color: #fff;
   font-weight: 700;
   font-size: 0.8rem;
@@ -2452,7 +2454,7 @@ p {
   min-height: 300px;
 }
 .plum-panel {
-  background: var(--plum);
+  background: var(--brand-solid);
 }
 .big-panel > i {
   font-size: 35px;
@@ -2632,7 +2634,7 @@ p {
   gap: 10px;
   min-width: 145px;
   padding: 14px;
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
 }
 .premium-badge > i {
@@ -2660,7 +2662,7 @@ p {
   max-width: 1050px;
   margin: 0 auto 22px;
   padding: 25px 28px;
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
 }
 .premium-banner > div {
@@ -2718,7 +2720,7 @@ p {
   position: absolute;
   z-index: 1;
   color: #fff;
-  background: var(--plum);
+  background: var(--brand-solid);
   font-size: 10px;
 }
 .video-duration {
@@ -2734,7 +2736,7 @@ p {
   width: 27px;
   height: 27px;
   border-radius: 50%;
-  background: var(--red);
+  background: var(--danger-solid);
   font-size: 11px;
 }
 .video-card-copy {
@@ -2815,7 +2817,7 @@ p {
   top: 0;
   right: 0;
   padding: 7px 10px;
-  background: var(--red);
+  background: var(--danger-solid);
   color: #fff;
   font-size: 9px;
   font-weight: 700;
@@ -4339,7 +4341,7 @@ body,
 .auth-shell .auth-intro {
   min-height: 620px;
   padding: 58px clamp(38px, 5vw, 72px);
-  background: linear-gradient(145deg, var(--plum), #552856);
+  background: linear-gradient(145deg, var(--brand-solid), #552856);
   color: #fff;
 }
 .auth-shell .auth-intro:before {
@@ -4375,7 +4377,7 @@ body,
   color: var(--muted);
 }
 .auth-shell .auth-form .btn-sos {
-  background: var(--red);
+  background: var(--danger-solid);
 }
 .auth-shell .auth-divider {
   color: var(--muted);
@@ -4412,7 +4414,7 @@ body,
   color: var(--muted);
 }
 .auth-shell .auth-steps span:first-child {
-  background: var(--red);
+  background: var(--danger-solid);
   color: #fff;
 }
 .auth-shell .auth-steps i {
@@ -4498,7 +4500,7 @@ body,
   flex-direction: column;
 }
 .hub-sos-card {
-  background: var(--plum) !important;
+  background: var(--brand-solid) !important;
   color: #fff;
   border-color: var(--plum) !important;
   align-items: center;
@@ -4523,7 +4525,7 @@ body,
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--red);
+  background: var(--danger-solid);
   color: #fff;
   font: 700 13px "Syne";
   box-shadow:
@@ -4659,7 +4661,7 @@ body,
   height: 29px;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
-  background: var(--red);
+  background: var(--danger-solid);
   display: grid;
   place-items: center;
   box-shadow: 0 4px 8px #35153630;
@@ -4675,7 +4677,7 @@ body,
   left: 50%;
   top: 64%;
   transform: translateX(-50%);
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
   font-size: 9px;
   padding: 5px 9px;
@@ -4831,7 +4833,7 @@ body,
   font-weight: 700;
 }
 .safety-plan-row button.active {
-  background: var(--plum);
+  background: var(--brand-solid);
   color: #fff;
   border-color: var(--plum);
 }
@@ -4862,7 +4864,7 @@ body,
   flex-wrap: wrap;
 }
 .btn-sos {
-  background: var(--red);
+  background: var(--danger-solid);
   border: 0;
   color: white;
   padding: 9px 12px;
@@ -4924,7 +4926,7 @@ body,
   color: #d2c8d0;
 }
 .dark-mode .safety-plan-row button.active {
-  background: var(--red);
+  background: var(--danger-solid);
   border-color: var(--red);
 }
 .dark-mode .footer-links,
@@ -7560,7 +7562,7 @@ body,
   color: #fff4f7;
 }
 .dark-mode .filter-group button.active {
-  background: var(--plum);
+  background: var(--brand-solid);
   border-color: var(--plum);
   color: #fff;
 }
@@ -7711,3 +7713,88 @@ body,
 .app-shell.dark-mode .featured-product-copy h2 {
   color: var(--plum) !important;
 }
+
+/* Shared contrast pairs: keep foreground and surface together in both themes. */
+.app-shell .site-nav { background: var(--surface); color: var(--ink); }
+.app-shell .nav-links button { color: var(--ink); }
+.app-shell .nav-links button:hover,
+.app-shell .nav-links button.active { color: var(--plum); border-bottom-color: currentColor; }
+.app-shell .nav-actions select,
+.app-shell .nav-actions option,
+.app-shell .navbar-toggler,
+.app-shell .theme-toggle,
+.app-shell .bag-button,
+.app-shell .icon-button {
+  background-color: var(--surface);
+  color: var(--ink);
+  border-color: var(--muted);
+}
+.app-shell .nav-links.show { background-color: var(--surface); }
+.app-shell .btn-dark-plum,
+.app-shell .btn-track { background: #351536; color: #fff; border: 1px solid #876889; }
+.app-shell .btn-dark-plum:hover,
+.app-shell .btn-dark-plum:active,
+.app-shell .btn-track:hover { background: #512151; color: #fff; }
+.app-shell .btn-light-plum,
+.app-shell .btn-outline-plum {
+  background: var(--surface); color: var(--ink); border: 1px solid var(--muted);
+}
+.app-shell .btn-light-plum:hover,
+.app-shell .btn-light-plum:active,
+.app-shell .btn-outline-plum:hover,
+.app-shell .btn-outline-plum:active { background: #351536; color: #fff; border-color: #876889; }
+.app-shell .btn-sos { background: #bd2030; color: #fff; }
+.app-shell .btn-sos:hover { background: #991827; color: #fff; }
+.app-shell :is(button, a, select, input, textarea):focus-visible {
+  outline: 3px solid var(--plum); outline-offset: 3px;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.app-shell :is(input, textarea)::placeholder { color: var(--muted); opacity: 1; }
+.app-shell .text-muted { color: var(--muted) !important; }
+.app-shell .drawer-divider span { background: var(--surface); }
+/* Leaflet keeps light tiles, controls and popups, including in dark mode. */
+.app-shell .leaflet-container { color: #351536; }
+.app-shell .leaflet-control-zoom a { background: #fff; color: #351536 !important; }
+.app-shell .leaflet-popup-content-wrapper,
+.app-shell .leaflet-popup-tip,
+.app-shell .leaflet-tooltip,
+.app-shell .leaflet-control-attribution { background: #fff; color: #351536; }
+.app-shell .leaflet-container a { color: #512151; }
+.app-shell .map-overlay { background: var(--surface); color: var(--ink); border-color: var(--muted); }
+.app-shell .map-overlay strong { color: var(--ink); }
+.app-shell .map-overlay small { color: var(--muted); }
+.app-shell .map-status { background: var(--surface); color: var(--ink); }
+.app-shell .map-status.active { color: #17683d; background: #edf9f1; }
+.app-shell .map-location-error { background: #fff1f1; color: #a11c25; }
+.app-shell .premium-videos-status { color: var(--ink); }
+.app-shell .video-player-modal { background: var(--surface); color: var(--ink); }
+.app-shell .video-player-meta h3 { color: var(--ink); }
+.app-shell .video-player-meta > p:last-child { color: var(--muted); }
+
+.app-shell .footer-bottom { color: var(--muted); }
+.app-shell .product-filter button { background: var(--surface); color: var(--ink); border-color: var(--muted); }
+.app-shell .product-filter button.selected { background: #351536; color: #fff; }
+.app-shell .summary-stars,
+.app-shell .review-stars,
+.app-shell .interactive-stars span { color: #825600; }
+.app-shell.dark-mode .summary-stars,
+.app-shell.dark-mode .review-stars,
+.app-shell.dark-mode .interactive-stars span { color: #ffd16b; }
+.app-shell.dark-mode .guide-callout { background: var(--surface); }
+.app-shell.dark-mode .guide-callout p:last-child { color: var(--muted); }
+
+.app-shell.dark-mode .tracking-control,
+.app-shell.dark-mode .mini-grid span,
+.app-shell.dark-mode .feature-card.card-purple { background: var(--surface); color: var(--ink); }
+.app-shell.dark-mode .feature-card small { color: var(--muted); }
+.app-shell.dark-mode .reviewer-meta > span { color: #79d9aa; }
+.app-shell.dark-mode .sf-google b { color: #8ab4f8; }
+
+.app-shell.dark-mode .feature-card.card-red small { color: #fff; }
+@media (max-width: 700px) {
+  .app-shell .site-nav > .container-fluid { flex-wrap: wrap; row-gap: 12px; }
+  .app-shell .nav-actions { flex-basis: 100%; justify-content: flex-end; }
+  .app-shell .nav-actions select { display: block; margin-right: auto; font-size: 13px; }
+}
+
+.app-shell.dark-mode .hero-lead { color: var(--muted); }

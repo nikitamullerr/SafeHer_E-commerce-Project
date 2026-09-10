@@ -25,9 +25,7 @@ const emit = defineEmits([
           <i class="bi bi-shield-check me-2"></i>
           {{ t("tagline") }}
         </span>
-        <span class="d-none d-md-inline">
-          Free delivery on orders over R500
-          <i class="bi bi-arrow-up-right ms-1"></i>
+        <span class="d-none d-md-inline"> {{ t("Free delivery on orders over R500") }} <i class="bi bi-arrow-up-right ms-1"></i>
         </span>
       </div>
     </div>
@@ -42,7 +40,7 @@ const emit = defineEmits([
           <span class="brand-mark"><i class="bi bi-shield-fill"></i></span>
           <span>
             SafeHer
-            <small>Your safety network</small>
+            <small>{{ t("Your safety network") }}</small>
           </span>
         </button>
 
@@ -95,7 +93,7 @@ const emit = defineEmits([
         <div class="nav-actions">
           <select
             :value="language"
-            aria-label="Language"
+            :aria-label="t(&quot;Language&quot;)"
             @change="emit('update:language', $event.target.value)"
           >
             <option>English</option>
@@ -106,8 +104,8 @@ const emit = defineEmits([
 
           <button
             class="theme-toggle"
-            :aria-label="darkMode ? 'Use light mode' : 'Use dark mode'"
-            :title="darkMode ? 'Use light mode' : 'Use dark mode'"
+            :aria-label="t(darkMode ? 'Use light mode' : 'Use dark mode')"
+            :title="t(darkMode ? 'Use light mode' : 'Use dark mode')"
             @click="emit('toggle-dark-mode')"
           >
             <i :class="darkMode ? 'bi bi-sun-fill' : 'bi bi-moon-fill'"></i>
@@ -115,7 +113,7 @@ const emit = defineEmits([
 
           <button
             class="bag-button"
-            aria-label="Shopping bag"
+            :aria-label="t(&quot;Shopping bag&quot;)"
             @click="emit('toggle-cart')"
           >
             <i class="bi bi-bag"></i>
@@ -124,8 +122,8 @@ const emit = defineEmits([
 
           <button
             class="icon-button"
-            aria-label="Log out"
-            title="Log out"
+            :aria-label="t(&quot;Log out&quot;)"
+            :title="t(&quot;Log out&quot;)"
             @click="emit('logout')"
           >
             <i class="bi bi-box-arrow-right"></i>

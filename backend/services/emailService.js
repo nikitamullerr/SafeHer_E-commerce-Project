@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ path: new URL('../.env', import.meta.url) });
 
 /**
  * Email Service - Handles all email sending operations
@@ -29,7 +29,7 @@ dotenv.config();
 class EmailService {
 	constructor() {
 		this.transporter = null;
-		this.fromEmail = process.env.EMAIL_FROM || 'noreply@safeher.co.za';
+		this.fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@safeher.co.za';
 		this.emailService = process.env.EMAIL_SERVICE || 'smtp';
 		this.initializeTransporter();
 	}
@@ -43,6 +43,10 @@ class EmailService {
 
 		// Default to SMTP
 		const smtpConfig = {
+			dnsTimeout: 10000,
+			connectionTimeout: 10000,
+			greetingTimeout: 10000,
+			socketTimeout: 15000,
 			host: process.env.EMAIL_HOST,
 			port: parseInt(process.env.EMAIL_PORT || '587'),
 			secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
@@ -109,6 +113,7 @@ class EmailService {
 			};
 
 			const info = await this.transporter.sendMail(mailOptions);
+			if (!info.accepted?.length) return false;
 			console.log(`✓ Email sent to ${to}: ${info.messageId}`);
 			return true;
 		} catch (error) {

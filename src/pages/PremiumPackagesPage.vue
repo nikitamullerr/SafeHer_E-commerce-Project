@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import { t } from "../languageConfig.js";
-import Swal from "sweetalert2";
+import Swal from "../services/localizedSwal.js";
 
 const props = defineProps({ email: String });
 const emit = defineEmits(["navigate", "premium-updated"]);
@@ -333,12 +333,12 @@ function choosePackage(packageItem) {
       <div>
         <i class="bi bi-patch-check-fill"></i>
         <div>
-          <p class="eyebrow">YOUR MEMBERSHIP</p>
-          <h2>{{ activeMembership.name }} is active</h2>
-          <p>Includes the video library and SafeHer AI until {{ new Date(activeMembership.expiresAt).toLocaleDateString() }}.</p>
+          <p class="eyebrow">{{ t("YOUR MEMBERSHIP") }}</p>
+          <h2>{{ t(activeMembership.name) }} {{ t("is active") }}</h2>
+          <p>{{ t("Includes the video library and SafeHer AI until") }} {{ new Date(activeMembership.expiresAt).toLocaleDateString() }}.</p>
         </div>
       </div>
-      <button class="btn btn-outline-plum" @click="cancelMembership">Cancel membership</button>
+      <button class="btn btn-outline-plum" @click="cancelMembership">{{ t("Cancel membership") }}</button>
     </section>
     <section class="package-grid">
       <article
@@ -351,17 +351,17 @@ function choosePackage(packageItem) {
           t("mostPopular")
         }}</span>
         <p class="eyebrow">{{ t("premium") }}</p>
-        <h2>{{ item.name }}</h2>
-        <p>{{ item.detail }}</p>
+        <h2>{{ t(item.name) }}</h2>
+        <p>{{ t(item.detail) }}</p>
         <strong class="package-price">
           {{ item.price }}
           <small>{{
-            item.name === "Annual" ? t("perYear") : t("perMonth")
+            t(item.name === "Annual" ? t("perYear") : t("perMonth"))
           }}</small>
         </strong>
         <ul>
           <li v-for="feature in item.features" :key="feature">
-            <i class="bi bi-check2"></i>{{ feature }}
+            <i class="bi bi-check2"></i>{{ t(feature) }}
           </li>
         </ul>
         <button
@@ -369,7 +369,7 @@ function choosePackage(packageItem) {
           :class="item.featured ? 'btn-sos' : 'btn-outline-plum'"
           @click="choosePackage(item)"
         >
-          {{ t("choose") }} {{ item.name }} <i class="bi bi-arrow-right"></i>
+          {{ t("choose") }} {{ t(item.name) }} <i class="bi bi-arrow-right"></i>
         </button>
       </article>
     </section>

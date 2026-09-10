@@ -1,4 +1,5 @@
 <script setup>
+import { t } from "../languageConfig.js";
 import { computed, ref } from "vue";
 
 const testimonials = [
@@ -122,22 +123,22 @@ const ratingText = computed(() => Array.from({ length: 5 }, (_, index) => index 
   <main class="container-fluid px-4 px-xl-5 reviews-page">
     <section class="reviews-header">
       <div class="reviews-header-copy">
-        <p class="eyebrow">SAFEHER / REVIEWS</p>
-        <h1>Customer Reviews</h1>
-        <p>See what our customers are saying about our products.</p>
+        <p class="eyebrow">{{ t("SAFEHER / REVIEWS") }}</p>
+        <h1>{{ t("Customer Reviews") }}</h1>
+        <p>{{ t("See what our customers are saying about our products.") }}</p>
       </div>
 
-      <div class="rating-summary-card" aria-label="Overall rating summary">
+      <div class="rating-summary-card" :aria-label="t(&quot;Overall rating summary&quot;)">
         <div class="rating-summary-stars">★★★★★</div>
         <div class="rating-summary-score">
           <strong>4.8</strong>
-          <span>out of 5</span>
+          <span>{{ t("out of 5") }}</span>
         </div>
-        <small>Based on 126 reviews</small>
+        <small>{{ t("Based on 126 reviews") }}</small>
       </div>
     </section>
 
-    <section class="reviews-toolbar" aria-label="Review filters and sorting">
+    <section class="reviews-toolbar" :aria-label="t(&quot;Review filters and sorting&quot;)">
       <div class="filter-group">
         <button
           v-for="filter in filterOptions"
@@ -146,32 +147,32 @@ const ratingText = computed(() => Array.from({ length: 5 }, (_, index) => index 
           :class="{ active: selectedFilter === filter.value }"
           @click="selectedFilter = filter.value"
         >
-          {{ filter.label }}
+          {{ t(filter.label) }}
         </button>
       </div>
 
       <label class="sort-picker">
-        <span>Sort by</span>
+        <span>{{ t("Sort by") }}</span>
         <select v-model="selectedSort">
-          <option value="most-recent">Most Recent</option>
-          <option value="most-helpful">Most Helpful</option>
+          <option value="most-recent">{{ t("Most Recent") }}</option>
+          <option value="most-helpful">{{ t("Most Helpful") }}</option>
         </select>
       </label>
     </section>
 
     <section class="reviews-layout">
       <aside class="review-summary-panel">
-        <h2>Customer Reviews</h2>
+        <h2>{{ t("Customer Reviews") }}</h2>
         <div class="summary-score-row">
           <strong>4.8</strong>
           <span>/ 5</span>
         </div>
         <div class="summary-stars">★★★★★</div>
-        <p>126 reviews</p>
+        <p>{{ t("126 reviews") }}</p>
 
         <div class="rating-breakdown">
           <div v-for="row in reviewBreakdown" :key="row.label" class="breakdown-row">
-            <span>{{ row.label }}</span>
+            <span>{{ t(row.label) }}</span>
             <div class="bar-track">
               <span :style="{ width: `${row.value}%` }"></span>
             </div>
@@ -182,39 +183,39 @@ const ratingText = computed(() => Array.from({ length: 5 }, (_, index) => index 
 
       <div class="reviews-main-column">
         <article class="write-review-card">
-          <h2>Write a Review</h2>
+          <h2>{{ t("Write a Review") }}</h2>
 
           <form class="review-form" @submit.prevent>
             <div class="form-group">
-              <label for="review-rating">Rating</label>
-              <div id="review-rating" class="interactive-stars" aria-label="Choose rating">
+              <label for="review-rating">{{ t("Rating") }}</label>
+              <div id="review-rating" class="interactive-stars" :aria-label="t(&quot;Choose rating&quot;)">
                 <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
               </div>
             </div>
 
             <div class="form-group">
-              <label for="review-title">Review title</label>
-              <input id="review-title" type="text" placeholder="Add a short title" />
+              <label for="review-title">{{ t("Review title") }}</label>
+              <input id="review-title" type="text" :placeholder="t(&quot;Add a short title&quot;)" />
             </div>
 
             <div class="form-group">
-              <label for="review-text">Your review</label>
-              <textarea id="review-text" rows="5" placeholder="Tell us about your experience..."></textarea>
+              <label for="review-text">{{ t("Your review") }}</label>
+              <textarea id="review-text" rows="5" :placeholder="t(&quot;Tell us about your experience...&quot;)"></textarea>
             </div>
 
-            <button type="submit" class="btn btn-dark-plum review-submit">Submit review</button>
+            <button type="submit" class="btn btn-dark-plum review-submit">{{ t("Submit review") }}</button>
           </form>
         </article>
 
         <div class="customer-reviews-block">
-          <h2>Recent feedback</h2>
+          <h2>{{ t("Recent feedback") }}</h2>
 
           <article v-for="item in filteredReviews" :key="item.name + item.date" class="review-card">
             <div class="review-card-header">
               <div class="avatar">{{ item.initials }}</div>
               <div class="reviewer-meta">
                 <h3>{{ item.name }}</h3>
-                <span>Verified Purchase</span>
+                <span>{{ t("Verified Purchase") }}</span>
               </div>
             </div>
 
@@ -223,9 +224,8 @@ const ratingText = computed(() => Array.from({ length: 5 }, (_, index) => index 
             <p>“{{ item.quote }}”</p>
 
             <div class="review-footer">
-              <span>Purchased: {{ item.date }}</span>
-              <button type="button" class="helpful-button">
-                Helpful? Yes ({{ item.helpful }})
+              <span>{{ t("Purchased:") }} {{ item.date }}</span>
+              <button type="button" class="helpful-button"> {{ t("Helpful? Yes (") }}{{ item.helpful }})
               </button>
             </div>
           </article>

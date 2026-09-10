@@ -14,7 +14,7 @@ const emit = defineEmits(["sos", "track", "navigate"]);
   <main>
     <section class="hero container-fluid px-4 px-xl-5">
       <div class="hero-copy">
-        <p class="eyebrow">SOUTH AFRICA'S TRUSTED SAFETY ECOSYSTEM</p>
+        <p class="eyebrow">{{ t("SOUTH AFRICA'S TRUSTED SAFETY ECOSYSTEM") }}</p>
         <h1>{{ t("hero") }}</h1>
         <p class="hero-lead">{{ t("heroLead") }}</p>
         <div class="hero-actions">
@@ -33,14 +33,14 @@ const emit = defineEmits(["sos", "track", "navigate"]);
             ><span
               ><strong>{{ t("liveLocation") }}</strong
               ><small>{{
-                locationReady
+                t(locationReady
                   ? "Tracking your exact position"
-                  : "Only shared when you choose"
+                  : "Only shared when you choose")
               }}</small></span
             >
           </div>
           <button class="btn btn-track" @click="emit('track')">
-            {{ locationReady ? "Use My Location" : t("locate") }}
+            {{ t(locationReady ? "Use My Location" : t("locate")) }}
           </button>
         </div>
       </div>
@@ -54,18 +54,18 @@ const emit = defineEmits(["sos", "track", "navigate"]);
               <i class="bi bi-shield-fill"></i> SafeHer
             </div>
             <div class="phone-card">
-              <small>YOUR SAFETY.<br />YOUR PEOPLE.<br />YOUR CHOICE.</small>
-              <p>Protection and trusted support, right when you need it.</p>
+              <small>{{ t("YOUR SAFETY.") }}<br />{{ t("YOUR PEOPLE.") }}<br />{{ t("YOUR CHOICE.") }}</small>
+              <p>{{ t("Protection and trusted support, right when you need it.") }}</p>
             </div>
             <button class="mini-sos" @click="emit('sos')">
               [ ! ] {{ t("help") }}
             </button>
-            <div class="mini-title">MY SAFETY NETWORK</div>
+            <div class="mini-title">{{ t("MY SAFETY NETWORK") }}</div>
             <div class="mini-grid">
               <span><i class="bi bi-telephone-fill"></i>SOS</span
-              ><span><i class="bi bi-send-fill"></i>Location</span
-              ><span><i class="bi bi-question-circle"></i>Nearby</span
-              ><span><i class="bi bi-person-vcard"></i>Contacts</span>
+              ><span><i class="bi bi-send-fill"></i>{{ t("Location") }}</span
+              ><span><i class="bi bi-question-circle"></i>{{ t("Nearby") }}</span
+              ><span><i class="bi bi-person-vcard"></i>{{ t("Contacts") }}</span>
             </div>
           </div>
         </div>
@@ -88,8 +88,8 @@ const emit = defineEmits(["sos", "track", "navigate"]);
     <section class="quick-section container-fluid px-4 px-xl-5">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">YOUR SAFETY, YOUR WAY</p>
-          <h2>Everything you need to feel <em>ready.</em></h2>
+          <p class="eyebrow">{{ t("YOUR SAFETY, YOUR WAY") }}</p>
+          <h2>{{ t("Everything you need to feel") }} <em>{{ t("ready.") }}</em></h2>
         </div>
       </div>
       <div class="feature-grid">
@@ -97,7 +97,7 @@ const emit = defineEmits(["sos", "track", "navigate"]);
           <i class="bi bi-broadcast-pin"></i
           ><span
             ><strong>{{ t("help") }}</strong
-            ><small>Get help in one tap</small></span
+            ><small>{{ t("Get help in one tap") }}</small></span
           ></button
         ><button class="feature-card card-pink" @click="emit('track')">
           <i class="bi bi-geo-alt-fill"></i
@@ -111,8 +111,8 @@ const emit = defineEmits(["sos", "track", "navigate"]);
         >
           <i class="bi bi-people-fill"></i
           ><span
-            ><strong>Safety circle</strong
-            ><small>Keep trusted people close</small></span
+            ><strong>{{ t("Safety circle") }}</strong
+            ><small>{{ t("Keep trusted people close") }}</small></span
           ></button
         ><button
           class="feature-card card-red"
@@ -121,7 +121,7 @@ const emit = defineEmits(["sos", "track", "navigate"]);
           <i class="bi bi-play-circle-fill"></i
           ><span
             ><strong>{{ t("hub") }}</strong
-            ><small>Videos, tips and local advice</small></span
+            ><small>{{ t("Videos, tips and local advice") }}</small></span
           >
         </button>
       </div>

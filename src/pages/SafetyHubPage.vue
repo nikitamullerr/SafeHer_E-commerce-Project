@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { onBeforeUnmount, ref } from "vue";
 import LiveMap from "../components/LiveMap.vue";
 import { t } from "../languageConfig.js";
 
@@ -22,14 +22,7 @@ const emit = defineEmits([
 const checkInMinutes = ref(0);
 const checkInSeconds = ref(0);
 const checkInStatus = ref(localStorage.getItem("safeher-checkin-status") || "Not checked in yet");
-const panicStatus = ref("Ready");
-const panicCountdown = ref(0);
-const selectedPlan = ref(localStorage.getItem("safeher-active-plan") || "Home mode");
-const safetyPlans = ["Home mode", "Travel mode", "Night mode"];
-const orders = ref([]);
-const orderStages = ["Confirmed", "Packed", "Out for delivery", "Delivered"];
 let timer;
-let panicTimer;
 
 function startTimer(minutes) {
   clearInterval(timer);
@@ -58,74 +51,21 @@ function checkInNow() {
   }
 }
 
-function setSafetyPlan(plan) {
-  selectedPlan.value = plan;
-  localStorage.setItem("safeher-active-plan", plan);
-  panicStatus.value = `${plan} active`;
-}
-
-function startPanicCountdown() {
-  clearInterval(panicTimer);
-  panicCountdown.value = 5;
-  panicStatus.value = "Panic countdown started";
-
-  panicTimer = setInterval(() => {
-    if (panicCountdown.value <= 1) {
-      clearInterval(panicTimer);
-      panicCountdown.value = 0;
-      panicStatus.value = "SOS triggered";
-      emit("sos");
-      return;
-    }
-    panicCountdown.value -= 1;
-  }, 1000);
-}
-
-function cancelPanicCountdown() {
-  clearInterval(panicTimer);
-  panicCountdown.value = 0;
-  panicStatus.value = "Countdown cancelled";
-}
-
-function loadOrders() {
-  try {
-    orders.value = JSON.parse(localStorage.getItem("safeher-orders") || "[]");
-  } catch {
-    orders.value = [];
-  }
-}
-
-function advanceOrder(orderId) {
-  const targetOrder = orders.value.find((order) => order.id === orderId);
-  if (!targetOrder) return;
-  const currentIndex = orderStages.indexOf(targetOrder.status || "Confirmed");
-  const nextIndex = Math.min(currentIndex + 1, orderStages.length - 1);
-  targetOrder.status = orderStages[nextIndex];
-  localStorage.setItem("safeher-orders", JSON.stringify(orders.value));
-  orders.value = [...orders.value];
-}
-
-const latestOrder = computed(() => orders.value[orders.value.length - 1]);
-
-onMounted(() => {
-  loadOrders();
-});
 onBeforeUnmount(() => {
   clearInterval(timer);
-  clearInterval(panicTimer);
 });
 </script>
 <template>
   <main class="hub-page container-fluid px-4 px-xl-5">
     <div class="hub-header">
       <div>
-        <p class="eyebrow">MY SAFETY HUB</p>
+        <p class="eyebrow">{{ t("MY SAFETY HUB") }}</p>
         <h1>{{ t("welcome") }}</h1>
         <p>{{ t("hubLead") }}</p>
       </div>
       <div class="hub-plan">
-        <small>SAFEHER PLAN</small><strong>Community</strong
-        ><span>Always protected</span>
+        <small>{{ t("SAFEHER PLAN") }}</small><strong>{{ t("Community") }}</strong
+        ><span>{{ t("Always protected") }}</span>
       </div>
     </div>
     <section class="hub-metrics">
@@ -134,36 +74,34 @@ onBeforeUnmount(() => {
           <strong>{{ t("oneTap") }}</strong
           ><i class="bi bi-broadcast-pin"></i>
         </div>
-        <p>
-          Press to instantly share your location with your emergency circle.
-        </p>
+        <p> {{ t("Press to activate the SOS visual alert.") }} </p>
         <button class="hub-sos-button" @click="emit('sos')">SOS</button
-        ><small>Tap to activate</small>
+        ><small>{{ t("Tap to activate") }}</small>
       </article>
       <article class="hub-stat">
         <i class="bi bi-people-fill"></i><strong>{{ contacts.length }}</strong
         ><b>{{ t("emergencyContacts") }}</b
         ><small>{{
-          contacts.length ? "Ready to receive alerts" : t("contactPrompt")
+          t(contacts.length ? "Saved for quick contact" : t("contactPrompt"))
         }}</small>
       </article>
       <article class="hub-stat">
         <i class="bi bi-send-fill"></i
-        ><strong>{{ locationReady ? "1" : "0" }}</strong
+        ><strong>{{ t(locationReady ? "1" : "0") }}</strong
         ><b>{{ t("liveRoute") }}</b
         ><small>{{
-          locationReady ? "Location sharing ready" : "Not active yet"
+          t(locationReady ? "Location sharing ready" : "Not active yet")
         }}</small>
       </article>
       <article class="hub-stat">
         <i class="bi bi-check-square-fill"></i
         ><strong>{{ checkInMinutes || "0" }}</strong
         ><b>{{ t("checkins") }}</b
-        ><small>This session</small>
+        ><small>{{ t("This session") }}</small>
       </article>
       <article class="hub-stat">
         <i class="bi bi-shield-fill"></i><strong>24/7</strong
-        ><b>Safe Hours Logged</b><small>Since joining SafeHer</small>
+        ><b>{{ t("Safe Hours Logged") }}</b><small>{{ t("Since joining SafeHer") }}</small>
       </article>
     </section>
     <section class="hub-main-grid">
@@ -179,19 +117,19 @@ onBeforeUnmount(() => {
           <span
             ><i class="bi bi-crosshair2"></i
             >{{
-              locationReady
+              t(locationReady
                 ? "Live GPS tracking active"
-                : "Location sharing is private"
+                : "Location sharing is private")
             }}</span
           ><button @click="emit('track')">
-            {{ locationReady ? "Use My Location" : "Locate me" }}
+            {{ t(locationReady ? "Use My Location" : "Locate me") }}
           </button>
         </div>
       </article>
       <article class="hub-panel contacts-panel">
         <div class="hub-panel-heading">
-          <h2>Emergency Contacts</h2>
-          <span class="hub-add">{{ contacts.length }} saved</span>
+          <h2>{{ t("Emergency Contacts") }}</h2>
+          <span class="hub-add">{{ contacts.length }} {{ t("saved") }}</span>
         </div>
         <div v-if="contacts.length" class="hub-contact-list">
           <div v-for="contact in contacts" :key="contact.id">
@@ -199,7 +137,7 @@ onBeforeUnmount(() => {
             ><span
               ><strong>{{ contact.name }}</strong
               ><small
-                >{{ contact.relationship }} · {{ contact.phone }}</small
+                >{{ t(contact.relationship) }} · {{ contact.phone }}</small
               ></span
             ><i class="bi bi-circle-fill"></i
             ><div class="hub-contact-actions">
@@ -220,59 +158,32 @@ onBeforeUnmount(() => {
         </div>
         <div v-else class="hub-empty-contacts">
           <i class="bi bi-person-plus"></i>
-          <p>Add someone you trust below.</p>
+          <p>{{ t("Add someone you trust below.") }}</p>
         </div>
         <form
           class="contact-form hub-contact-form"
           @submit.prevent="emit('add-contact', $event)"
         >
-          <input name="name" required placeholder="Contact name" /><input
+          <input name="name" required :placeholder="t(&quot;Contact name&quot;)" /><input
             name="phone"
             required
             type="tel"
-            placeholder="Cellphone number"
+            :placeholder="t(&quot;Cellphone number&quot;)"
           /><select name="relationship">
-            <option>Trusted contact</option>
-            <option>Family</option>
-            <option>Friend</option></select
-          ><button class="btn btn-dark-plum" type="submit">Save contact</button>
+            <option value="Trusted contact">{{ t("Trusted contact") }}</option>
+            <option value="Family">{{ t("Family") }}</option>
+            <option value="Friend">{{ t("Friend") }}</option></select
+          ><button class="btn btn-dark-plum" type="submit">{{ t("Save contact") }}</button>
         </form>
       </article>
     </section>
-    <section class="hub-panel panic-panel">
-      <div>
-        <h2>Safety plans</h2>
-        <p>Switch your daily protection mode based on your situation.</p>
-      </div>
-      <div class="safety-plan-row">
-        <button
-          v-for="plan in safetyPlans"
-          :key="plan"
-          :class="{ active: selectedPlan === plan }"
-          @click="setSafetyPlan(plan)"
-        >
-          {{ plan }}
-        </button>
-      </div>
-      <div class="panic-box">
-        <div>
-          <strong>{{ panicStatus }}</strong>
-          <small>{{ panicCountdown ? `Triggering in ${panicCountdown}s` : "Ready to trigger SOS" }}</small>
-        </div>
-        <div class="panic-actions">
-          <button class="btn btn-sos" @click="startPanicCountdown">Start countdown</button>
-          <button class="btn btn-outline-plum" @click="cancelPanicCountdown">Cancel</button>
-        </div>
-      </div>
-    </section>
-
     <section class="hub-panel checkin-panel">
       <div>
         <h2>{{ t("checkinTimer") }}</h2>
-        <p>If you do not check in, your contacts are automatically alerted.</p>
+        <p>{{ t("Use a timer to remind yourself to check in.") }}</p>
       </div>
       <div class="checkin-status-box">
-        <span class="status-pill">{{ checkInStatus }}</span>
+        <span class="status-pill">{{ t(checkInStatus) }}</span>
       </div>
       <div class="timer-display" v-if="checkInMinutes || checkInSeconds">
         <i class="bi bi-stopwatch"></i
@@ -286,10 +197,9 @@ onBeforeUnmount(() => {
           :key="minutes"
           @click="startTimer(minutes)"
         >
-          {{ minutes }} min</button
+          {{ minutes }} {{ t("min") }}</button
         ><button class="btn btn-dark-plum" @click="checkInNow">
-          <i class="bi bi-check-circle"></i> Check in now
-        </button>
+          <i class="bi bi-check-circle"></i> {{ t("Check in now") }} </button>
         <button class="btn btn-dark-plum" @click="emit('share')">
           <i class="bi bi-send"></i> {{ t("shareRoute") }}
         </button>

@@ -4,7 +4,7 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 import routes from "./routes/index.js";
 
-dotenv.config();
+dotenv.config({ path: new URL('./.env', import.meta.url) });
 
 const app = express();
 const PORT = process.env.PORT || 5000;

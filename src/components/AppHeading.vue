@@ -1,4 +1,5 @@
 <script setup>
+import { t } from "../languageConfig.js";
 defineProps({
   eyebrow: {
     type: String,

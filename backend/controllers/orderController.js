@@ -5,7 +5,6 @@ const ORDER_STATUSES = ["Confirmed", "Packed", "Out for delivery", "Delivered"];
 const DELIVERY_FEES = {
 	"Standard delivery": 49,
 	"Express delivery": 99,
-	"Click & collect": 0,
 };
 
 const mapOrder = (order, items) => ({
@@ -17,6 +16,8 @@ const mapOrder = (order, items) => ({
 	deliveryMethod: order.delivery_method,
 	paymentMethod: order.payment_method,
 	paymentStatus: order.payment_status,
+	emailSent: Boolean(order.confirmation_email_sent),
+	emailSentAt: order.confirmation_email_sent_at,
 	notes: order.notes,
 	createdAt: order.created_at,
 	updatedAt: order.updated_at,
@@ -27,7 +28,7 @@ const getOrderWithItems = async (connection, orderId, userId) => {
 	const [rows] = await connection.query(
 		`SELECT id, order_number, total, status, delivery_address,
 						delivery_method, payment_method, payment_status, notes,
-						created_at, updated_at
+						created_at, updated_at, confirmation_email_sent, confirmation_email_sent_at
 		 FROM orders
 		 WHERE id = ? AND user_id = ?`,
 		[orderId, userId],
@@ -72,7 +73,10 @@ export const createOrder = async (req, res) => {
 			return res.status(400).json({ success: false, error: "Delivery address is required" });
 		}
 
-		const requestedItems = new Map();
+		if (!Object.hasOwn(DELIVERY_FEES, deliveryMethod)) {
+            return res.status(400).json({ success: false, error: "Choose standard or express delivery" });
+        }
+        const requestedItems = new Map();
 		for (const item of items) {
 			if (!item || typeof item !== "object") {
 				return res.status(400).json({ success: false, error: "Each order item must be an object" });
@@ -172,7 +176,7 @@ export const getOrders = async (req, res) => {
 		const [orders] = await pool.query(
 			`SELECT id, order_number, total, status, delivery_address,
 							delivery_method, payment_method, payment_status, notes,
-							created_at, updated_at
+							created_at, updated_at, confirmation_email_sent, confirmation_email_sent_at
 			 FROM orders
 			 WHERE user_id = ?
 			 ORDER BY created_at DESC`,
@@ -223,8 +227,8 @@ export const updateOrderStatus = async (req, res) => {
 		}
 
 		const [existing] = await pool.query(
-			"SELECT status FROM orders WHERE id = ? AND user_id = ?",
-			[req.params.id, req.user.id],
+			"SELECT status, user_id, payment_status, payment_method FROM orders WHERE id = ?",
+			[req.params.id],
 		);
 		if (!existing.length) {
 			return res.status(404).json({ success: false, error: "Order not found" });
@@ -232,12 +236,16 @@ export const updateOrderStatus = async (req, res) => {
 
 		const currentIndex = ORDER_STATUSES.indexOf(existing[0].status);
 		const nextIndex = ORDER_STATUSES.indexOf(status);
-		if (nextIndex < currentIndex) {
-			return res.status(400).json({ success: false, error: "Order status cannot move backwards" });
+		if (existing[0].payment_status !== "paid" || existing[0].payment_method === "card_demo") {
+            return res.status(409).json({ success: false, error: "Only paid orders can enter fulfilment" });
+        }
+        if (nextIndex !== currentIndex + 1) {
+			return res.status(400).json({ success: false, error: "Advance delivery by one step at a time" });
 		}
 
-		await pool.query("UPDATE orders SET status = ? WHERE id = ? AND user_id = ?", [status, req.params.id, req.user.id]);
-		const order = await getOrderWithItems(pool, req.params.id, req.user.id);
+		const [updated] = await pool.query("UPDATE orders SET status = ? WHERE id = ? AND user_id = ? AND status = ? AND payment_status = 'paid'", [status, req.params.id, existing[0].user_id, existing[0].status]);
+        if (!updated.affectedRows) return res.status(409).json({ success: false, error: "Order changed. Refresh before updating it." });
+		const order = await getOrderWithItems(pool, req.params.id, existing[0].user_id);
 		return res.json({ success: true, order });
 	} catch (error) {
 		console.error("Update order status error:", error);
@@ -261,7 +269,7 @@ export const resendConfirmationEmail = async (req, res) => {
 
 		// Verify order belongs to user
 		const [orders] = await pool.query(
-			"SELECT id FROM orders WHERE id = ? AND user_id = ?",
+			"SELECT id, payment_status, payment_method FROM orders WHERE id = ? AND user_id = ?",
 			[orderId, userId],
 		);
 
@@ -269,7 +277,10 @@ export const resendConfirmationEmail = async (req, res) => {
 			return res.status(404).json({ success: false, error: "Order not found" });
 		}
 
-		// Resend the email
+		if (orders[0].payment_status !== "paid" && orders[0].payment_method !== "card_demo") {
+            return res.status(409).json({ success: false, error: "Confirmation email is available for demo orders or confirmed payments" });
+        }
+        // Resend the email
 		const result = await resendOrderConfirmationEmail(orderId, userId);
 
 		if (result.emailSent) {

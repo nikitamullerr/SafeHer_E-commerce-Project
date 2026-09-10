@@ -3,7 +3,7 @@ import pool from '../config/db.js';
 export const UserModel = {
     findByEmail: async (email) => {
         const [rows] = await pool.query(
-            'SELECT id, name, email, password_hash, phone, role, created_at FROM users WHERE email = ?',
+            "SELECT id, name, email, password_hash, phone, CASE WHEN is_admin = 1 THEN 'admin' ELSE 'user' END AS role, created_at FROM users WHERE email = ?",
             [email.toLowerCase()]
         );
         return rows[0] || null;
@@ -11,7 +11,7 @@ export const UserModel = {
 
     findById: async (id) => {
         const [rows] = await pool.query(
-            'SELECT id, name, email, phone, role, created_at FROM users WHERE id = ?',
+            "SELECT id, name, email, phone, CASE WHEN is_admin = 1 THEN 'admin' ELSE 'user' END AS role, created_at FROM users WHERE id = ?",
             [id]
         );
         return rows[0] || null;

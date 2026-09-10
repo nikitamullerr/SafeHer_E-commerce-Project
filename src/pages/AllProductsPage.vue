@@ -6,10 +6,10 @@ const props = defineProps({ products: Array });
 const emit = defineEmits(["add", "navigate"]);
 
 const filters = [
-  { value: "all", label: t("allAccessories") || "All Accessories" },
+  { value: "all", label: "allAccessories" },
   { value: "personal-safety", label: "Personal safety" },
-  { value: "home", label: "For your home" },
-  { value: "travel", label: "Travel-ready" },
+  { value: "home-security", label: "For your home" },
+  { value: "travel-safety", label: "Travel-ready" },
 ];
 
 const selectedFilter = ref("all");
@@ -182,20 +182,20 @@ function closeModal() {
   <main class="inner-page container-fluid px-4 px-xl-5 all-products-page">
     <div class="inner-heading">
       <p class="eyebrow">SAFEHER / {{ t("store") }}</p>
-      <h1>All products</h1>
-      <p>Our complete range of safety accessories</p>
+      <h1>{{ t("All products") }}</h1>
+      <p>{{ t("Our complete range of safety accessories") }}</p>
     </div>
 
     <div class="store-layout">
       <div class="product-filter">
-        <span>FILTER PRODUCTS</span>
+        <span>{{ t("FILTER PRODUCTS") }}</span>
         <button
           v-for="filter in filters"
           :key="filter.value"
           :class="{ selected: selectedFilter === filter.value }"
           @click="selectedFilter = filter.value"
         >
-          {{ filter.label }}
+          {{ t(filter.label) }}
         </button>
       </div>
 
@@ -226,8 +226,7 @@ function closeModal() {
                   <i class="bi bi-bag-plus"></i> {{ t("add") }}
                 </button>
                 <button class="btn btn-light-plum" @click="openModal(product)">
-                  <i class="bi bi-info-circle"></i> Details
-                </button>
+                  <i class="bi bi-info-circle"></i> {{ t("Details") }} </button>
               </div>
             </div>
           </div>
@@ -241,8 +240,7 @@ function closeModal() {
         class="btn btn-outline-plum"
         @click="emit('navigate', 'products')"
       >
-        <i class="bi bi-arrow-left"></i> Back to store
-      </button>
+        <i class="bi bi-arrow-left"></i> {{ t("Back to store") }} </button>
     </div>
 
     <!-- Product Detail Modal -->
@@ -273,13 +271,13 @@ function closeModal() {
                 <span class="rating-stars">★★★★★</span>
                 <span>4.8</span>
                 <span class="rating-count"
-                  >({{ getReviews(selectedProduct.id).length }} reviews)</span
+                  >({{ getReviews(selectedProduct.id).length }} {{ t("reviews)") }}</span
                 >
               </div>
 
               <div class="product-price-row">
                 <strong>{{ formatPrice(selectedProduct.price) }}</strong>
-                <span>In stock</span>
+                <span>{{ t("In stock") }}</span>
               </div>
 
               <p class="modal-description">
@@ -293,13 +291,12 @@ function closeModal() {
                   closeModal();
                 "
               >
-                <i class="bi bi-bag-plus"></i> Add to bag
-              </button>
+                <i class="bi bi-bag-plus"></i> {{ t("Add to bag") }} </button>
             </div>
           </div>
 
           <div class="modal-reviews-section">
-            <h3>Customer reviews</h3>
+            <h3>{{ t("Customer reviews") }}</h3>
             <div class="reviews-list">
               <article
                 v-for="(review, idx) in getReviews(selectedProduct.id)"

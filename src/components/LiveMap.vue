@@ -1,4 +1,5 @@
 <script setup>
+import { t } from "../languageConfig.js";
 import { onBeforeUnmount, onMounted, ref, watch, nextTick } from "vue";
 import L from "leaflet";
 const props = defineProps({
@@ -189,20 +190,16 @@ onBeforeUnmount(() => {
   >
     <div class="map-heading">
       <div>
-        <p class="eyebrow">LIVE SAFETY MAP</p>
-        <h2>See your surroundings.</h2>
-        <p>
-          Track your position and find nearby police, ambulance and trusted
-          SafeHer help.
-        </p>
+        <p class="eyebrow">{{ t("LIVE SAFETY MAP") }}</p>
+        <h2>{{ t("See your surroundings.") }}</h2>
+        <p> {{ t("Track your position and find nearby police, ambulance and trusted SafeHer help.") }} </p>
         <p v-if="nearestPoliceName" class="nearest-station-label">
-          <i class="bi bi-shield-fill-check"></i>
-          Nearest police station: <strong>{{ nearestPoliceName }}</strong>
+          <i class="bi bi-shield-fill-check"></i> {{ t("Nearest police station:") }} <strong>{{ nearestPoliceName }}</strong>
         </p>
       </div>
       <span class="map-status" :class="{ active: location }"
         ><i class="bi bi-circle-fill"></i
-        >{{ location ? "LIVE LOCATION" : "Map ready" }}</span
+        >{{ t(location ? "LIVE LOCATION" : "Map ready") }}</span
       >
     </div>
     <div class="live-map-wrap">
@@ -216,7 +213,7 @@ onBeforeUnmount(() => {
           <i
             :class="loading ? 'bi bi-arrow-repeat spin' : 'bi bi-crosshair2'"
           ></i>
-          {{ loading ? "Finding location..." : "Use My Location" }}
+          {{ t(loading ? "Finding location..." : "Use My Location") }}
         </button>
         <a
           v-if="location"
@@ -225,23 +222,22 @@ onBeforeUnmount(() => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <i class="bi bi-box-arrow-up-right"></i> OPEN GOOGLE MAPS
-        </a>
+          <i class="bi bi-box-arrow-up-right"></i> {{ t("OPEN GOOGLE MAPS") }} </a>
       </div>
       <div class="map-overlay">
         <i class="bi bi-crosshair2"></i
         ><span
           ><strong>{{
-            location ? "You are here" : "Your location is private"
+            t(location ? "You are here" : "Your location is private")
           }}</strong
           ><small>{{
-            location
+            t(location
               ? `${locationName || "Your current position"} · ±${Math.round(location.accuracy)}m`
-              : "Use live tracking to locate yourself"
+              : "Use live tracking to locate yourself")
           }}</small></span
         >
       </div>
-      <p v-if="error" class="map-location-error" role="alert">{{ error }}</p>
+      <p v-if="error" class="map-location-error" role="alert">{{ t(error) }}</p>
     </div>
   </section>
 </template>
@@ -272,7 +268,7 @@ onBeforeUnmount(() => {
 
 .map-heading p {
   margin: 0.5rem 0;
-  color: #756d76;
+  color: var(--muted);
   font-size: 0.95rem;
 }
 
@@ -291,8 +287,8 @@ onBeforeUnmount(() => {
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: 999px;
-  background: #f3f1f5;
-  color: #756d76;
+  background: var(--surface);
+  color: var(--muted);
   font-size: 0.9rem;
   white-space: nowrap;
 }
@@ -339,7 +335,7 @@ onBeforeUnmount(() => {
 .live-map {
   width: 100% !important;
   height: 100% !important;
-  background: #f3f1f5;
+  background: var(--surface);
   position: relative;
 }
 
@@ -347,7 +343,7 @@ onBeforeUnmount(() => {
 .live-map-wrap .leaflet-container {
   width: 100% !important;
   height: 100% !important;
-  background: #f3f1f5;
+  background: var(--surface);
 }
 
 .live-map-wrap .leaflet-pane {
@@ -367,7 +363,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--surface);
   backdrop-filter: blur(8px);
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
@@ -451,14 +447,14 @@ onBeforeUnmount(() => {
 
 .map-overlay strong {
   display: block;
-  color: #351536;
+  color: var(--ink);
   font-weight: 600;
   font-size: 0.95rem;
 }
 
 .map-overlay small {
   display: block;
-  color: #756d76;
+  color: var(--muted);
   font-size: 0.8rem;
   margin-top: 0.25rem;
 }

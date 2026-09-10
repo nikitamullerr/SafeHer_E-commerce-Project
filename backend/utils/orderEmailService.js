@@ -1,4 +1,5 @@
 import pool from '../config/db.js';
+import { generateDemoOrderEmail } from '../services/demoEmailTemplate.js';
 import emailService from '../services/emailService.js';
 import { generateOrderConfirmationEmail } from '../services/emailTemplates.js';
 import { generatePdfReceipt, generateReceiptFilename } from '../services/pdfReceiptGenerator.js';
@@ -28,9 +29,10 @@ import { generatePdfReceipt, generateReceiptFilename } from '../services/pdfRece
  * @returns {Promise<object>} - Result object: { success, emailSent, error }
  */
 export async function sendOrderConfirmationEmail(orderId, userId, customerEmail) {
-	const connection = await pool.getConnection();
+	let connection;
 
 	try {
+		connection = await pool.getConnection();
 		// Step 1: Fetch complete order details
 		const [orders] = await connection.query(
 			`SELECT id, order_number, total, status, delivery_address,
@@ -48,6 +50,7 @@ export async function sendOrderConfirmationEmail(orderId, userId, customerEmail)
 		}
 
 		const order = orders[0];
+		const isDemo = order.payment_method === "card_demo";
 
 		// Check if email was already sent (prevent duplicates)
 		if (order.confirmation_email_sent) {
@@ -71,7 +74,7 @@ export async function sendOrderConfirmationEmail(orderId, userId, customerEmail)
 
 		const customer = users[0];
 		const customerName = customer?.name || 'Valued Customer';
-		const customerEmailAddress = customerEmail || customer?.email;
+		const customerEmailAddress = customer?.email || customerEmail;
 
 		// Validate customer email
 		if (!customerEmailAddress) {
@@ -107,17 +110,19 @@ export async function sendOrderConfirmationEmail(orderId, userId, customerEmail)
 		// Step 4: Generate HTML email and PDF receipt
 		let htmlContent, pdfBuffer;
 		try {
-			htmlContent = generateOrderConfirmationEmail(orderData);
-			pdfBuffer = await generatePdfReceipt(orderData);
+			htmlContent = isDemo ? generateDemoOrderEmail(orderData) : generateOrderConfirmationEmail(orderData);
+			pdfBuffer = isDemo ? null : await generatePdfReceipt(orderData);
 		} catch (error) {
 			console.error(`Failed to generate email/PDF for order ${order.order_number}:`, error.message);
 			// Continue and try to send email without PDF
-			htmlContent = generateOrderConfirmationEmail(orderData);
+			htmlContent = isDemo ? generateDemoOrderEmail(orderData) : generateOrderConfirmationEmail(orderData);
 			pdfBuffer = null;
 		}
 
 		// Step 5: Send email
-		const emailSubject = `SafeHer Order Confirmation - Order #${order.order_number}`;
+		const emailSubject = isDemo
+			? `SafeHer Demo Order Confirmation - No payment charged - ${order.order_number}`
+			: `SafeHer Order Confirmation - Order #${order.order_number}`;
 		const emailOptions = {};
 
 		if (pdfBuffer) {
@@ -170,7 +175,7 @@ export async function sendOrderConfirmationEmail(orderId, userId, customerEmail)
 		console.error('Unexpected error in sendOrderConfirmationEmail:', error.message);
 		return { success: false, emailSent: false, error: error.message };
 	} finally {
-		connection.release();
+		connection?.release();
 	}
 }
 
@@ -185,9 +190,10 @@ export async function sendOrderConfirmationEmail(orderId, userId, customerEmail)
  * @returns {Promise<object>} - Result object: { success, emailSent, error }
  */
 export async function resendOrderConfirmationEmail(orderId, userId) {
-	const connection = await pool.getConnection();
+	let connection;
 
 	try {
+		connection = await pool.getConnection();
 		// Fetch order
 		const [orders] = await connection.query(
 			`SELECT id, user_id FROM orders WHERE id = ? AND user_id = ?`,
@@ -217,13 +223,15 @@ export async function resendOrderConfirmationEmail(orderId, userId) {
 			[orderId]
 		);
 
-		// Send the email
+		// Release this connection before the sending function acquires another.
+		connection.release();
+		connection = null;
 		return await sendOrderConfirmationEmail(orderId, userId, users[0].email);
 	} catch (error) {
 		console.error('Error in resendOrderConfirmationEmail:', error.message);
 		return { success: false, emailSent: false, error: error.message };
 	} finally {
-		connection.release();
+		connection?.release();
 	}
 }
 
@@ -265,7 +273,7 @@ export async function resendFailedOrderEmails() {
 		console.error('Error in resendFailedOrderEmails:', error.message);
 		return { total: 0, resent: 0, failed: 0, error: error.message };
 	} finally {
-		connection.release();
+		connection?.release();
 	}
 }
 

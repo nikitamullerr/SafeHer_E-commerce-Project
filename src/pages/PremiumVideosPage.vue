@@ -1,6 +1,7 @@
 <script setup>
+import { t } from "../languageConfig.js";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import Swal from "sweetalert2";
+import Swal from "../services/localizedSwal.js";
 import { getLessons, markLessonComplete } from "../services/premiumClient";
 const emit = defineEmits(["navigate"]);
 const props = defineProps({ premiumMembership: Object });
@@ -100,7 +101,7 @@ function onPlayerLoaded() {
 }
 
 function onPlayerMessage(event) {
-  if (event.origin !== "https://www.youtube.com") return;
+  if (event.origin !== "https://www.youtube.com" || event.source !== videoPlayer.value?.contentWindow) return;
 
   try {
     const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
@@ -159,12 +160,9 @@ function closePlayer() {
   <main class="premium-page container-fluid px-4 px-xl-5">
     <section class="premium-heading">
       <div class="guide-heading">
-        <p class="eyebrow">SAFEHER / PREMIUM LIBRARY</p>
-        <h1>Learn skills that help you feel <em>ready.</em></h1>
-        <p>
-          Expert-led safety lessons for your everyday routines, available with
-          SafeHer Premium.
-        </p>
+        <p class="eyebrow">{{ t("SAFEHER / PREMIUM LIBRARY") }}</p>
+        <h1>{{ t("Learn skills that help you feel") }} <em>{{ t("ready.") }}</em></h1>
+        <p> {{ t("Expert-led safety lessons for your everyday routines, available with SafeHer Premium.") }} </p>
       </div>
       <div class="premium-badge">
         <i
@@ -173,9 +171,9 @@ function closePlayer() {
           "
         ></i>
         <span
-          ><strong>{{ hasPremiumAccess ? "ACTIVE" : "PREMIUM" }}</strong
+          ><strong>{{ t(hasPremiumAccess ? "ACTIVE" : "PREMIUM") }}</strong
           ><small>{{
-            hasPremiumAccess ? "Member access enabled" : "Member access"
+            t(hasPremiumAccess ? "Member access enabled" : "Member access")
           }}</small></span
         >
       </div>
@@ -184,19 +182,19 @@ function closePlayer() {
       <div>
         <i class="bi bi-play-btn-fill"></i>
         <div>
-          <p class="eyebrow">YOUR NEXT STEP</p>
+          <p class="eyebrow">{{ t("YOUR NEXT STEP") }}</p>
           <h2>
             {{
-              hasPremiumAccess
+              t(hasPremiumAccess
                 ? "Your full safety video library is ready."
-                : "Unlock the full safety video library."
+                : "Unlock the full safety video library.")
             }}
           </h2>
           <p>
             {{
-              hasPremiumAccess
+              t(hasPremiumAccess
                 ? "Choose a lesson below and track your progress as you go."
-                : "Premium gives you guided lessons you can revisit whenever you need them."
+                : "Premium gives you guided lessons you can revisit whenever you need them.")
             }}
           </p>
         </div>
@@ -206,23 +204,18 @@ function closePlayer() {
         class="btn btn-sos"
         @click="emit('navigate', 'packages')"
       >
-        <i class="bi bi-stars"></i> Explore Premium
-      </button>
+        <i class="bi bi-stars"></i> {{ t("Explore Premium") }} </button>
       <span v-else class="btn btn-outline-plum disabled" aria-disabled="true">
         <i class="bi bi-check2-circle"></i> {{ progress.completed }}/{{
           progress.total
-        }}
-        completed
-      </span>
+        }} {{ t("completed") }} </span>
     </section>
-    <p v-if="isLoading" class="premium-videos-status">Loading premium videos...</p>
+    <p v-if="isLoading" class="premium-videos-status">{{ t("Loading premium videos...") }}</p>
     <div v-else-if="loadError" class="premium-videos-status">
-      <p>{{ loadError }}</p>
-      <button class="btn btn-sos" @click="loadLessons">Try again</button>
+      <p>{{ t(loadError) }}</p>
+      <button class="btn btn-sos" @click="loadLessons">{{ t("Try again") }}</button>
     </div>
-    <p v-else-if="!videos.length" class="premium-videos-status">
-      No premium videos are available yet.
-    </p>
+    <p v-else-if="!videos.length" class="premium-videos-status"> {{ t("No premium videos are available yet.") }} </p>
     <section v-else class="video-grid">
       <article v-for="video in videos" :key="video.id" class="video-card">
         <div
@@ -239,7 +232,7 @@ function closePlayer() {
           ></span>
         </div>
         <div class="video-card-copy">
-          <p class="eyebrow">PREMIUM LESSON</p>
+          <p class="eyebrow">{{ t("PREMIUM LESSON") }}</p>
           <h2>{{ video.title }}</h2>
           <p>{{ video.detail || video.description }}</p>
           <button class="video-action" @click="openVideo(video)">
@@ -249,11 +242,11 @@ function closePlayer() {
               "
             ></i>
             {{
-              hasPremiumAccess
+              t(hasPremiumAccess
                 ? video.completed
                   ? "Watch again"
                   : "Play lesson"
-                : "Unlock video"
+                : "Unlock video")
             }}
           </button>
         </div>
@@ -275,7 +268,7 @@ function closePlayer() {
         >
           <button
             class="video-player-close"
-            aria-label="Close video"
+            :aria-label="t(&quot;Close video&quot;)"
             @click="closePlayer"
           >
             <i class="bi bi-x-lg"></i>
@@ -307,7 +300,7 @@ function closePlayer() {
     style="font-size: 12px; padding: 8px 16px;"
   >
     <i class="bi bi-check2-circle"></i>
-    {{ isSavingProgress ? 'Saving...' : activeVideo?.completed ? 'Completed ✓' : 'Mark as Complete' }}
+    {{ t(isSavingProgress ? 'Saving...' : activeVideo?.completed ? 'Completed ✓' : 'Mark as Complete') }}
   </button>
 </div>
         </div>
@@ -323,7 +316,7 @@ function closePlayer() {
 .premium-videos-status {
   padding: 3rem 1rem;
   text-align: center;
-  color: #f8ebf2;
+  color: var(--ink);
 }
 .video-player-overlay {
   position: fixed;
@@ -338,7 +331,7 @@ function closePlayer() {
 }
 .video-player-modal {
   width: min(880px, 100%);
-  background: #fff;
+  background: var(--surface);
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.6);
@@ -389,12 +382,12 @@ function closePlayer() {
   font:
     700 20px "Syne",
     sans-serif;
-  color: #351536;
+  color: var(--ink);
 }
 .video-player-meta > p:last-child {
   margin: 0;
   font-size: 13px;
-  color: #5a4d5c;
+  color: var(--muted);
   line-height: 1.5;
 }
 .player-fade-enter-active,

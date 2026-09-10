@@ -1,14 +1,14 @@
+import { UserModel } from '../models/userModel.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import pool from '../config/db.js';
 
-dotenv.config();
+dotenv.config({ path: new URL('../.env', import.meta.url) });
 
 export const register = async (req, res) => {
     try {
         console.log('📝 Register request received');
-        console.log('📝 Body:', req.body);
 
         const { name, email, password, phone } = req.body;
 
@@ -21,7 +21,7 @@ export const register = async (req, res) => {
 
         const [existing] = await pool.query(
             'SELECT id FROM users WHERE email = ?',
-            [email.toLowerCase()]
+            [email.trim().toLowerCase()]
         );
         if (existing.length > 0) {
             return res.status(409).json({
@@ -57,7 +57,7 @@ export const register = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            user: user[0],
+            user,
             token
         });
 
@@ -73,8 +73,6 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
     try {
         console.log('📝 Login request received');
-        console.log('📝 Headers:', req.headers);
-        console.log('📝 Body:', req.body);
 
         // Check if body exists
         if (!req.body) {
@@ -95,8 +93,8 @@ export const login = async (req, res) => {
         }
 
         const [rows] = await pool.query(
-            'SELECT id, name, email, password_hash, phone FROM users WHERE email = ?',
-            [email.toLowerCase()]
+            "SELECT id, name, email, password_hash, phone, CASE WHEN is_admin = 1 THEN 'admin' ELSE 'user' END AS role FROM users WHERE email = ?",
+            [email.trim().toLowerCase()]
         );
 
         if (rows.length === 0) {
