@@ -20,6 +20,7 @@ if (import.meta.hot) import.meta.hot.dispose(stopLanguageWatch);
 // Page copy is kept in one place so the selector updates every translated view.
 const messages = {
   English: {
+    nearby: "Nearby",
     home: "Home",
     services: "Services",
     store: "Safety store",
@@ -318,7 +319,7 @@ export function t(key, params = {}) {
   const messageKey = Object.hasOwn(messages.English, normalized) ? normalized : englishKeys.get(normalized);
   const english = messageKey ? messages.English[messageKey] : normalized;
   const translated = interfaceMessages[english]?.[language.value]
-    || (messageKey && messages[language.value]?.[messageKey]) || english;
+    || (messageKey && messages[language.value]?.[messageKey]) || (messageKey ? english : key);
   return translated.replace(/\{(\w+)\}/g, (match, name) => Object.hasOwn(params, name) ? String(params[name]) : match);
 }
 

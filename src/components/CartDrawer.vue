@@ -1,5 +1,5 @@
 <script setup>
-import { t } from "../languageConfig.js";
+import { t, formatMoney } from "../languageConfig.js";
 defineProps({ open: Boolean, cart: Array, total: Number });
 const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop", "card-payment"]);
 </script>
@@ -31,7 +31,7 @@ const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop", "c
           </div>
           <div class="drawer-item-info">
             <strong>{{ item.name }}</strong>
-            <small>R{{ item.price.toLocaleString() }} {{ t("each") }}</small>
+            <small>{{ formatMoney(item.price) }} {{ t("each") }}</small>
             <div class="quantity-control">
               <button @click="emit('quantity', item, -1)">
                 <i class="bi bi-dash"></i>
@@ -43,7 +43,7 @@ const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop", "c
             </div>
           </div>
           <div class="drawer-item-end">
-            <strong>R{{ (item.price * item.quantity).toLocaleString() }}</strong>
+            <strong>{{ formatMoney(item.price * item.quantity) }}</strong>
             <button @click="emit('remove', item.id)">
               <i class="bi bi-trash3"></i>
             </button>
@@ -61,7 +61,7 @@ const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop", "c
       <div v-if="cart.length" class="drawer-footer">
         <div class="drawer-total">
           <span>{{ t("Total") }}</span>
-          <strong>R{{ total.toLocaleString() }}</strong>
+          <strong>{{ formatMoney(total) }}</strong>
         </div>
 
         <!-- PayFast Checkout -->
@@ -73,7 +73,7 @@ const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop", "c
 
         <!-- card payment -->
         <button class="btn btn-outline-plum w-100" @click="emit('card-payment')">
-          <i class="bi bi-credit-card"></i> {{ t("Card form (demo ? no charge)") }} </button>
+          <i class="bi bi-credit-card"></i> {{ t("Card form (demo - no charge)") }} </button>
 
         <button class="drawer-continue" @click="emit('shop')"> {{ t("Continue shopping") }} <i class="bi bi-arrow-right"></i>
         </button>

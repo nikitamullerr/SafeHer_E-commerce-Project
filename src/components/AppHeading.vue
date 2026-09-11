@@ -22,9 +22,9 @@ defineProps({
 
 <template>
   <div class="page-heading" :class="{ 'text-center': centered, 'mx-auto': centered }">
-    <p v-if="eyebrow" class="eyebrow">{{ eyebrow }}</p>
-    <h1>{{ title }}</h1>
-    <p v-if="subtitle" class="subtitle">{{ subtitle }}</p>
+    <p v-if="eyebrow" class="eyebrow">{{ t(eyebrow) }}</p>
+    <h1>{{ t(title) }}</h1>
+    <p v-if="subtitle" class="subtitle">{{ t(subtitle) }}</p>
   </div>
 </template>
 

@@ -1,10 +1,11 @@
 <script setup>
-import { t } from "../languageConfig.js";
-import { computed, reactive, ref, watch } from "vue";
+import { t, locale } from "../languageConfig.js";
+import { computed, reactive, ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import Swal from "../services/localizedSwal.js";
 import { authService } from "../services/authService.js";
+import { loadGoogleIdentity } from "../services/googleIdentity.js";
 
-const props = defineProps({ mode: String });
+const props = defineProps({ mode: String, notice: String });
 const emit = defineEmits([
   "navigate",
   "authenticated",
@@ -148,13 +149,12 @@ function finishAuth(user, title) {
   localStorage.setItem("safeher-token", user.token);
   localStorage.setItem("safeher-user", JSON.stringify(user.user));
 
-  emit("authenticated", user.user);
   Swal.fire({
     icon: "success",
     title,
     confirmButtonColor: "#351536",
   }).then(() => {
-    emit("navigate", "index");
+    emit("authenticated", user.user);
     emit("sign-in-notification-complete");
   });
 }
@@ -210,193 +210,48 @@ async function submit() {
 }
 
 const googleLoading = ref(false);
-
-let googleTokenClient = null;
-
-function loadGoogleScript() {
-  return new Promise((resolve, reject) => {
-    if (window.google?.accounts?.oauth2) {
-      console.log("Google script already loaded");
-      resolve();
-      return;
-    }
-
-    const existingScript = document.querySelector(
-      'script[src="https://accounts.google.com/gsi/client"]',
-    );
-
-    if (existingScript) {
-      console.log("⏳ Waiting for existing Google script...");
-      existingScript.addEventListener(
-        "load",
-        () => {
-          console.log("Existing Google script loaded");
-          resolve();
-        },
-        { once: true },
-      );
-      existingScript.addEventListener(
-        "error",
-        () => {
-          console.error("Existing Google script failed");
-          reject(new Error("Failed to load Google script"));
-        },
-        { once: true },
-      );
-      return;
-    }
-
-    console.log("Loading Google script...");
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      console.log("Google script loaded successfully");
-      resolve();
-    };
-    script.onerror = () => {
-      console.error("Google script failed to load");
-      reject(new Error("Failed to load Google script"));
-    };
-    document.head.appendChild(script);
+const googleButton = ref(null);
+const googleError = ref("");
+let googleIdentity;
+let disposed = false;
+async function handleGoogleCredential(response) {
+  if (disposed || googleLoading.value) return;
+  const mode = props.mode;
+  googleLoading.value = true;
+  errors.form = "";
+  try {
+    const result = await authService.google(response.credential, mode);
+    if (!disposed) finishAuth(result, mode === "registration" ? "Your SafeHer account is ready" : "Welcome back to SafeHer");
+  } catch (error) {
+    if (!disposed) errors.form = error.response?.data?.error || "Unable to continue with Google. Please try again.";
+  } finally { googleLoading.value = false; }
+}
+function renderGoogleButton() {
+  if (!googleIdentity || !googleButton.value || disposed) return;
+  googleButton.value.replaceChildren();
+  googleIdentity.renderButton(googleButton.value, {
+    type: "standard", theme: "filled_black", size: "large", shape: "pill",
+    text: props.mode === "registration" ? "signup_with" : "signin_with",
+    width: Math.min(400, googleButton.value.clientWidth || 280), locale: locale.value.split("-")[0],
   });
 }
-
-async function continueWithGoogle() {
-  errors.form = "";
-  googleLoading.value = true;
-
+async function setupGoogle() {
+  googleError.value = "";
   try {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-
-    if (!clientId) {
-      throw new Error(
-        "Google Sign-In is not configured. Add VITE_GOOGLE_CLIENT_ID to your .env file.",
-      );
-    }
-
-    console.log("Loading Google script...");
-    await loadGoogleScript();
-    console.log("Google script loaded");
-
-    googleTokenClient = window.google.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-      scope: "openid email profile",
-      callback: async (response) => {
-        console.log("Google callback received");
-
-        if (response.error) {
-          console.error("Google error:", response);
-          errors.form =
-            response.error_description || "Google sign-in was cancelled.";
-          googleLoading.value = false;
-          return;
-        }
-
-        try {
-          console.log("Fetching user info...");
-          const userResponse = await fetch(
-            "https://openidconnect.googleapis.com/v1/userinfo",
-            {
-              headers: {
-                Authorization: `Bearer ${response.access_token}`,
-              },
-            },
-          );
-
-          if (!userResponse.ok) {
-            throw new Error("Unable to retrieve your Google account.");
-          }
-
-          const googleUser = await userResponse.json();
-          console.log("Google user:", googleUser);
-
-          if (!googleUser.email) {
-            throw new Error("Google did not provide an email address.");
-          }
-
-          // Try to login with Google email
-          try {
-            console.log("Attempting login...");
-            const loginResponse = await authService.login({
-              email: googleUser.email,
-              password: "google_oauth_" + (googleUser.sub || googleUser.id),
-            });
-
-            console.log("Login successful");
-            localStorage.setItem("safeher-token", loginResponse.token);
-            localStorage.setItem(
-              "safeher-user",
-              JSON.stringify(loginResponse.user),
-            );
-
-            emit("authenticated", loginResponse.user);
-            Swal.fire({
-              icon: "success",
-              title: "Welcome back to SafeHer",
-              confirmButtonColor: "#351536",
-            }).then(() => {
-              emit("navigate", "index");
-              emit("sign-in-notification-complete");
-            });
-          } catch (loginError) {
-            console.log("ℹ️ User not found, registering...");
-
-            // If login fails, register the user
-            try {
-              const registerResponse = await authService.register({
-                name: googleUser.name || googleUser.email.split("@")[0],
-                email: googleUser.email,
-                password: "google_oauth_" + (googleUser.sub || googleUser.id),
-                phone: "",
-              });
-
-              console.log("Registration successful");
-              localStorage.setItem("safeher-token", registerResponse.token);
-              localStorage.setItem(
-                "safeher-user",
-                JSON.stringify(registerResponse.user),
-              );
-
-              emit("authenticated", registerResponse.user);
-              Swal.fire({
-                icon: "success",
-                title: "Your SafeHer account is ready",
-                confirmButtonColor: "#351536",
-              }).then(() => {
-                emit("navigate", "index");
-                emit("sign-in-notification-complete");
-              });
-            } catch (registerError) {
-              console.error("Registration error:", registerError);
-              throw new Error(
-                registerError.response?.data?.error ||
-                  "Failed to create account",
-              );
-            }
-          }
-        } catch (error) {
-          console.error("Google sign-in error:", error);
-          errors.form =
-            error?.message ||
-            "Unable to continue with Google. Please try again.";
-          googleLoading.value = false;
-        }
-      },
-    });
-
-    console.log("Requesting access token...");
-    googleTokenClient.requestAccessToken({
-      prompt: "select_account",
-    });
+    if (!clientId) throw new Error("Google sign-in is unavailable. Please try again later.");
+    googleIdentity = await loadGoogleIdentity();
+    if (disposed) return;
+    googleIdentity.initialize({ client_id: clientId, callback: handleGoogleCredential, auto_select: false });
+    await nextTick();
+    renderGoogleButton();
   } catch (error) {
-    console.error("Google sign-in error:", error);
-    errors.form =
-      error?.message || "Unable to continue with Google. Please try again.";
-    googleLoading.value = false;
+    if (!disposed) googleError.value = error.message;
   }
 }
+onMounted(setupGoogle);
+watch([googleButton, () => props.mode, locale], renderGoogleButton, { flush: "post" });
+onBeforeUnmount(() => { disposed = true; googleIdentity?.cancel(); });
 
 async function forgotPassword() {
   const emailResult = await Swal.fire({
@@ -439,6 +294,7 @@ async function forgotPassword() {
     <span class="sf-orbit sf-orbit-b" aria-hidden="true"></span>
 
     <section class="sf-card">
+      <p v-if="notice" class="auth-access-notice" role="status">{{ notice }}</p>
       <div class="sf-signal" aria-hidden="true">
         <span class="sf-ring sf-ring-1"></span>
         <span class="sf-ring sf-ring-2"></span>
@@ -703,15 +559,11 @@ async function forgotPassword() {
           </transition>
 
           <div class="sf-divider"><span>{{ t("or") }}</span></div>
-          <button
-            type="button"
-            class="sf-google"
-            @click="continueWithGoogle"
-            :disabled="googleLoading"
-          >
-            <b>G</b>
-            {{ t(googleLoading ? "Connecting..." : "Continue with Google") }}
-          </button>
+          <div class="google-signin-area" :aria-busy="googleLoading">
+            <div ref="googleButton" v-show="!googleLoading && !googleError" class="google-signin-button"></div>
+            <p v-if="googleLoading" role="status">{{ t("Connecting...") }}</p>
+            <div v-if="googleError" role="status"><p>{{ t(googleError) }}</p><button type="button" class="sf-link" @click="setupGoogle">{{ t("Try again") }}</button></div>
+          </div>
           <p class="sf-switch">
             {{
               t(mode === "login" ? "New to SafeHer?" : "Already have an account?")
@@ -731,6 +583,9 @@ async function forgotPassword() {
 </template>
 
 <style scoped>
+.google-signin-area { display: grid; justify-items: center; gap: 8px; color: var(--ink); }
+.google-signin-button { width: 100%; min-height: 40px; display: flex; justify-content: center; }
+
 .sf-shell {
   position: relative;
   isolation: isolate;

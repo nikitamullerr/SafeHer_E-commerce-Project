@@ -1,4 +1,5 @@
 import express from 'express';
+import { googleAuth } from '../controllers/googleAuthController.js';
 import { verifyToken } from '../middleware/verifyToken.js';
 import {
     register,
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post('/register', register);
 router.post('/login', login);
+router.post('/google', googleAuth);
 
 router.get('/me', verifyToken, getMe);
 router.put('/me', verifyToken, updateProfile);

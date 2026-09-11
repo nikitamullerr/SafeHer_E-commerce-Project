@@ -1,10 +1,10 @@
 <script setup>
 import { computed, ref } from "vue";
-import { t } from "../languageConfig.js";
+import { t, formatDate } from "../languageConfig.js";
 import Swal from "../services/localizedSwal.js";
 
-const props = defineProps({ email: String });
-const emit = defineEmits(["navigate", "premium-updated"]);
+const props = defineProps({ email: String, isAuthenticated: Boolean });
+const emit = defineEmits(["navigate", "premium-updated", "require-auth"]);
 
 const packages = [
   {
@@ -110,16 +110,17 @@ function cancelMembership() {
 }
 
 function choosePackage(packageItem) {
+  if (!props.isAuthenticated) { emit("require-auth"); return; }
   const amount = Number(String(packageItem.price).replace(/\D/g, ""));
 
   Swal.fire({
-    title: `Pay for ${packageItem.name}`,
+    title: t("Pay for {plan}", { plan: t(packageItem.name) }),
     html: `
       <div style="text-align:left; display:grid; gap:14px; font-family: inherit;">
         <div style="background:#f9f4fb; border:1px solid #ecd9ef; border-radius:12px; padding:12px 14px; color:#351536;">
           <div style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.7; margin-bottom:6px;">Order summary</div>
           <strong style="font-size:20px; display:block;">${packageItem.price}</strong>
-          <span style="font-size:13px;">${packageItem.name} membership</span>
+          <span style="font-size:13px;">${t("{plan} membership", { plan: t(packageItem.name) })}</span>
         </div>
 
         <div style="display:grid; gap:8px;">
@@ -189,7 +190,7 @@ function choosePackage(packageItem) {
       </div>
     `,
     showCancelButton: true,
-    confirmButtonText: `Pay ${packageItem.price}`,
+    confirmButtonText: t("Pay {amount}", { amount: packageItem.price }),
     confirmButtonColor: "#d92d36",
     cancelButtonColor: "#351536",
     width: 560,
@@ -221,8 +222,8 @@ function choosePackage(packageItem) {
         };
 
         const isCard = selected === "card";
-        referenceLabel.textContent = labelMap[selected] || "Payment reference";
-        referenceInput.placeholder = placeholderMap[selected] || "Payment reference";
+        referenceLabel.textContent = t(labelMap[selected] || "Payment reference");
+        referenceInput.placeholder = t(placeholderMap[selected] || "Payment reference");
         referenceInput.value = referenceInput.value || "";
         cardFields.style.display = isCard ? "grid" : "none";
         referenceInput.style.display = isCard ? "none" : "block";
@@ -313,7 +314,7 @@ function choosePackage(packageItem) {
     Swal.fire({
       icon: "success",
       title: "Payment successful",
-      text: `${packageItem.name} membership is now active. Payment method: ${method === "wallet" ? "Wallet / QR / Mobile Pay" : method === "instant-eft" ? "Instant EFT" : method === "card" ? "Card" : "Bank transfer"}.`,
+      text: t("{plan} membership is now active. Payment method: {method}.", { plan: t(packageItem.name), method: t(method === "wallet" ? "Wallet / QR / Mobile Pay" : method === "instant-eft" ? "Instant EFT" : method === "card" ? "Card" : "Bank transfer") }),
       confirmButtonText: "Open video library",
       confirmButtonColor: "#351536",
       footer: `${bank} • ${email}`,
@@ -335,7 +336,7 @@ function choosePackage(packageItem) {
         <div>
           <p class="eyebrow">{{ t("YOUR MEMBERSHIP") }}</p>
           <h2>{{ t(activeMembership.name) }} {{ t("is active") }}</h2>
-          <p>{{ t("Includes the video library and SafeHer AI until") }} {{ new Date(activeMembership.expiresAt).toLocaleDateString() }}.</p>
+          <p>{{ t("Includes the video library and SafeHer AI until") }} {{ formatDate(activeMembership.expiresAt) }}.</p>
         </div>
       </div>
       <button class="btn btn-outline-plum" @click="cancelMembership">{{ t("Cancel membership") }}</button>

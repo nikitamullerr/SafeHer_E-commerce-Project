@@ -73,7 +73,7 @@ const emit = defineEmits(["sos", "track", "navigate"]);
           <i class="bi bi-geo-alt-fill"></i
           ><span
             ><strong>{{ t("nearby") }}</strong
-            ><br />{{ nearest }}</span
+            ><br />{{ t(nearest) }}</span
           >
         </div>
       </div>
@@ -103,7 +103,7 @@ const emit = defineEmits(["sos", "track", "navigate"]);
           <i class="bi bi-geo-alt-fill"></i
           ><span
             ><strong>{{ t("nearby") }}</strong
-            ><small>{{ nearest }}</small></span
+            ><small>{{ t(nearest) }}</small></span
           ></button
         ><button
           class="feature-card card-cream"

@@ -92,6 +92,11 @@ export const login = async (req, res) => {
             });
         }
 
+        // Google authentication must use a verified Google credential, never the old generated password.
+        if (typeof password === 'string' && password.startsWith('google_oauth_')) {
+            return res.status(401).json({ success: false, error: 'Please use Google to sign in to this account.' });
+        }
+
         const [rows] = await pool.query(
             "SELECT id, name, email, password_hash, phone, CASE WHEN is_admin = 1 THEN 'admin' ELSE 'user' END AS role FROM users WHERE email = ?",
             [email.trim().toLowerCase()]

@@ -233,8 +233,8 @@ function closePlayer() {
         </div>
         <div class="video-card-copy">
           <p class="eyebrow">{{ t("PREMIUM LESSON") }}</p>
-          <h2>{{ video.title }}</h2>
-          <p>{{ video.detail || video.description }}</p>
+          <h2>{{ t(video.title) }}</h2>
+          <p>{{ t(video.detail || video.description) }}</p>
           <button class="video-action" @click="openVideo(video)">
             <i
               :class="
@@ -264,7 +264,7 @@ function closePlayer() {
           class="video-player-modal"
           role="dialog"
           aria-modal="true"
-          :aria-label="activeVideo.title"
+          :aria-label="t(activeVideo.title)"
         >
           <button
             class="video-player-close"
@@ -277,7 +277,7 @@ function closePlayer() {
             <iframe
               ref="videoPlayer"
               :src="playerUrl"
-              :title="activeVideo.title"
+              :title="t(activeVideo.title)"
               @load="onPlayerLoaded"
               frameborder="0"
               allow="

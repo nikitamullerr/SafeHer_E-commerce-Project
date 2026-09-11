@@ -1,5 +1,5 @@
 <script setup>
-import { t } from "../languageConfig.js";
+import { t, formatDate } from "../languageConfig.js";
 import { computed, ref } from "vue";
 
 const testimonials = [
@@ -224,7 +224,7 @@ const ratingText = computed(() => Array.from({ length: 5 }, (_, index) => index 
             <p>“{{ item.quote }}”</p>
 
             <div class="review-footer">
-              <span>{{ t("Purchased:") }} {{ item.date }}</span>
+              <span>{{ t("Purchased:") }} {{ formatDate(item.date, { dateStyle: "long" }) }}</span>
               <button type="button" class="helpful-button"> {{ t("Helpful? Yes (") }}{{ item.helpful }})
               </button>
             </div>

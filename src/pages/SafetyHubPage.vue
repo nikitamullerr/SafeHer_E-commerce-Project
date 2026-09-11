@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, ref } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import LiveMap from "../components/LiveMap.vue";
 import { t } from "../languageConfig.js";
 
@@ -22,6 +22,10 @@ const emit = defineEmits([
 const checkInMinutes = ref(0);
 const checkInSeconds = ref(0);
 const checkInStatus = ref(localStorage.getItem("safeher-checkin-status") || "Not checked in yet");
+const checkInStatusText = computed(() => {
+  const minutes = checkInStatus.value.match(/^Timer started.*?(\d+) minute check-in$/)?.[1];
+  return minutes ? t("Timer started - {minutes} minute check-in", { minutes }) : t(checkInStatus.value);
+});
 let timer;
 
 function startTimer(minutes) {
@@ -183,7 +187,7 @@ onBeforeUnmount(() => {
         <p>{{ t("Use a timer to remind yourself to check in.") }}</p>
       </div>
       <div class="checkin-status-box">
-        <span class="status-pill">{{ t(checkInStatus) }}</span>
+        <span class="status-pill">{{ checkInStatusText }}</span>
       </div>
       <div class="timer-display" v-if="checkInMinutes || checkInSeconds">
         <i class="bi bi-stopwatch"></i

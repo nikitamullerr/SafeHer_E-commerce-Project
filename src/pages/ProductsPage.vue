@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from "vue";
-import { t } from "../languageConfig.js";
+import { t, formatMoney } from "../languageConfig.js";
 
 const props = defineProps({ products: Array });
 const emit = defineEmits(["add", "navigate"]);
@@ -164,12 +164,7 @@ const featuredProduct = computed(() => {
   return list.length ? list[0] : props.products?.[0] || null;
 });
 
-function formatPrice(value) {
-  return `R${Number(value).toLocaleString("en-ZA", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
+const formatPrice = formatMoney;
 
 function openModal(product) {
   selectedProduct.value = product;
@@ -221,7 +216,7 @@ function closeModal() {
         </div>
 
         <p class="product-summary">
-          {{ featuredProduct.detail }} {{ t("— designed for everyday confidence, quick access, and calm in the moments that matter most.") }} </p>
+          {{ t(featuredProduct.detail) }} {{ t("— designed for everyday confidence, quick access, and calm in the moments that matter most.") }} </p>
 
         <div class="feature-actions">
           <button
@@ -270,7 +265,7 @@ function closeModal() {
           <div class="product-info">
             <p class="eyebrow">{{ t("safetyAccessory") }}</p>
             <h3>{{ product.name }}</h3>
-            <p>{{ product.detail }}</p>
+            <p>{{ t(product.detail) }}</p>
             <div class="product-buy">
               <strong>{{ formatPrice(product.price) }}</strong>
               <div class="product-buy-actions">
@@ -335,7 +330,7 @@ function closeModal() {
               </div>
 
               <p class="modal-description">
-                {{ selectedProduct.detail }}
+                {{ t(selectedProduct.detail) }}
               </p>
 
               <button

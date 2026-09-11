@@ -7798,3 +7798,30 @@ body,
 }
 
 .app-shell.dark-mode .hero-lead { color: var(--muted); }
+
+/* Language controls remain available before signing in. */
+.auth-language { display: grid; grid-template-columns: minmax(0, 1fr) minmax(90px, 140px); align-items: center; gap: 12px; padding: 12px 24px; color: var(--ink); background: var(--blush); }
+.auth-language select { width: 100%; min-width: 0; padding: 8px 12px; border: 1px solid var(--muted); border-radius: 8px; background: var(--surface); color: var(--ink); }
+.nav-actions select { max-width: 130px; }
+@media (max-width: 600px) { .auth-language { padding: 10px 16px; } .nav-links button { white-space: normal; overflow-wrap: anywhere; } }
+
+.browse-return { justify-self: start; max-width: 100%; margin-right: 0; line-height: 1.3; }
+.auth-access-notice { grid-column: 1 / -1; margin: 12px 24px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); }
+.nav-actions .guest-login, .nav-actions .guest-register { padding: 8px 12px; font-size: 12px; white-space: normal; }
+@media (max-width: 600px) { .nav-actions { flex-wrap: wrap; } .nav-actions .guest-login, .nav-actions .guest-register { flex: 1 1 auto; } .browse-return { font-size: 12px; } }
+
+/* The auth toolbar and form share one themed viewport. */
+.app-shell.auth-view { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; background: var(--blush); }
+.app-shell.auth-view .sf-shell { flex: 1; min-height: 0; }
+
+.app-shell .auth-language .browse-return { background: var(--surface); color: var(--ink); border-color: var(--muted); }
+.app-shell .auth-language .browse-return:hover, .app-shell .auth-language .browse-return:focus-visible { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+/* Account links sit above the main navigation; its controls have no decorative outlines. */
+.guest-account-links { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px 20px; margin-left: auto; }
+.app-shell .guest-account-links button { border: 0; box-shadow: none; background: transparent; color: inherit; font: inherit; font-weight: 700; padding: 4px 0; }
+.app-shell .guest-account-links button:hover { text-decoration: underline; text-underline-offset: 4px; }
+.app-shell .site-nav .nav-actions :is(select, button), .app-shell .site-nav .navbar-toggler { border: 0; outline: none; box-shadow: none; background-color: transparent; }
+.app-shell .site-nav .nav-actions :is(select, button):focus:not(:focus-visible), .app-shell .site-nav .navbar-toggler:focus:not(:focus-visible) { outline: none; box-shadow: none; }
+.app-shell .site-nav :is(button, select):focus-visible, .app-shell .guest-account-links button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+@media (max-width: 700px) { .top-strip .container-fluid { flex-wrap: wrap; gap: 4px 12px; } .guest-account-links { width: 100%; } }

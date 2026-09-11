@@ -2,6 +2,7 @@
 import { t } from "../languageConfig.js";
 defineProps({
   activeView: String,
+  isAuthenticated: Boolean,
   menuOpen: Boolean,
   language: String,
   cartCount: Number,
@@ -25,7 +26,11 @@ const emit = defineEmits([
           <i class="bi bi-shield-check me-2"></i>
           {{ t("tagline") }}
         </span>
-        <span class="d-none d-md-inline"> {{ t("Free delivery on orders over R500") }} <i class="bi bi-arrow-up-right ms-1"></i>
+        <div v-if="!isAuthenticated" class="guest-account-links">
+          <button class="guest-login" @click="emit('navigate', 'login')">{{ t("login") }}</button>
+          <button class="guest-register" @click="emit('navigate', 'registration')">{{ t("register") }}</button>
+        </div>
+        <span v-else class="d-none d-md-inline"> {{ t("Free delivery on orders over R500") }} <i class="bi bi-arrow-up-right ms-1"></i>
         </span>
       </div>
     </div>
@@ -121,6 +126,7 @@ const emit = defineEmits([
           </button>
 
           <button
+            v-if="isAuthenticated"
             class="icon-button"
             :aria-label="t(&quot;Log out&quot;)"
             :title="t(&quot;Log out&quot;)"

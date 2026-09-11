@@ -1,3 +1,5 @@
+import { locale } from "../languageConfig.js";
+
 const EMERGENCY_PATTERNS = [
   /\b(help|attack(?:ed)?|weapon|gun|knife|break[ -]?in|assault|medical emergency|ambulance|kill|immediate danger)\b/i,
 ];
@@ -45,7 +47,7 @@ export async function getSafetyAssistantReply(message) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ message: String(message).slice(0, 2000), risk }),
+        body: JSON.stringify({ message: String(message).slice(0, 2000), risk, language: locale.value }),
       });
       if (!response.ok) throw new Error("AI service unavailable");
       const body = await response.json();

@@ -1,5 +1,5 @@
 <script setup>
-import { t } from "../languageConfig.js";
+import { t, formatMoney } from "../languageConfig.js";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import PaymentForm from "./paymentForm.vue";
 import api from "../services/api.js";
@@ -57,7 +57,7 @@ const config = ref({ payfastAvailable: false, cardDemoAvailable: false, sandbox:
 const cardForm = ref(null), dialog = ref(null);
 const requestId = ref(crypto.randomUUID());
 const options = [{ value: "standard", label: "Standard delivery", fee: 49 }, { value: "express", label: "Express delivery", fee: 99 }];
-const money = (value) => new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(value);
+const money = formatMoney;
 const subtotal = computed(() => props.items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0));
 const fee = computed(() => options.find((item) => item.value === delivery.value).fee);
 const available = computed(() => method.value === "payfast" ? config.value.payfastAvailable : config.value.cardDemoAvailable);
@@ -108,7 +108,7 @@ async function submit() {
           <p v-if="addressError" class="checkout-error" role="alert">{{ t(addressError) }} <button type="button" class="btn btn-outline-plum" @click="loadAddresses">{{ t("Reload addresses") }}</button></p>
           <template v-if="addresses.length">
             <label for="saved-address">{{ t("Saved addresses") }}</label>
-            <select id="saved-address" v-model="selectedAddress" @change="useSavedAddress"><option value="">{{ t("Enter a new address") }}</option><option v-for="item in addresses" :key="item.id" :value="String(item.id)">{{ t(item.label || item.address) }}</option></select>
+            <select id="saved-address" v-model="selectedAddress" @change="useSavedAddress"><option value="">{{ t("Enter a new address") }}</option><option v-for="item in addresses" :key="item.id" :value="String(item.id)">{{ item.label || item.address }}</option></select>
             <button v-if="selectedAddress" type="button" class="btn btn-outline-plum mt-2" :disabled="savingAddress" @click="removeAddress">{{ t("Remove saved address") }}</button>
           </template>
           <label for="checkout-address">{{ t("Delivery address") }}</label>

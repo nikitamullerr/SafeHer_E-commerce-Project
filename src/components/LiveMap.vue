@@ -1,5 +1,5 @@
 <script setup>
-import { t } from "../languageConfig.js";
+import { t, language } from "../languageConfig.js";
 import { onBeforeUnmount, onMounted, ref, watch, nextTick } from "vue";
 import L from "leaflet";
 const props = defineProps({
@@ -56,7 +56,7 @@ function update() {
       zIndexOffset: 1000,
     })
       .addTo(map)
-      .bindPopup("<strong>You are here</strong>");
+      .bindPopup(`<strong>${t("You are here")}</strong>`);
     circle = L.circle(position, {
       radius: props.location.accuracy,
       color: "#d92d36",
@@ -94,10 +94,10 @@ function update() {
     );
     if (isNearest) {
       helpMarker.bindPopup(
-        `<strong>Nearest police station</strong><br>${point.name}`,
+        `<strong>${t("Nearest police station")}</strong><br>${point.name}`,
       );
     } else {
-      helpMarker.bindPopup(`<strong>${point.name}</strong><br>${point.type}`);
+      helpMarker.bindPopup(`<strong>${point.name}</strong><br>${t(point.type)}`);
     }
   });
   map.setView(position, Math.max(map.getZoom(), 16), { animate: true });
@@ -160,7 +160,7 @@ onMounted(async () => {
       }),
     })
       .addTo(map)
-      .bindPopup(`<strong>${point.name}</strong><br>${point.type}`);
+      .bindPopup(`<strong>${point.name}</strong><br>${t(point.type)}`);
     return { point, marker: helpMarker };
   });
 
@@ -169,6 +169,7 @@ onMounted(async () => {
 
   await nextTick();
   map?.invalidateSize();
+  refreshMapLabels();
 });
 watch(
   () => props.location,
@@ -178,6 +179,20 @@ watch(
   },
   { immediate: true },
 );
+function refreshMapLabels() {
+  marker?.setPopupContent(`<strong>${t("You are here")}</strong>`);
+  helpMarkers.forEach(({ point, marker: helpMarker }) => {
+    helpMarker.setPopupContent(point === nearestPolice?.point
+      ? `<strong>${t("Nearest police station")}</strong><br>${point.name}`
+      : `<strong>${point.name}</strong><br>${t(point.type)}`);
+  });
+  for (const [selector, label] of [[".leaflet-control-zoom-in", "Zoom in"], [".leaflet-control-zoom-out", "Zoom out"]]) {
+    const button = mapElement.value?.querySelector(selector);
+    button?.setAttribute("title", t(label));
+    button?.setAttribute("aria-label", t(label));
+  }
+}
+watch(language, refreshMapLabels);
 onBeforeUnmount(() => {
   locationRequest?.abort();
   map?.remove();
@@ -232,7 +247,7 @@ onBeforeUnmount(() => {
           }}</strong
           ><small>{{
             t(location
-              ? `${locationName || "Your current position"} · ±${Math.round(location.accuracy)}m`
+              ? `${t(locationName || "Your current position")} · ±${Math.round(location.accuracy)}m`
               : "Use live tracking to locate yourself")
           }}</small></span
         >

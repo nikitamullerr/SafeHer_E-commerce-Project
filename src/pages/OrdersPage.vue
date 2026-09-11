@@ -1,5 +1,5 @@
 <script setup>
-import { t } from "../languageConfig.js";
+import { t, formatDate, formatMoney } from "../languageConfig.js";
 import { computed, onMounted, ref } from "vue";
 import api from "../services/api.js";
 import { retryPayment, submitPayfastForm } from "../services/paymentClient.js";
@@ -8,7 +8,7 @@ const orders = ref([]), loading = ref(false), error = ref("");
 const search = ref(""), filter = ref("all"), sort = ref("newest");
 const busy = ref({}), messages = ref({});
 const statuses = ["Confirmed", "Packed", "Out for delivery", "Delivered"];
-const money = (amount) => new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(Number(amount) || 0);
+const money = formatMoney;
 const isDemo = (order) => order.paymentMethod === "card_demo";
 const isPaid = (order) => order.paymentStatus === "paid" && !isDemo(order);
 const canPay = (order) => order.paymentMethod === "payfast" && ["pending", "failed"].includes(order.paymentStatus);
@@ -63,7 +63,7 @@ onMounted(loadOrders);
     <div v-if="orders.length" class="order-metrics"><span>{{ orders.length }} {{ t("orders") }}</span><span>{{ awaiting }} {{ t("awaiting payment") }}</span><strong>{{ t("Paid total:") }} {{ money(paidTotal) }}</strong></div>
     <section v-if="visibleOrders.length" class="orders-list" :aria-busy="loading">
       <article v-for="order in visibleOrders" :key="order.id" class="order-card">
-        <div class="order-header-row"><div class="order-id-info"><strong>{{ order.orderNumber || `Order #${order.id}` }}</strong><small>{{ new Date(order.createdAt).toLocaleString('en-ZA') }}</small></div><strong class="order-total-amount">{{ money(order.total) }}</strong></div>
+        <div class="order-header-row"><div class="order-id-info"><strong>{{ order.orderNumber || t("Order #{id}", { id: order.id }) }}</strong><small>{{ formatDate(order.createdAt, { dateStyle: "medium", timeStyle: "short" }) }}</small></div><strong class="order-total-amount">{{ money(order.total) }}</strong></div>
         <p class="order-payment-label">{{ t(paymentLabel(order)) }} <span>- {{ t(order.paymentMethod === 'payfast' ? 'PayFast' : isDemo(order) ? 'Card demo' : order.paymentMethod || 'Unspecified method') }}</span></p>
         <template v-if="isPaid(order)">
           <ol class="order-timeline" :aria-label="t(&quot;Delivery progress&quot;)"><li v-for="(status, index) in statuses" :key="status" :class="{ reached: statuses.indexOf(order.status) >= index }" :aria-current="order.status === status ? 'step' : undefined">{{ t(status) }}</li></ol>
@@ -74,7 +74,7 @@ onMounted(loadOrders);
         <p v-else>{{ t("Delivery begins after payment is confirmed. If you just paid, refresh to check the latest status.") }}</p>
         <ul class="order-items-list"><li v-for="item in order.items" :key="item.id" class="order-item"><span class="item-name">{{ item.name }} <small>? {{ item.quantity }} {{ t("at") }} {{ money(item.price) }}</small></span><strong>{{ money(Number(item.price) * item.quantity) }}</strong></li></ul>
         <dl class="order-breakdown"><div><dt>{{ t("Items subtotal") }}</dt><dd>{{ money(subtotal(order)) }}</dd></div><div><dt>{{ t("Delivery") }}</dt><dd>{{ money(Math.max(0, Number(order.total) - subtotal(order))) }}</dd></div></dl>
-        <div class="order-delivery-section"><strong>{{ order.deliveryMethod || 'Delivery' }}</strong><p class="delivery-address">{{ order.deliveryAddress }}</p></div>
+        <div class="order-delivery-section"><strong>{{ t(order.deliveryMethod || 'Delivery') }}</strong><p class="delivery-address">{{ order.deliveryAddress }}</p></div>
         <div class="order-actions"><button v-if="canPay(order)" class="btn btn-dark-plum" :disabled="busy[order.id]" @click="pay(order)">{{ t(busy[order.id] ? 'Please wait...' : 'Continue payment') }}</button><button v-if="isPaid(order) || isDemo(order)" class="btn btn-outline-plum" :disabled="busy[order.id]" @click="resend(order)">{{ t(busy[order.id] ? 'Sending...' : isDemo(order) ? (order.emailSent ? 'Resend demo confirmation' : 'Send demo confirmation') : (order.emailSent ? 'Resend receipt' : 'Send receipt')) }}</button><span v-if="isPaid(order) || isDemo(order)">{{ t(order.emailSent ? 'Confirmation sent to your account email' : 'Confirmation not sent yet') }}</span></div>
         <p v-if="messages[order.id]" class="order-action-message" role="status">{{ t(messages[order.id]) }}</p>
       </article>

@@ -1,5 +1,5 @@
 <script setup>
-import { t } from "../languageConfig.js";
+import { t, locale } from "../languageConfig.js";
 import { nextTick, onBeforeUnmount, ref } from "vue";
 import { WELCOME_MESSAGE, getSafetyAssistantReply, openNearbySearch } from "../services/safetyAssistant.js";
 
@@ -48,7 +48,7 @@ function emergencyAction(action) {
 function startVoice() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) { messages.value.push({ id: Date.now(), role: "assistant", text: "Voice input is not supported in this browser. Please type your message instead." }); return; }
-  recognition?.stop(); recognition = new SpeechRecognition(); recognition.lang = "en-ZA"; recognition.interimResults = false; recognition.maxAlternatives = 1;
+  recognition?.stop(); recognition = new SpeechRecognition(); recognition.lang = locale.value; recognition.interimResults = false; recognition.maxAlternatives = 1;
   recognition.onstart = () => { listening.value = true; };
   recognition.onend = () => { listening.value = false; };
   recognition.onerror = () => { listening.value = false; };
@@ -65,7 +65,7 @@ onBeforeUnmount(() => recognition?.stop());
     <section v-else class="ai-window" :aria-label="t(&quot;Safe_Her AI chat&quot;)">
       <header><div><i class="bi bi-shield-fill-check"></i><span><strong>Safe_Her AI</strong><small>{{ t(emergencyMode ? 'Emergency support active' : 'Private safety assistant') }}</small></span></div><button :aria-label="t(&quot;Close chat&quot;)" @click="open = false"><i class="bi bi-x-lg"></i></button></header>
       <div v-if="emergencyMode" class="emergency-banner"><strong><i class="bi bi-exclamation-octagon-fill"></i> {{ t("Emergency mode") }}</strong><span>{{ t("Move to a safe/public location if you can. Avoid confrontation.") }}</span></div>
-      <div ref="chatLog" class="chat-log"><p v-for="message in messages" :key="message.id" class="message" :class="message.role"><span>{{ message.text }}</span><small v-if="message.development">{{ t("Development safety guidance") }}</small></p><div v-if="loading" class="typing"><i></i><i></i><i></i> {{ t("Safe_Her AI is typing") }}</div></div>
+      <div ref="chatLog" class="chat-log"><p v-for="message in messages" :key="message.id" class="message" :class="message.role"><span>{{ message.role === "assistant" ? t(message.text) : message.text }}</span><small v-if="message.development">{{ t("Development safety guidance") }}</small></p><div v-if="loading" class="typing"><i></i><i></i><i></i> {{ t("Safe_Her AI is typing") }}</div></div>
       <div v-if="emergencyMode" class="emergency-actions"><button @click="emergencyAction('sos')"><i class="bi bi-broadcast-pin"></i> {{ t("Activate SOS") }}</button><button @click="emergencyAction('location')"><i class="bi bi-geo-alt-fill"></i> {{ t("Share location") }}</button><button @click="emergencyAction('contact')"><i class="bi bi-person-fill"></i> {{ t("Contact trusted person") }}</button><button @click="emergencyAction('medical')"><i class="bi bi-hospital-fill"></i> {{ t("Get medical help") }}</button></div>
       <div v-else class="quick-actions"><button @click="quickAction(`I'm in danger`) "><i class="bi bi-exclamation-octagon-fill"></i> {{ t("I'm in danger") }}</button><button @click="quickAction('I feel unsafe')"><i class="bi bi-geo-alt-fill"></i> {{ t("I feel unsafe") }}</button><button @click="quickAction('Find the nearest police station')"><i class="bi bi-shield-fill-check"></i> {{ t("Find police") }}</button><button @click="quickAction('Find a nearby hospital')"><i class="bi bi-hospital-fill"></i> {{ t("Find a hospital") }}</button><button @click="quickAction('Contact my trusted person')"><i class="bi bi-person-fill"></i> {{ t("Trusted person") }}</button><button @click="quickAction('Give me safety advice')"><i class="bi bi-shield-check"></i> {{ t("Safety advice") }}</button></div>
       <form class="chat-input" @submit.prevent="send()"><button type="button" :aria-label="t(listening ? 'Listening' : 'Use voice input')" :class="{ listening }" @click="startVoice"><i class="bi bi-mic-fill"></i></button><input v-model="draft" maxlength="2000" :placeholder="t(&quot;Tell Safe_Her AI what's happening…&quot;)" :aria-label="t(&quot;Message Safe_Her AI&quot;)"/><button class="send" :disabled="!draft.trim() || loading" :aria-label="t(&quot;Send message&quot;)"><i class="bi bi-send-fill"></i></button></form>

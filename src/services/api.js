@@ -24,7 +24,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const isAuthRequest = /\/auth\/(login|register)\/?$/.test(error.config?.url || "");
+    const isAuthRequest = /\/auth\/(login|register|google)\/?$/.test(error.config?.url || "");
     if (error.response?.status === 401 && !isAuthRequest) {
       localStorage.removeItem("safeher-token");
       localStorage.removeItem("safeher-user");

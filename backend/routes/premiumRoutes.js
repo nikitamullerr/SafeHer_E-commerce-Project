@@ -1,5 +1,5 @@
 import express from "express";
-import { optionalVerifyToken, verifyToken } from "../middleware/verifyToken.js";
+import { verifyToken } from "../middleware/verifyToken.js";
 import {
   getLessons,
   getLessonById,
@@ -15,9 +15,8 @@ const router = express.Router();
 // ============================================
 // LESSON ROUTES
 // ============================================
-// Lessons may be displayed to everyone; premium access is enforced by the
-// client before playback, while authenticated users also receive progress.
-router.get("/lessons", optionalVerifyToken, getLessons);
+// The video library requires an account, including direct API requests.
+router.get("/lessons", verifyToken, getLessons);
 router.get("/lessons/:id", verifyToken, getLessonById);
 
 // ============================================

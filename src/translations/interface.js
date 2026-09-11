@@ -494,11 +494,6 @@ export default {
     "isiZulu": "Bheka imikhiqizo",
     "isiXhosa": "Jonga iimveliso"
   },
-  "Checkout was interrupted. Check your order?s payment status before trying again; you can continue payment on the same order.": {
-    "Afrikaans": "Afrekening is onderbreek. Kontroleer jou bestelling se betalingstatus voordat jy weer probeer; jy kan dieselfde bestelling verder betaal.",
-    "isiZulu": "Ukukhokha kuphazamisekile. Hlola isimo senkokhelo ye-oda ngaphambi kokuzama futhi; ungaqhubeka nge-oda elifanayo.",
-    "isiXhosa": "Ukuhlawula kuphazamisekile. Jonga imeko yentlawulo yeoda ngaphambi kokuzama kwakhona; ungaqhubeka ngeoda enye."
-  },
   "View orders": {
     "Afrikaans": "Bekyk bestellings",
     "isiZulu": "Buka ama-oda",
@@ -893,11 +888,6 @@ export default {
     "Afrikaans": "Reken af met PayFast",
     "isiZulu": "Khokha nge-PayFast",
     "isiXhosa": "Hlawula nge-PayFast"
-  },
-  "Card form (demo ? no charge)": {
-    "Afrikaans": "Kaartvorm (demo - geen betaling)",
-    "isiZulu": "Ifomu lekhadi (isibonelo - akukho nkokhelo)",
-    "isiXhosa": "Ifomu yekhadi (uvavanyo - akukho ntlawulo)"
   },
   "Continue shopping": {
     "Afrikaans": "Gaan voort met inkopies",
@@ -2078,5 +2068,860 @@ export default {
     "Afrikaans": "Goed",
     "isiZulu": "Kulungile",
     "isiXhosa": "Kulungile"
+  },
+  "nearby": {
+    "Afrikaans": "Naby",
+    "isiZulu": "Eduze",
+    "isiXhosa": "Kufuphi"
+  },
+  "Use SafeHer SOS to notify your trusted people and start your emergency response.": {
+    "Afrikaans": "Gebruik SafeHer SOS om jou vertroude mense te waarsku en jou noodreaksie te begin.",
+    "isiZulu": "Sebenzisa i-SafeHer SOS ukwazisa abantu obathembayo nokuqala impendulo yakho ephuthumayo.",
+    "isiXhosa": "Sebenzisa i-SafeHer SOS ukwazisa abantu obathembayo nokuqalisa impendulo yakho engxamisekileyo."
+  },
+  "\u2014 designed for everyday confidence, quick access, and calm in the moments that matter most.": {
+    "Afrikaans": "\u2014 ontwerp vir daaglikse selfvertroue, vinnige toegang en kalmte wanneer dit saak maak.",
+    "isiZulu": "\u2014 yakhelwe ukuzethemba kwansuku zonke, ukufinyelela ngokushesha nokuzola ngezikhathi ezibalulekile.",
+    "isiXhosa": "\u2014 yenzelwe ukuzithemba kwemihla ngemihla, ukufikelela ngokukhawuleza nokuzola ngamaxesha abalulekileyo."
+  },
+  "Could not load the store. Check the backend and try again.": {
+    "Afrikaans": "Kon nie die winkel laai nie. Probeer later weer.",
+    "isiZulu": "Ayikwazanga ukulayisha isitolo. Zama futhi kamuva.",
+    "isiXhosa": "Ayikwazanga ukulayisha ivenkile. Zama kwakhona kamva."
+  },
+  "Your exact location is active": {
+    "Afrikaans": "Jou presiese ligging is aktief",
+    "isiZulu": "Indawo yakho eqondile iyasebenza",
+    "isiXhosa": "Indawo yakho ngqo iyasebenza"
+  },
+  "Location is not supported by this browser.": {
+    "Afrikaans": "Hierdie blaaier ondersteun nie ligging nie.",
+    "isiZulu": "Lesi siphequluli asisekeli indawo.",
+    "isiXhosa": "Esi sikhangeli asixhasi indawo."
+  },
+  "Location permission was denied. Please allow it and try again.": {
+    "Afrikaans": "Liggingstoestemming is geweier. Laat dit toe en probeer weer.",
+    "isiZulu": "Imvume yendawo inqatshiwe. Sicela uyivumele uzame futhi.",
+    "isiXhosa": "Imvume yendawo yaliwe. Nceda uyivumele uzame kwakhona."
+  },
+  "We could not get your location. Please try again.": {
+    "Afrikaans": "Ons kon nie jou ligging kry nie. Probeer weer.",
+    "isiZulu": "Asikwazanga ukuthola indawo yakho. Zama futhi.",
+    "isiXhosa": "Asikwazanga ukufumana indawo yakho. Zama kwakhona."
+  },
+  "SOS activating": {
+    "Afrikaans": "SOS aktiveer",
+    "isiZulu": "I-SOS iyavuleka",
+    "isiXhosa": "I-SOS iyavuleka"
+  },
+  "Cancel SOS": {
+    "Afrikaans": "Kanselleer SOS",
+    "isiZulu": "Khansela i-SOS",
+    "isiXhosa": "Rhoxisa i-SOS"
+  },
+  "SOS countdown:": {
+    "Afrikaans": "SOS-aftelling:",
+    "isiZulu": "Ukubala kwe-SOS:",
+    "isiXhosa": "Ukubala kwe-SOS:"
+  },
+  "seconds. No alert is sent automatically.": {
+    "Afrikaans": "sekondes. Geen waarskuwing word outomaties gestuur nie.",
+    "isiZulu": "imizuzwana. Asikho isaziso esithunyelwa ngokuzenzakalela.",
+    "isiXhosa": "imizuzwana. Akukho silumkiso sithunyelwa ngokuzenzekelayo."
+  },
+  "Emergency contact added": {
+    "Afrikaans": "Noodkontak bygevoeg",
+    "isiZulu": "Oxhumana naye ophuthumayo ungeziwe",
+    "isiXhosa": "Umfowunelwa ongxamisekileyo wongeziwe"
+  },
+  "Start live tracking first": {
+    "Afrikaans": "Begin eers regstreekse opsporing",
+    "isiZulu": "Qala ukulandela bukhoma kuqala",
+    "isiXhosa": "Qala ukulandela okuphilayo kuqala"
+  },
+  "Add an emergency contact": {
+    "Afrikaans": "Voeg 'n noodkontak by",
+    "isiZulu": "Engeza oxhumana naye ophuthumayo",
+    "isiXhosa": "Yongeza umfowunelwa ongxamisekileyo"
+  },
+  "Add a trusted contact": {
+    "Afrikaans": "Voeg 'n vertroude kontak by",
+    "isiZulu": "Engeza oxhumana naye omethembayo",
+    "isiXhosa": "Yongeza umfowunelwa omthembayo"
+  },
+  "Add one in Safety Hub, then SafeHer AI can help you check in with them.": {
+    "Afrikaans": "Voeg een by die Veiligheidsentrum by, dan kan SafeHer AI jou help om kontak te maak.",
+    "isiZulu": "Engeza oyedwa esikhungweni sokuphepha, bese i-SafeHer AI ingakusiza uxhumane naye.",
+    "isiXhosa": "Yongeza omnye kwiziko lokhuseleko, i-SafeHer AI ingakunceda uqhagamshelane naye."
+  },
+  "Demo order created": {
+    "Afrikaans": "Demobestelling geskep",
+    "isiZulu": "I-oda lesibonelo lidaliwe",
+    "isiXhosa": "Ioda yovavanyo yenziwe"
+  },
+  "No money was charged. A labelled demo confirmation was sent to your account email.": {
+    "Afrikaans": "Geen geld is gehef nie. 'n Gemerkte demobevestiging is na jou rekening se e-pos gestuur.",
+    "isiZulu": "Akukho mali ekhokhisiwe. Ukuqinisekiswa kwesibonelo kuthunyelwe ku-imeyili yakho.",
+    "isiXhosa": "Akukho mali ihlawulisiweyo. Isiqinisekiso sovavanyo sithunyelwe kwi-imeyile yakho."
+  },
+  "No money was charged. The email could not be sent; use Send demo confirmation in your order history to retry.": {
+    "Afrikaans": "Geen geld is gehef nie. Die e-pos kon nie gestuur word nie; probeer Stuur demobevestiging in jou bestelgeskiedenis.",
+    "isiZulu": "Akukho mali ekhokhisiwe. I-imeyili ayithunyelwanga; zama ukuthumela ukuqinisekiswa kwesibonelo emlandweni wama-oda.",
+    "isiXhosa": "Akukho mali ihlawulisiweyo. I-imeyile ayithunyelwanga; zama ukuthumela isiqinisekiso sovavanyo kwimbali yeeoda."
+  },
+  "{product} added to your bag": {
+    "Afrikaans": "{product} by jou mandjie gevoeg",
+    "isiZulu": "I-{product} yengezwe esikhwameni sakho",
+    "isiXhosa": "I-{product} yongezwe engxoweni yakho"
+  },
+  "Order #{id}": {
+    "Afrikaans": "Bestelling #{id}",
+    "isiZulu": "I-oda #{id}",
+    "isiXhosa": "Ioda #{id}"
+  },
+  "Pay for {plan}": {
+    "Afrikaans": "Betaal vir {plan}",
+    "isiZulu": "Khokhela i-{plan}",
+    "isiXhosa": "Hlawulela i-{plan}"
+  },
+  "Pay {amount}": {
+    "Afrikaans": "Betaal {amount}",
+    "isiZulu": "Khokha {amount}",
+    "isiXhosa": "Hlawula {amount}"
+  },
+  "{plan} membership": {
+    "Afrikaans": "{plan}-lidmaatskap",
+    "isiZulu": "Ubulungu be-{plan}",
+    "isiXhosa": "Ubulungu be-{plan}"
+  },
+  "{plan} membership is now active. Payment method: {method}.": {
+    "Afrikaans": "{plan}-lidmaatskap is nou aktief. Betaalmetode: {method}.",
+    "isiZulu": "Ubulungu be-{plan} buyasebenza manje. Indlela yokukhokha: {method}.",
+    "isiXhosa": "Ubulungu be-{plan} buyasebenza ngoku. Indlela yokuhlawula: {method}."
+  },
+  "Order summary": {
+    "Afrikaans": "Bestellingsopsomming",
+    "isiZulu": "Isifinyezo se-oda",
+    "isiXhosa": "Isishwankathelo seoda"
+  },
+  "Wallet / QR / Mobile Pay": {
+    "Afrikaans": "Beursie / QR / Selfoonbetaling",
+    "isiZulu": "Isikhwama / QR / Inkokhelo yeselula",
+    "isiXhosa": "Isipaji / QR / Intlawulo yeselula"
+  },
+  "Instant EFT": {
+    "Afrikaans": "Onmiddellike EFT",
+    "isiZulu": "I-EFT esheshayo",
+    "isiXhosa": "I-EFT ekhawulezayo"
+  },
+  "Pay directly from your bank": {
+    "Afrikaans": "Betaal direk uit jou bank",
+    "isiZulu": "Khokha ngqo ebhange lakho",
+    "isiXhosa": "Hlawula ngqo ebhankini yakho"
+  },
+  "Credit / Debit Card": {
+    "Afrikaans": "Krediet- / Debietkaart",
+    "isiZulu": "Ikhadi lesikweletu / lasebhange",
+    "isiXhosa": "Ikhadi letyala / lasebhankini"
+  },
+  "Bank Transfer": {
+    "Afrikaans": "Bankoorplasing",
+    "isiZulu": "Ukudluliselwa kwebhange",
+    "isiXhosa": "Udluliselo lwebhanki"
+  },
+  "Bank transfer": {
+    "Afrikaans": "Bankoorplasing",
+    "isiZulu": "Ukudluliselwa kwebhange",
+    "isiXhosa": "Udluliselo lwebhanki"
+  },
+  "Secure transfer to SafeHer": {
+    "Afrikaans": "Veilige oorplasing na SafeHer",
+    "isiZulu": "Ukudluliselwa okuphephile ku-SafeHer",
+    "isiXhosa": "Udluliselo olukhuselekileyo kwi-SafeHer"
+  },
+  "Select a bank": {
+    "Afrikaans": "Kies 'n bank",
+    "isiZulu": "Khetha ibhange",
+    "isiXhosa": "Khetha ibhanki"
+  },
+  "Wallet / payment reference": {
+    "Afrikaans": "Beursie- / betalingsverwysing",
+    "isiZulu": "Isikhwama / ireferensi yenkokhelo",
+    "isiXhosa": "Isipaji / isalathiso sentlawulo"
+  },
+  "Instant EFT reference": {
+    "Afrikaans": "Onmiddellike EFT-verwysing",
+    "isiZulu": "Ireferensi ye-EFT esheshayo",
+    "isiXhosa": "Isalathiso se-EFT ekhawulezayo"
+  },
+  "Bank transfer reference": {
+    "Afrikaans": "Bankoorplasingsverwysing",
+    "isiZulu": "Ireferensi yokudluliselwa kwebhange",
+    "isiXhosa": "Isalathiso sodluliselo lwebhanki"
+  },
+  "Scan code, wallet ID, or bank reference": {
+    "Afrikaans": "Skandeerkode, beursie-ID of bankverwysing",
+    "isiZulu": "Ikhodi, i-ID yesikhwama noma ireferensi yebhange",
+    "isiXhosa": "Ikhowudi, i-ID yesipaji okanye isalathiso sebhanki"
+  },
+  "Scan code, wallet ID, or mobile reference": {
+    "Afrikaans": "Skandeerkode, beursie-ID of selfoonverwysing",
+    "isiZulu": "Ikhodi, i-ID yesikhwama noma ireferensi yeselula",
+    "isiXhosa": "Ikhowudi, i-ID yesipaji okanye isalathiso seselula"
+  },
+  "Your EFT reference or transfer code": {
+    "Afrikaans": "Jou EFT-verwysing of oorplasingskode",
+    "isiZulu": "Ireferensi yakho ye-EFT noma ikhodi yokudlulisa",
+    "isiXhosa": "Isalathiso sakho se-EFT okanye ikhowudi yodluliselo"
+  },
+  "Account reference or payment note": {
+    "Afrikaans": "Rekeningverwysing of betalingsnota",
+    "isiZulu": "Ireferensi ye-akhawunti noma inothi lenkokhelo",
+    "isiXhosa": "Isalathiso seakhawunti okanye inqaku lentlawulo"
+  },
+  "Payment reference": {
+    "Afrikaans": "Betalingsverwysing",
+    "isiZulu": "Ireferensi yenkokhelo",
+    "isiXhosa": "Isalathiso sentlawulo"
+  },
+  "Name as it appears on the card": {
+    "Afrikaans": "Naam soos dit op die kaart verskyn",
+    "isiZulu": "Igama njengoba livela ekhadini",
+    "isiXhosa": "Igama njengoko livela ekhadini"
+  },
+  "Month": {
+    "Afrikaans": "Maand",
+    "isiZulu": "Inyanga",
+    "isiXhosa": "Inyanga"
+  },
+  "Year": {
+    "Afrikaans": "Jaar",
+    "isiZulu": "Unyaka",
+    "isiXhosa": "Unyaka"
+  },
+  "Card": {
+    "Afrikaans": "Kaart",
+    "isiZulu": "Ikhadi",
+    "isiXhosa": "Ikhadi"
+  },
+  "Bank": {
+    "Afrikaans": "Bank",
+    "isiZulu": "Ibhange",
+    "isiXhosa": "Ibhanki"
+  },
+  "Select a payment method to continue.": {
+    "Afrikaans": "Kies 'n betaalmetode om voort te gaan.",
+    "isiZulu": "Khetha indlela yokukhokha ukuze uqhubeke.",
+    "isiXhosa": "Khetha indlela yokuhlawula ukuze uqhubeke."
+  },
+  "Enter your email address to continue.": {
+    "Afrikaans": "Voer jou e-posadres in om voort te gaan.",
+    "isiZulu": "Faka ikheli lakho le-imeyili ukuze uqhubeke.",
+    "isiXhosa": "Faka idilesi yakho ye-imeyile ukuze uqhubeke."
+  },
+  "Add your wallet or payment reference.": {
+    "Afrikaans": "Voeg jou beursie- of betalingsverwysing by.",
+    "isiZulu": "Faka ireferensi yesikhwama noma yenkokhelo.",
+    "isiXhosa": "Faka isalathiso sesipaji okanye sentlawulo."
+  },
+  "Add your instant EFT reference to continue.": {
+    "Afrikaans": "Voeg jou EFT-verwysing by om voort te gaan.",
+    "isiZulu": "Faka ireferensi ye-EFT ukuze uqhubeke.",
+    "isiXhosa": "Faka isalathiso se-EFT ukuze uqhubeke."
+  },
+  "Enter the cardholder name.": {
+    "Afrikaans": "Voer die kaarthouer se naam in.",
+    "isiZulu": "Faka igama lomnikazi wekhadi.",
+    "isiXhosa": "Faka igama lomnini wekhadi."
+  },
+  "Enter a valid card number.": {
+    "Afrikaans": "Voer 'n geldige kaartnommer in.",
+    "isiZulu": "Faka inombolo yekhadi evumelekile.",
+    "isiXhosa": "Faka inombolo yekhadi esebenzayo."
+  },
+  "Check the card number.": {
+    "Afrikaans": "Kontroleer die kaartnommer.",
+    "isiZulu": "Hlola inombolo yekhadi.",
+    "isiXhosa": "Jonga inombolo yekhadi."
+  },
+  "Select the expiry month and year.": {
+    "Afrikaans": "Kies die vervalmaand en -jaar.",
+    "isiZulu": "Khetha inyanga nonyaka wokuphelelwa.",
+    "isiXhosa": "Khetha inyanga nonyaka wokuphelelwa."
+  },
+  "Enter a valid CVV.": {
+    "Afrikaans": "Voer 'n geldige CVV in.",
+    "isiZulu": "Faka i-CVV evumelekile.",
+    "isiXhosa": "Faka i-CVV esebenzayo."
+  },
+  "Enter a valid, unexpired expiry date.": {
+    "Afrikaans": "Voer 'n geldige, toekomstige vervaldatum in.",
+    "isiZulu": "Faka usuku lokuphelelwa oluvumelekile olungakadluli.",
+    "isiXhosa": "Faka umhla wokuphelelwa osebenzayo ongadlulanga."
+  },
+  "Enter the correct CVV (3 digits, or 4 for Amex).": {
+    "Afrikaans": "Voer die korrekte CVV in (3 syfers, of 4 vir Amex).",
+    "isiZulu": "Faka i-CVV efanele (amadijithi ama-3, noma ama-4 e-Amex).",
+    "isiXhosa": "Faka i-CVV echanekileyo (amanani ama-3, okanye ama-4 e-Amex)."
+  },
+  "This is a demo. Use test card 4242 4242 4242 4242, not a real card.": {
+    "Afrikaans": "Dit is 'n demo. Gebruik toetskaart 4242 4242 4242 4242, nie 'n regte kaart nie.",
+    "isiZulu": "Lesi isibonelo. Sebenzisa ikhadi lokuhlola 4242 4242 4242 4242, hhayi ikhadi langempela.",
+    "isiXhosa": "Olu luvavanyo. Sebenzisa ikhadi lovavanyo 4242 4242 4242 4242, hayi ikhadi lokwenene."
+  },
+  "Payment successful": {
+    "Afrikaans": "Betaling suksesvol",
+    "isiZulu": "Inkokhelo iphumelele",
+    "isiXhosa": "Intlawulo iphumelele"
+  },
+  "Open video library": {
+    "Afrikaans": "Maak videobiblioteek oop",
+    "isiZulu": "Vula umtapo wamavidiyo",
+    "isiXhosa": "Vula ilayibrari yeevidiyo"
+  },
+  "Invalid credentials": {
+    "Afrikaans": "Ongeldige aanmeldbesonderhede",
+    "isiZulu": "Imininingwane yokungena ayilungile",
+    "isiXhosa": "Iinkcukacha zokungena azichanekanga"
+  },
+  "Email and password are required": {
+    "Afrikaans": "E-pos en wagwoord word vereis",
+    "isiZulu": "Kudingeka i-imeyili nephasiwedi",
+    "isiXhosa": "Kufuneka i-imeyile negama lokugqitha"
+  },
+  "Name, email and password are required": {
+    "Afrikaans": "Naam, e-pos en wagwoord word vereis",
+    "isiZulu": "Kudingeka igama, i-imeyili nephasiwedi",
+    "isiXhosa": "Kufuneka igama, i-imeyile negama lokugqitha"
+  },
+  "User already exists": {
+    "Afrikaans": "Gebruiker bestaan reeds",
+    "isiZulu": "Umsebenzisi usevele ukhona",
+    "isiXhosa": "Umsebenzisi sele ekhona"
+  },
+  "Google sign-in was cancelled.": {
+    "Afrikaans": "Google-aanmelding is gekanselleer.",
+    "isiZulu": "Ukungena nge-Google kukhanseliwe.",
+    "isiXhosa": "Ukungena nge-Google kurhoxisiwe."
+  },
+  "Unable to continue with Google. Please try again.": {
+    "Afrikaans": "Kan nie met Google voortgaan nie. Probeer weer.",
+    "isiZulu": "Ayikwazi ukuqhubeka nge-Google. Zama futhi.",
+    "isiXhosa": "Ayikwazi ukuqhubeka nge-Google. Zama kwakhona."
+  },
+  "Failed to create account": {
+    "Afrikaans": "Kon nie rekening skep nie",
+    "isiZulu": "Ayikwazanga ukudala i-akhawunti",
+    "isiXhosa": "Ayikwazanga ukwenza iakhawunti"
+  },
+  "Your Premium danger alert": {
+    "Afrikaans": "Jou Premium-gevaarwaarskuwing",
+    "isiZulu": "Isaziso sakho sengozi se-Premium",
+    "isiXhosa": "Isilumkiso sakho sengozi se-Premium"
+  },
+  "I understand": {
+    "Afrikaans": "Ek verstaan",
+    "isiZulu": "Ngiyaqonda",
+    "isiXhosa": "Ndiyaqonda"
+  },
+  "Danger index": {
+    "Afrikaans": "Gevaarindeks",
+    "isiZulu": "Inkomba yengozi",
+    "isiXhosa": "Isalathisi sengozi"
+  },
+  "What this is based on": {
+    "Afrikaans": "Waarop dit gebaseer is",
+    "isiZulu": "Lokhu kusekelwe kuphi",
+    "isiXhosa": "Oku kusekelwe entwenini"
+  },
+  "Time of day": {
+    "Afrikaans": "Tyd van die dag",
+    "isiZulu": "Isikhathi sosuku",
+    "isiXhosa": "Ixesha losuku"
+  },
+  "Weekend uplift": {
+    "Afrikaans": "Naweekverhoging",
+    "isiZulu": "Ukwenyuka ngempelasonto",
+    "isiXhosa": "Ukunyuka ngempelaveki"
+  },
+  "Weekend": {
+    "Afrikaans": "Naweek",
+    "isiZulu": "Impelasonto",
+    "isiXhosa": "Impelaveki"
+  },
+  "Weekday": {
+    "Afrikaans": "Weeksdag",
+    "isiZulu": "Usuku lwesonto",
+    "isiXhosa": "Usuku lweveki"
+  },
+  "Distance to help": {
+    "Afrikaans": "Afstand na hulp",
+    "isiZulu": "Ibanga lokuya osizweni",
+    "isiXhosa": "Umgama ukuya kuncedo"
+  },
+  "Advisory zone": {
+    "Afrikaans": "Adviesgebied",
+    "isiZulu": "Indawo yeseluleko",
+    "isiXhosa": "Indawo yeengcebiso"
+  },
+  "None": {
+    "Afrikaans": "Geen",
+    "isiZulu": "Akukho",
+    "isiXhosa": "Akukho"
+  },
+  "Visibility": {
+    "Afrikaans": "Sigbaarheid",
+    "isiZulu": "Ukubonakala",
+    "isiXhosa": "Ukubonakala"
+  },
+  "Rainy season": {
+    "Afrikaans": "Reenseisoen",
+    "isiZulu": "Isikhathi semvula",
+    "isiXhosa": "Ixesha lemvula"
+  },
+  "Clear season": {
+    "Afrikaans": "Helder seisoen",
+    "isiZulu": "Isikhathi esicacile",
+    "isiXhosa": "Ixesha elicacileyo"
+  },
+  "Zoom in": {
+    "Afrikaans": "Zoem in",
+    "isiZulu": "Sondeza",
+    "isiXhosa": "Sondeza"
+  },
+  "Zoom out": {
+    "Afrikaans": "Zoem uit",
+    "isiZulu": "Hlehlisa",
+    "isiXhosa": "Sondeza ngaphandle"
+  },
+  "Wearable GPS alert": {
+    "Afrikaans": "Draagbare GPS-waarskuwing",
+    "isiZulu": "Isaziso se-GPS esigqokwayo",
+    "isiXhosa": "Isilumkiso se-GPS esinxitywayo"
+  },
+  "Wearable GPS alert with emergency SOS": {
+    "Afrikaans": "Draagbare GPS-waarskuwing met nood-SOS",
+    "isiZulu": "Isaziso se-GPS esigqokwayo ne-SOS ephuthumayo",
+    "isiXhosa": "Isilumkiso se-GPS esinxitywayo ne-SOS engxamisekileyo"
+  },
+  "Compact & discreet": {
+    "Afrikaans": "Kompak en diskreet",
+    "isiZulu": "Kuncane futhi akugqami",
+    "isiXhosa": "Kuncinci kwaye akuqapheleki"
+  },
+  "Compact & discreet personal safety spray": {
+    "Afrikaans": "Kompakte en diskrete persoonlike veiligheidsproei",
+    "isiZulu": "Isifutho sokuphepha esincane esingagqamile",
+    "isiXhosa": "Isitshizi sokhuseleko esincinci esingaqaphelekiyo"
+  },
+  "High-decibel alarm": {
+    "Afrikaans": "Ho\u00ebdesibel-alarm",
+    "isiZulu": "I-alamu enomsindo omkhulu",
+    "isiXhosa": "Ialam enengxolo enkulu"
+  },
+  "High-decibel emergency alarm": {
+    "Afrikaans": "Ho\u00ebdesibel-noodalarm",
+    "isiZulu": "I-alamu ephuthumayo enomsindo omkhulu",
+    "isiXhosa": "Ialam engxamisekileyo enengxolo enkulu"
+  },
+  "Quick-access ID and medical info": {
+    "Afrikaans": "Vinnige toegang tot ID en mediese inligting",
+    "isiZulu": "Ukufinyelela ngokushesha ku-ID nemininingwane yezempilo",
+    "isiXhosa": "Ukufikelela ngokukhawuleza kwi-ID neenkcukacha zempilo"
+  },
+  "Smart entry alert for your home": {
+    "Afrikaans": "Slim toegangswaarskuwing vir jou huis",
+    "isiZulu": "Isaziso esihlakaniphile sokungena ekhaya",
+    "isiXhosa": "Isilumkiso esikrelekrele sokungena ekhaya"
+  },
+  "Compact essentials for on-the-go trips": {
+    "Afrikaans": "Kompakte noodsaaklikhede vir reise",
+    "isiZulu": "Izinto ezibalulekile ezincane zohambo",
+    "isiXhosa": "Izinto ezibalulekileyo ezincinci zohambo"
+  },
+  "Small, bright and always within reach": {
+    "Afrikaans": "Klein, helder en altyd binne bereik",
+    "isiZulu": "Kuncane, kuyakhanya futhi kuhlala kufinyeleleka",
+    "isiXhosa": "Kuncinci, kuyakhanya kwaye kuhlala kufikeleleka"
+  },
+  "Extra deterrent for secure homes": {
+    "Afrikaans": "Ekstra afskrikmiddel vir veilige huise",
+    "isiZulu": "Ukuvikelwa okwengeziwe kwamakhaya",
+    "isiXhosa": "Ukhuseleko olongezelelweyo lwamakhaya"
+  },
+  "Emergency backup for daily travel": {
+    "Afrikaans": "Noodrugsteun vir daaglikse reise",
+    "isiZulu": "Usizo oluyisipele lohambo lwansuku zonke",
+    "isiXhosa": "Uncedo olugciniweyo lohambo lwemihla ngemihla"
+  },
+  "Attachable alarm for busy commutes": {
+    "Afrikaans": "Aanhegbare alarm vir besige pendelroetes",
+    "isiZulu": "I-alamu enamathiselwayo yohambo olumatasa",
+    "isiXhosa": "Ialam encamathelayo yohambo oluxakekileyo"
+  },
+  "Metal clip with emergency backup": {
+    "Afrikaans": "Metaalknip met noodrugsteun",
+    "isiZulu": "Isiqeshana sensimbi esinosizo oluyisipele",
+    "isiXhosa": "Isiqhoboshi sesinyithi esinoncedo olugciniweyo"
+  },
+  "Alerts you to the moment the door opens": {
+    "Afrikaans": "Waarsku jou sodra die deur oopgaan",
+    "isiZulu": "Ikwazisa uma umnyango uvuleka",
+    "isiXhosa": "Ikwazisa xa ucango luvuleka"
+  },
+  "Hidden document protection for travel": {
+    "Afrikaans": "Versteekte dokumentbeskerming vir reise",
+    "isiZulu": "Ukuvikelwa kwamadokhumenti okufihlekile kohambo",
+    "isiXhosa": "Ukhuseleko lwamaxwebhu olufihlakeleyo lohambo"
+  },
+  "Easy grip case with quick access design": {
+    "Afrikaans": "Maklike greephouer vir vinnige toegang",
+    "isiZulu": "Ikesi elibambeka kalula nelifinyeleleka ngokushesha",
+    "isiXhosa": "Ityala elibambeka lula nelifikeleleka ngokukhawuleza"
+  },
+  "Notifies you of movement or tampering": {
+    "Afrikaans": "Stel jou in kennis van beweging of peutery",
+    "isiZulu": "Ikwazisa ngokunyakaza noma ukuphazamiseka",
+    "isiXhosa": "Ikwazisa ngentshukumo okanye ukuphazamiseka"
+  },
+  "Safety basics for long-distance travel": {
+    "Afrikaans": "Veiligheidsbasiese beginsels vir langafstandreise",
+    "isiZulu": "Izisekelo zokuphepha zohambo olude",
+    "isiXhosa": "Iziseko zokhuseleko zohambo olude"
+  },
+  "Visible by all emergency escape route": {
+    "Afrikaans": "Sigbare nooduitgangsroete",
+    "isiZulu": "Umzila wokuphuma ophuthumayo obonakalayo",
+    "isiXhosa": "Indlela yokuphuma engxamisekileyo ebonakalayo"
+  },
+  "Preppers need this for their home": {
+    "Afrikaans": "Vir 'n huis wat voorbereid is",
+    "isiZulu": "Okwamakhaya alungele izimo eziphuthumayo",
+    "isiXhosa": "Okwamakhaya alungele iimeko ezingxamisekileyo"
+  },
+  "Soft light for everyday use": {
+    "Afrikaans": "Sagte lig vir daaglikse gebruik",
+    "isiZulu": "Ukukhanya okuthambile kwansuku zonke",
+    "isiXhosa": "Ukukhanya okuthambileyo kwemihla ngemihla"
+  },
+  "High-visibility adjustable reflective strap": {
+    "Afrikaans": "Verstelbare weerkaatsende band met ho\u00eb sigbaarheid",
+    "isiZulu": "Ibhande elikhanyayo elilungisekayo elibonakala kahle",
+    "isiXhosa": "Ibhanti elibonakalisayo elilungelelaniswayo elibonakala kakuhle"
+  },
+  "Self-Defense Myths You Need to Know": {
+    "Afrikaans": "Selfverdedigingsmites wat jy moet ken",
+    "isiZulu": "Izinganekwane zokuzivikela okufanele uzazi",
+    "isiXhosa": "Iintsomi zokuzikhusela ekufuneka uzazi"
+  },
+  "Personal Safety Tips for Women": {
+    "Afrikaans": "Persoonlike veiligheidswenke vir vroue",
+    "isiZulu": "Amacebiso okuphepha kwabesifazane",
+    "isiXhosa": "Iingcebiso zokhuseleko lwabasetyhini"
+  },
+  "Safety Tips for Women Part 1": {
+    "Afrikaans": "Veiligheidswenke vir vroue Deel 1",
+    "isiZulu": "Amacebiso okuphepha kwabesifazane Ingxenye 1",
+    "isiXhosa": "Iingcebiso zokhuseleko lwabasetyhini Icandelo 1"
+  },
+  "5 Self-Defense Moves Every Woman Should Know": {
+    "Afrikaans": "5 selfverdedigingsbewegings wat elke vrou moet ken",
+    "isiZulu": "Izindlela ezi-5 zokuzivikela wonke umuntu wesifazane okufanele azazi",
+    "isiXhosa": "Iindlela ezi-5 zokuzikhusela wonke umfazi ekufuneka azazi"
+  },
+  "Separate fact from fiction and learn what really keeps you safe.": {
+    "Afrikaans": "Skei feite van fiksie en leer wat jou werklik veilig hou.",
+    "isiZulu": "Hlukanisa iqiniso nenganekwane ufunde okukugcina uphephile.",
+    "isiXhosa": "Yahlula inyaniso kwiintsomi ufunde okukugcina ukhuselekile."
+  },
+  "Everyday safety habits to help you move through the world with confidence.": {
+    "Afrikaans": "Daaglikse veiligheidsgewoontes om jou met selfvertroue te laat beweeg.",
+    "isiZulu": "Imikhuba yokuphepha yansuku zonke ekusiza uhambe ngokuzethemba.",
+    "isiXhosa": "Imikhwa yokhuseleko yemihla ngemihla ekunceda uhambe ngokuzithemba."
+  },
+  "Foundational safety guidance and awareness techniques every woman should know.": {
+    "Afrikaans": "Basiese veiligheidsleiding en bewustheidstegnieke wat elke vrou moet ken.",
+    "isiZulu": "Isiqondiso sokuphepha namasu okuqaphela wonke umuntu wesifazane okufanele awazi.",
+    "isiXhosa": "Isikhokelo sokhuseleko neendlela zokuqaphela wonke umfazi ekufuneka azazi."
+  },
+  "Five essential self-defense moves to help you break free and get to safety.": {
+    "Afrikaans": "Vyf noodsaaklike selfverdedigingsbewegings om los te kom en veiligheid te bereik.",
+    "isiZulu": "Izindlela ezinhlanu ezibalulekile zokuzivikela ukuze ukhululeke futhi uphephe.",
+    "isiXhosa": "Iindlela ezintlanu ezibalulekileyo zokuzikhusela ukuze ukhululeke kwaye ukhuseleke."
+  },
+  "Timer started - {minutes} minute check-in": {
+    "Afrikaans": "Tydhouer begin - inboek oor {minutes} minute",
+    "isiZulu": "Isibali siqalile - hlola ngemizuzu engu-{minutes}",
+    "isiXhosa": "Isibali siqalile - jongisa ngemizuzu eyi-{minutes}"
+  },
+  "Hi, I'm SafeHer AI. I'm here to help you stay safe, find support and use Safe_Her's safety features. How can I help you?": {
+    "Afrikaans": "Hallo, ek is SafeHer AI. Ek help jou om veilig te bly, ondersteuning te vind en Safe_Her se veiligheidsfunksies te gebruik. Hoe kan ek help?",
+    "isiZulu": "Sawubona, ngiyi-SafeHer AI. Ngilapha ukukusiza uphephe, uthole ukwesekwa futhi usebenzise izici zokuphepha ze-Safe_Her. Ngingakusiza kanjani?",
+    "isiXhosa": "Molo, ndiyi-SafeHer AI. Ndilapha ukukunceda ukhuseleke, ufumane inkxaso kwaye usebenzise iimpawu zokhuseleko ze-Safe_Her. Ndingakunceda njani?"
+  },
+  "I\u2019ve requested location permission. I will only use your location after your browser grants it.": {
+    "Afrikaans": "Ek het liggingstoestemming aangevra. Ek gebruik jou ligging eers nadat jou blaaier toestemming gee.",
+    "isiZulu": "Ngicele imvume yendawo. Ngizosebenzisa indawo yakho kuphela ngemva kwemvume yesiphequluli.",
+    "isiXhosa": "Ndicele imvume yendawo. Ndiza kusebenzisa indawo yakho kuphela emva kwemvume yesikhangeli."
+  },
+  "Voice input is not supported in this browser. Please type your message instead.": {
+    "Afrikaans": "Steminvoer word nie in hierdie blaaier ondersteun nie. Tik asseblief jou boodskap.",
+    "isiZulu": "Izwi alisekelwa kulesi siphequluli. Sicela ubhale umyalezo wakho.",
+    "isiXhosa": "Ilizwi alixhaswa kwesi sikhangeli. Nceda uchwetheze umyalezo wakho."
+  },
+  "You may be in immediate danger. If you can, move to a safer public place and avoid confrontation. Use the emergency actions below. Contact emergency services directly if you need urgent police or medical help.": {
+    "Afrikaans": "Jy is moontlik in onmiddellike gevaar. Beweeg na 'n veiliger openbare plek as jy kan en vermy konfrontasie. Gebruik die noodaksies hieronder. Kontak nooddienste direk as jy dringende polisie- of mediese hulp nodig het.",
+    "isiZulu": "Kungenzeka usengozini esheshayo. Uma ukwazi, yiya endaweni yomphakathi ephephile futhi ugweme ukungqubuzana. Sebenzisa izenzo eziphuthumayo ngezansi. Xhumana nezinsizakalo eziphuthumayo ngqo uma udinga amaphoyisa noma usizo lwezokwelapha ngokuphuthumayo.",
+    "isiXhosa": "Usenokuba sengozini ekhawulezileyo. Ukuba unako, yiya kwindawo kawonke-wonke ekhuselekileyo uphephe ukungqubana. Sebenzisa izenzo ezingxamisekileyo ngezantsi. Qhagamshelana neenkonzo ezingxamisekileyo ngqo ukuba ufuna amapolisa okanye uncedo lwezonyango ngokungxamisekileyo."
+  },
+  "I can use your permitted location to open nearby police results. Check the listing and call the service directly before travelling.": {
+    "Afrikaans": "Ek kan jou toegelate ligging gebruik om nabygele\u00eb polisieresultate oop te maak. Kontroleer die lys en bel die diens direk voordat jy reis.",
+    "isiZulu": "Ngingasebenzisa indawo oyivumele ukuvula imiphumela yamaphoyisa aseduze. Hlola uhlu bese ushayela insizakalo ngqo ngaphambi kokuhamba.",
+    "isiXhosa": "Ndingasebenzisa indawo oyivumeleyo ukuvula iziphumo zamapolisa akufuphi. Jonga uluhlu uze ufowunele inkonzo ngqo ngaphambi kokuhamba."
+  },
+  "I can use your permitted location to open nearby hospital results. For urgent medical care, contact emergency services directly.": {
+    "Afrikaans": "Ek kan jou toegelate ligging gebruik om nabygele\u00eb hospitale te wys. Kontak nooddienste direk vir dringende mediese sorg.",
+    "isiZulu": "Ngingasebenzisa indawo oyivumele ukuvula izibhedlela eziseduze. Xhumana nezinsizakalo eziphuthumayo ngqo uma udinga ukwelashwa ngokuphuthumayo.",
+    "isiXhosa": "Ndingasebenzisa indawo oyivumeleyo ukuvula izibhedlele ezikufuphi. Qhagamshelana neenkonzo ezingxamisekileyo ngqo xa ufuna unyango olungxamisekileyo."
+  },
+  "Select Activate SOS to start Safe_Her's SOS flow. This app will only confirm an alert after a configured service successfully accepts it.": {
+    "Afrikaans": "Kies Aktiveer SOS om Safe_Her se SOS-proses te begin. Die toepassing bevestig 'n waarskuwing slegs nadat 'n opgestelde diens dit aanvaar.",
+    "isiZulu": "Khetha Vula i-SOS ukuqala inqubo ye-Safe_Her SOS. Lolu hlelo luqinisekisa isaziso kuphela uma insizakalo elungisiwe isamukele.",
+    "isiXhosa": "Khetha Vula i-SOS ukuqala inkqubo ye-Safe_Her SOS. Olu setyenziso luqinisekisa isilumkiso kuphela xa inkonzo elungiselelweyo isamkele."
+  },
+  "Select Share location to request browser permission. Your location stays on this device unless you choose to share it.": {
+    "Afrikaans": "Kies Deel ligging om blaaiertoestemming te vra. Jou ligging bly op hierdie toestel tensy jy dit deel.",
+    "isiZulu": "Khetha Yabelana ngendawo ukuze ucele imvume yesiphequluli. Indawo yakho ihlala kule divayisi ngaphandle uma ukhetha ukwabelana ngayo.",
+    "isiXhosa": "Khetha Yabelana ngendawo ukucela imvume yesikhangeli. Indawo yakho ihlala kwesi sixhobo ngaphandle kokuba ukhetha ukwabelana ngayo."
+  },
+  "Trust your instincts. Go to a busy, well-lit place, contact someone you trust, and avoid going straight home. If the danger becomes immediate, use Emergency Mode.": {
+    "Afrikaans": "Vertrou jou instinkte. Gaan na 'n besige, goed beligte plek, kontak iemand wat jy vertrou en vermy om reguit huis toe te gaan. Gebruik Noodmodus as die gevaar onmiddellik raak.",
+    "isiZulu": "Themba imizwa yakho. Yiya endaweni ematasa ekhanyayo, uxhumane nomuntu omethembayo futhi ungayi ngqo ekhaya. Uma ingozi ishesha, sebenzisa imodi ephuthumayo.",
+    "isiXhosa": "Themba iimvakalelo zakho. Yiya kwindawo exakekileyo ekhanyayo, uqhagamshelane nomntu omthembayo uphephe ukuya ngqo ekhaya. Ukuba ingozi iyakhawuleza, sebenzisa imowudi engxamisekileyo."
+  },
+  "You deserve to be safe. Keep distance where possible, document incidents only if it is safe to do so, and contact trusted support or emergency services if you are in immediate danger.": {
+    "Afrikaans": "Jy verdien veiligheid. Hou afstand waar moontlik, teken voorvalle slegs aan as dit veilig is en kontak vertroude ondersteuning of nooddienste as jy in onmiddellike gevaar is.",
+    "isiZulu": "Ufanele ukuphepha. Gcina ibanga lapho kungenzeka, qopha izehlakalo kuphela uma kuphephile futhi uxhumane nosizo oluthembekile noma oluphuthumayo uma usengozini esheshayo.",
+    "isiXhosa": "Ufanelwe kukhuseleko. Gcina umgama apho kunokwenzeka, rekhoda iziganeko kuphela xa kukhuselekile uze uqhagamshelane nenkxaso ethembekileyo okanye neenkonzo ezingxamisekileyo xa usengozini ekhawulezileyo."
+  },
+  "Share your plan with someone you trust, keep your phone charged, use well-lit routes, and arrange your own transport. Meet new people in public places.": {
+    "Afrikaans": "Deel jou plan met iemand wat jy vertrou, hou jou foon gelaai, gebruik goed beligte roetes en re\u00ebl jou eie vervoer. Ontmoet nuwe mense in openbare plekke.",
+    "isiZulu": "Yabelana ngohlelo lwakho nomuntu omethembayo, gcina ifoni ishajiwe, sebenzisa izindlela ezikhanyayo futhi uhlele ezokuthutha zakho. Hlangana nabantu abasha ezindaweni zomphakathi.",
+    "isiXhosa": "Yabelana ngesicwangciso sakho nomntu omthembayo, gcina ifowuni itshajiwe, sebenzisa iindlela ezikhanyayo uze ulungiselele ezakho izithuthi. Dibana nabantu abatsha kwiindawo zikawonke-wonke."
+  },
+  "Check app location permissions, review unfamiliar apps and account logins, and change passwords from a device you trust. Avoid confronting anyone you suspect is monitoring you.": {
+    "Afrikaans": "Kontroleer liggingstoestemmings, onbekende toepassings en rekeningaanmeldings. Verander wagwoorde vanaf 'n vertroude toestel. Vermy konfrontasie met iemand wat jou moontlik dophou.",
+    "isiZulu": "Hlola izimvume zendawo, izinhlelo ongazazi nokungena kuma-akhawunti, ushintshe amaphasiwedi kudivayisi oyethembayo. Gwema ukubhekana nomuntu osola ukuthi uyakuqapha.",
+    "isiXhosa": "Jonga iimvume zendawo, usetyenziso ongalwaziyo nokungena kwiiakhawunti, utshintshe amagama okugqitha kwisixhobo osithembayo. Kuphephe ukujongana nomntu okrokrela ukuba ukubek' esweni."
+  },
+  "Safe_Her brings SOS, location sharing, trusted contacts, Safe Journey tools and safety guidance together. I can help you open the relevant action.": {
+    "Afrikaans": "Safe_Her bring SOS, liggingsdeling, vertroude kontakte, reisgereedskap en veiligheidsleiding bymekaar. Ek kan jou help om die toepaslike aksie oop te maak.",
+    "isiZulu": "I-Safe_Her ihlanganisa i-SOS, ukwabelana ngendawo, oxhumana nabo obathembayo, amathuluzi ohambo nesiqondiso sokuphepha. Ngingakusiza uvule isenzo esifanele.",
+    "isiXhosa": "I-Safe_Her idibanisa i-SOS, ukwabelana ngendawo, abafowunelwa obathembayo, izixhobo zohambo nesikhokelo sokhuseleko. Ndingakunceda uvule isenzo esifanelekileyo."
+  },
+  "I\u2019m here with you. Tell me what is happening or choose a quick action. If you feel in immediate danger, use Emergency Mode and contact emergency services directly.": {
+    "Afrikaans": "Ek is hier by jou. Vertel my wat gebeur of kies 'n vinnige aksie. As jy in onmiddellike gevaar voel, gebruik Noodmodus en kontak nooddienste direk.",
+    "isiZulu": "Ngilapha nawe. Ngitshele ukuthi kwenzekani noma ukhethe isenzo esisheshayo. Uma uzizwa usengozini esheshayo, sebenzisa imodi ephuthumayo uxhumane nezinsizakalo eziphuthumayo ngqo.",
+    "isiXhosa": "Ndilapha nawe. Ndixelele okwenzekayo okanye ukhethe isenzo esikhawulezayo. Xa uziva usengozini ekhawulezileyo, sebenzisa imowudi engxamisekileyo uqhagamshelane neenkonzo ezingxamisekileyo ngqo."
+  },
+  "Invalid email or password": {
+    "Afrikaans": "Ongeldige e-pos of wagwoord",
+    "isiZulu": "I-imeyili noma iphasiwedi ayilungile",
+    "isiXhosa": "I-imeyile okanye igama lokugqitha alichanekanga"
+  },
+  "Login failed": {
+    "Afrikaans": "Aanmelding het misluk",
+    "isiZulu": "Ukungena kuhlulekile",
+    "isiXhosa": "Ukungena kusilele"
+  },
+  "Registration failed": {
+    "Afrikaans": "Registrasie het misluk",
+    "isiZulu": "Ukubhalisa kuhlulekile",
+    "isiXhosa": "Ubhaliso lusilele"
+  },
+  "User not found": {
+    "Afrikaans": "Gebruiker nie gevind nie",
+    "isiZulu": "Umsebenzisi akatholakali",
+    "isiXhosa": "Umsebenzisi akafumaneki"
+  },
+  "Google Sign-In is not configured. Add VITE_GOOGLE_CLIENT_ID to your .env file.": {
+    "Afrikaans": "Google-aanmelding is nog nie beskikbaar nie.",
+    "isiZulu": "Ukungena nge-Google akukatholakali.",
+    "isiXhosa": "Ukungena nge-Google akukafumaneki."
+  },
+  "Unable to retrieve your Google account.": {
+    "Afrikaans": "Kan nie jou Google-rekening ophaal nie.",
+    "isiZulu": "Ayikwazi ukuthola i-akhawunti yakho ye-Google.",
+    "isiXhosa": "Ayikwazi ukufumana iakhawunti yakho ye-Google."
+  },
+  "Google did not provide an email address.": {
+    "Afrikaans": "Google het nie 'n e-posadres verskaf nie.",
+    "isiZulu": "I-Google ayinikezanga ikheli le-imeyili.",
+    "isiXhosa": "I-Google ayinikanga idilesi ye-imeyile."
+  },
+  "Failed to load Google script": {
+    "Afrikaans": "Kon nie Google-aanmelding laai nie",
+    "isiZulu": "Ayikwazanga ukulayisha ukungena nge-Google",
+    "isiXhosa": "Ayikwazanga ukulayisha ukungena nge-Google"
+  },
+  "Low": {
+    "Afrikaans": "Laag",
+    "isiZulu": "Iphansi",
+    "isiXhosa": "Iphantsi"
+  },
+  "Moderate": {
+    "Afrikaans": "Matig",
+    "isiZulu": "Iphakathi",
+    "isiXhosa": "Iphakathi"
+  },
+  "Heightened": {
+    "Afrikaans": "Verhoog",
+    "isiZulu": "Iphakeme",
+    "isiXhosa": "Iphakamile"
+  },
+  "High": {
+    "Afrikaans": "Hoog",
+    "isiZulu": "Iphezulu",
+    "isiXhosa": "Iphezulu"
+  },
+  "Extreme": {
+    "Afrikaans": "Uitermatig",
+    "isiZulu": "Inkulu kakhulu",
+    "isiXhosa": "Inkulu kakhulu"
+  },
+  "Deep night": {
+    "Afrikaans": "Diep nag",
+    "isiZulu": "Ebusuku kakhulu",
+    "isiXhosa": "Ezinzulwini zobusuku"
+  },
+  "Early morning": {
+    "Afrikaans": "Vroegoggend",
+    "isiZulu": "Ekuseni kakhulu",
+    "isiXhosa": "Ekuseni kakhulu"
+  },
+  "Morning commute": {
+    "Afrikaans": "Oggendpendel",
+    "isiZulu": "Uhambo lwasekuseni",
+    "isiXhosa": "Uhambo lwasekuseni"
+  },
+  "Daytime": {
+    "Afrikaans": "Dagtyd",
+    "isiZulu": "Emini",
+    "isiXhosa": "Emini"
+  },
+  "Evening commute": {
+    "Afrikaans": "Aandpendel",
+    "isiZulu": "Uhambo lwantambama",
+    "isiXhosa": "Uhambo lwangokuhlwa"
+  },
+  "Evening": {
+    "Afrikaans": "Aand",
+    "isiZulu": "Kusihlwa",
+    "isiXhosa": "Ngokuhlwa"
+  },
+  "Late evening": {
+    "Afrikaans": "Laat aand",
+    "isiZulu": "Kusihlwa kakhulu",
+    "isiXhosa": "Ngokuhlwa kakhulu"
+  },
+  "{level} danger level at your location": {
+    "Afrikaans": "{level} gevaarvlak by jou ligging",
+    "isiZulu": "Izinga lengozi endaweni yakho: {level}",
+    "isiXhosa": "Inqanaba lengozi kwindawo yakho: {level}"
+  },
+  "{distance} km from {place}": {
+    "Afrikaans": "{distance} km vanaf {place}",
+    "isiZulu": "Amakhilomitha angu-{distance} ukusuka e-{place}",
+    "isiXhosa": "Iikhilomitha ezi-{distance} ukusuka e-{place}"
+  },
+  "Location unavailable - this advisory uses time of day only. Allow location access to get a precise location-based danger level.": {
+    "Afrikaans": "Ligging onbeskikbaar - hierdie advies gebruik slegs die tyd van die dag. Laat liggingstoegang toe vir 'n liggingsgebaseerde gevaarvlak.",
+    "isiZulu": "Indawo ayitholakali - lesi seluleko sisebenzisa isikhathi sosuku kuphela. Vumela ukufinyelela endaweni ukuze uthole izinga lengozi lendawo.",
+    "isiXhosa": "Indawo ayifumaneki - le ngcebiso isebenzisa ixesha losuku kuphela. Vumela ufikelelo kwindawo ukuze ufumane inqanaba lengozi lendawo."
+  },
+  "This advisory is generated from your location, time of day and distance to nearby help points. It is not live crime or emergency data. Always call emergency services if you are in immediate danger.": {
+    "Afrikaans": "Hierdie advies word uit jou ligging, tyd van die dag en afstand na hulppunte saamgestel. Dit is nie regstreekse misdaad- of nooddata nie. Bel altyd nooddienste as jy in onmiddellike gevaar is.",
+    "isiZulu": "Lesi seluleko sisuselwa endaweni yakho, esikhathini sosuku nasebangeni lokuya osizweni. Akusiyo idatha yobugebengu noma yezimo eziphuthumayo ebukhoma. Shayela izinsizakalo eziphuthumayo uma usengozini esheshayo.",
+    "isiXhosa": "Le ngcebiso isekelwe kwindawo yakho, kwixesha losuku nakumgama oya kuncedo. Ayiyodatha yolwaphulo-mthetho okanye yeemeko ezingxamisekileyo ephilayo. Fowunela iinkonzo ezingxamisekileyo xa usengozini ekhawulezileyo."
+  },
+  "Exercise maximum caution. Avoid walking alone, use well-lit main routes or transport you control, and keep your SOS and live tracking ready. Consider sharing your journey with a trusted contact immediately.": {
+    "Afrikaans": "Wees uiters versigtig. Vermy om alleen te loop, gebruik goed beligte hoofroetes of vervoer wat jy beheer en hou SOS en opsporing gereed. Oorweeg dit om jou reis dadelik met 'n vertroude kontak te deel.",
+    "isiZulu": "Qaphela kakhulu. Gwema ukuhamba wedwa, sebenzisa izindlela ezinkulu ezikhanyayo noma ezokuthutha ozilawulayo, ugcine i-SOS nokulandela kulungile. Cabanga ukwabelana ngohambo nomuntu omethembayo ngokushesha.",
+    "isiXhosa": "Lumka kakhulu. Kuphephe ukuhamba wedwa, sebenzisa iindlela ezinkulu ezikhanyayo okanye izithuthi ozilawulayo, ugcine i-SOS nokulandela kulungile. Cinga ukwabelana ngohambo nomntu omthembayo ngokukhawuleza."
+  },
+  "Heightened care is advised. Stay on busy routes, keep your phone charged, and avoid isolated shortcuts. Let a trusted contact know where you are heading.": {
+    "Afrikaans": "Wees ekstra versigtig. Bly op besige roetes, hou jou foon gelaai en vermy afgesonderde kortpaaie. Laat 'n vertroude kontak weet waarheen jy gaan.",
+    "isiZulu": "Qaphela ngokwengeziwe. Hlala ezindleleni ezimatasa, gcina ifoni ishajiwe futhi ugweme izinqamuleli ezingenabantu. Yazisa umuntu omethembayo lapho uya khona.",
+    "isiXhosa": "Lumka ngakumbi. Hlala kwiindlela ezixakekileyo, gcina ifowuni itshajiwe uphephe iindlela ezimfutshane ezingenabantu. Yazisa umntu omthembayo apho uya khona."
+  },
+  "Be extra aware of your surroundings. Choose well-lit streets, keep valuables out of sight, and keep your phone within reach. Your SafeHer tracking tools remain active.": {
+    "Afrikaans": "Wees ekstra bewus van jou omgewing. Kies goed beligte strate, hou waardevolle items uit sig en jou foon binne bereik. Jou SafeHer-opsporingsgereedskap bly aktief.",
+    "isiZulu": "Qaphela okukuzungezile. Khetha imigwaqo ekhanyayo, ufihle izinto eziyigugu futhi ugcine ifoni ifinyeleleka. Amathuluzi okulandela e-SafeHer ahlala esebenza.",
+    "isiXhosa": "Qaphela okukungqongileyo. Khetha izitrato ezikhanyayo, ufihle izinto ezixabisekileyo ugcine ifowuni ifikeleleka. Izixhobo zokulandela ze-SafeHer zihlala zisebenza."
+  },
+  "Conditions look calm but stay aware. Keep your phone charged, plan your route, and continue to trust your instincts as you move through your day.": {
+    "Afrikaans": "Toestande lyk kalm, maar bly bewus. Hou jou foon gelaai, beplan jou roete en vertrou jou instinkte deur die dag.",
+    "isiZulu": "Izimo zibukeka zizolile kodwa hlala uqaphile. Gcina ifoni ishajiwe, uhlele umzila futhi uqhubeke wethemba imizwa yakho usuku lonke.",
+    "isiXhosa": "Iimeko zibonakala zizolile kodwa hlala uqaphele. Gcina ifowuni itshajiwe, cwangcisa indlela uze uqhubeke uthemba iimvakalelo zakho imini yonke."
+  },
+  "Your general safety check is complete. Continue to trust your instincts and use SafeHer tools whenever you need them.": {
+    "Afrikaans": "Jou algemene veiligheidskontrole is voltooi. Vertrou jou instinkte en gebruik SafeHer-gereedskap wanneer jy dit nodig het.",
+    "isiZulu": "Ukuhlola kwakho ukuphepha kuqediwe. Qhubeka wethemba imizwa yakho futhi usebenzise amathuluzi e-SafeHer uma uwadinga.",
+    "isiXhosa": "Uhlolo lwakho lokhuseleko lugqityiwe. Qhubeka uthemba iimvakalelo zakho kwaye usebenzise izixhobo ze-SafeHer xa uzidinga."
+  },
+  "Card form (demo - no charge)": {
+    "Afrikaans": "Kaartvorm (demo - geen betaling)",
+    "isiZulu": "Ifomu lekhadi (isibonelo - akukho nkokhelo)",
+    "isiXhosa": "Ifomu yekhadi (uvavanyo - akukho ntlawulo)"
+  },
+  "Checkout was interrupted. Check your order's payment status before trying again; you can continue payment on the same order.": {
+    "Afrikaans": "Afrekening is onderbreek. Kontroleer jou bestelling se betalingstatus voordat jy weer probeer; jy kan dieselfde bestelling verder betaal.",
+    "isiZulu": "Ukukhokha kuphazamisekile. Hlola isimo senkokhelo ye-oda ngaphambi kokuzama futhi; ungaqhubeka nge-oda elifanayo.",
+    "isiXhosa": "Ukuhlawula kuphazamisekile. Jonga imeko yentlawulo yeoda ngaphambi kokuzama kwakhona; ungaqhubeka ngeoda enye."
+  },
+  "Continue browsing": {
+    "Afrikaans": "Blaai verder",
+    "isiZulu": "Qhubeka nokubheka",
+    "isiXhosa": "Qhubeka nokujonga"
+  },
+  "Sign in or create an account to continue. Your shopping bag will be kept.": {
+    "Afrikaans": "Teken in of skep 'n rekening om voort te gaan. Jou mandjie word behou.",
+    "isiZulu": "Ngena noma udale i-akhawunti ukuze uqhubeke. Isikhwama sakho sizogcinwa.",
+    "isiXhosa": "Ngena okanye wenze iakhawunti ukuze uqhubeke. Ingxowa yakho iya kugcinwa."
+  },
+  "Google sign-in is unavailable. Please try again later.": {
+    "Afrikaans": "Google-aanmelding is nie beskikbaar nie. Probeer later weer.",
+    "isiZulu": "Ukungena nge-Google akutholakali. Zama futhi kamuva.",
+    "isiXhosa": "Ukungena nge-Google akufumaneki. Zama kwakhona kamva."
+  },
+  "Google could not verify your sign-in. Please try again.": {
+    "Afrikaans": "Google kon nie jou aanmelding bevestig nie. Probeer weer.",
+    "isiZulu": "I-Google ayikwazanga ukuqinisekisa ukungena kwakho. Zama futhi.",
+    "isiXhosa": "I-Google ayikwazanga ukuqinisekisa ukungena kwakho. Zama kwakhona."
+  },
+  "No account was found. Please create an account first.": {
+    "Afrikaans": "Geen rekening is gevind nie. Skep eers 'n rekening.",
+    "isiZulu": "Ayikho i-akhawunti etholakele. Sicela udale i-akhawunti kuqala.",
+    "isiXhosa": "Akukho akhawunti ifunyenweyo. Nceda wenze iakhawunti kuqala."
+  },
+  "Please sign in with your email and password for this account.": {
+    "Afrikaans": "Teken asseblief met jou e-pos en wagwoord vir hierdie rekening in.",
+    "isiZulu": "Sicela ungene nge-imeyili nephasiwedi yale akhawunti.",
+    "isiXhosa": "Nceda ungene nge-imeyile negama lokugqitha lale akhawunti."
+  },
+  "Google sign-in could not be completed. Please try again.": {
+    "Afrikaans": "Google-aanmelding kon nie voltooi word nie. Probeer weer.",
+    "isiZulu": "Ukungena nge-Google akuqedwanga. Zama futhi.",
+    "isiXhosa": "Ukungena nge-Google akugqitywanga. Zama kwakhona."
+  },
+  "Google sign-in could not be loaded. Please try again.": {
+    "Afrikaans": "Google-aanmelding kon nie gelaai word nie. Probeer weer.",
+    "isiZulu": "Ukungena nge-Google akulayishwanga. Zama futhi.",
+    "isiXhosa": "Ukungena nge-Google akulayishwanga. Zama kwakhona."
+  },
+  "Please use Google to sign in to this account.": {
+    "Afrikaans": "Gebruik asseblief Google om by hierdie rekening aan te meld.",
+    "isiZulu": "Sicela usebenzise i-Google ukuze ungene kule akhawunti.",
+    "isiXhosa": "Nceda usebenzise i-Google ukuze ungene kule akhawunti."
   }
 };
