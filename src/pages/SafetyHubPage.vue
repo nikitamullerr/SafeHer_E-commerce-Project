@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import LiveMap from "../components/LiveMap.vue";
 import { t } from "../languageConfig.js";
+import checkinService from "../services/checkinService.js";
 
 const props = defineProps({
   contacts: Array,
@@ -31,30 +32,145 @@ const orderStages = ["Confirmed", "Packed", "Out for delivery", "Delivered"];
 let timer;
 let panicTimer;
 
-function startTimer(minutes) {
-  clearInterval(timer);
-  checkInMinutes.value = minutes;
-  checkInSeconds.value = 0;
-  checkInStatus.value = `Timer started • ${minutes} minute check-in`;
-  localStorage.setItem("safeher-checkin-status", checkInStatus.value);
-  timer = setInterval(() => {
-    if (checkInSeconds.value === 0 && checkInMinutes.value === 0)
-      return clearInterval(timer);
-    if (checkInSeconds.value === 0) {
-      checkInMinutes.value -= 1;
-      checkInSeconds.value = 59;
-    } else checkInSeconds.value -= 1;
-  }, 1000);
+async function startTimer(minutes) {
+  try {
+    clearInterval(timer);
+
+    checkInStatus.value = "Starting check-in...";
+
+    const response = await checkinService.start(minutes);
+
+    if (!response.success) {
+      throw new Error(response.error || "Failed to start check-in");
+    }
+
+    const checkin = response.checkin;
+
+    // Set the timer numbers
+    checkInMinutes.value = checkin.duration_minutes;
+    checkInSeconds.value = 0;
+
+    checkInStatus.value =
+      `Timer started • ${checkin.duration_minutes} minute check-in`;
+
+    localStorage.setItem(
+      "safeher-checkin-status",
+      checkInStatus.value
+    );
+
+    localStorage.setItem(
+      "safeher-active-checkin-id",
+      checkin.id
+    );
+
+    // Countdown
+    timer = setInterval(() => {
+      if (
+        checkInMinutes.value === 0 &&
+        checkInSeconds.value === 0
+      ) {
+        clearInterval(timer);
+
+        checkinService.updateStatus(
+          checkin.id,
+          "missed"
+        ).catch((error) => {
+          console.error("Failed to update missed check-in:", error);
+        });
+
+        checkInStatus.value = "Check-in missed";
+
+        localStorage.setItem(
+          "safeher-checkin-status",
+          "Check-in missed"
+        );
+
+        localStorage.removeItem(
+          "safeher-active-checkin-id"
+        );
+
+        return;
+      }
+
+      if (checkInSeconds.value === 0) {
+        checkInMinutes.value -= 1;
+        checkInSeconds.value = 59;
+      } else {
+        checkInSeconds.value -= 1;
+      }
+    }, 1000);
+
+  } catch (error) {
+    console.error("Start check-in error:", error);
+
+    checkInStatus.value =
+      error.response?.data?.error ||
+      error.message ||
+      "Failed to start check-in";
+  }
 }
 
-function checkInNow() {
-  checkInStatus.value = "Checked in • safe and active";
-  localStorage.setItem("safeher-checkin-status", checkInStatus.value);
-  clearInterval(timer);
-  checkInMinutes.value = 0;
-  checkInSeconds.value = 0;
-  if (props.contacts.length) {
-    emit("message-contact", props.contacts[0]);
+async function checkInNow() {
+  try {
+    const checkinId = localStorage.getItem(
+      "safeher-active-checkin-id"
+    );
+
+    // If there is no active backend check-in,
+    // simply show the current status.
+    if (!checkinId) {
+      checkInStatus.value = "Checked in • safe and active";
+
+      localStorage.setItem(
+        "safeher-checkin-status",
+        checkInStatus.value
+      );
+
+      clearInterval(timer);
+
+      checkInMinutes.value = 0;
+      checkInSeconds.value = 0;
+
+      return;
+    }
+
+    const response = await checkinService.updateStatus(
+      checkinId,
+      "completed"
+    );
+
+    if (!response.success) {
+      throw new Error(
+        response.error || "Failed to complete check-in"
+      );
+    }
+
+    clearInterval(timer);
+
+    checkInMinutes.value = 0;
+    checkInSeconds.value = 0;
+
+    checkInStatus.value = "Checked in • safe and active";
+
+    localStorage.setItem(
+      "safeher-checkin-status",
+      checkInStatus.value
+    );
+
+    localStorage.removeItem(
+      "safeher-active-checkin-id"
+    );
+
+    if (props.contacts.length) {
+      emit("message-contact", props.contacts[0]);
+    }
+  } catch (error) {
+    console.error("Complete check-in error:", error);
+
+    checkInStatus.value =
+      error.response?.data?.error ||
+      error.message ||
+      "Failed to complete check-in";
   }
 }
 
@@ -157,11 +273,11 @@ onBeforeUnmount(() => {
       </article>
       <article class="hub-stat">
         <i class="bi bi-check-square-fill"></i
-        ><strong>{{ checkInMinutes || "0" }}</strong
-        ><b>{{ t("checkins") }}</b
+        ><strong>{{ String(checkInMinutes).padStart(2, "0") }}:{{String(checkInSeconds).padStart(2, "0")}}
+        </strong><b>{{ t("checkins") }}</b
         ><small>This session</small>
-      </article>
-      <article class="hub-stat">
+        </article>
+        <article class="hub-stat">
         <i class="bi bi-shield-fill"></i><strong>24/7</strong
         ><b>Safe Hours Logged</b><small>Since joining SafeHer</small>
       </article>

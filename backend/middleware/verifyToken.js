@@ -6,6 +6,7 @@ dotenv.config();
 export const verifyToken = (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
+
         if (!authHeader) {
             return res.status(401).json({
                 success: false,
@@ -14,6 +15,7 @@ export const verifyToken = (req, res, next) => {
         }
 
         const token = authHeader.split(' ')[1];
+
         if (!token) {
             return res.status(401).json({
                 success: false,
@@ -22,6 +24,7 @@ export const verifyToken = (req, res, next) => {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
         req.user = decoded;
         next();
 
@@ -32,33 +35,17 @@ export const verifyToken = (req, res, next) => {
                 error: 'Invalid token'
             });
         }
+
         if (error.name === 'TokenExpiredError') {
             return res.status(401).json({
                 success: false,
                 error: 'Token expired'
             });
         }
+
         return res.status(500).json({
             success: false,
             error: 'Authentication error'
         });
-    }
-};
-
-// Public endpoints can use this middleware to enrich requests from signed-in
-// users without rejecting visitors who do not yet have a token.
-export const optionalVerifyToken = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return next();
-
-    try {
-        const token = authHeader.split(' ')[1];
-        if (!token) return next();
-
-        req.user = jwt.verify(token, process.env.JWT_SECRET);
-        next();
-    } catch {
-        // Treat an expired or invalid optional token as an anonymous request.
-        next();
     }
 };

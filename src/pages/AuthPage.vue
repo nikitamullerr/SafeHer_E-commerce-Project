@@ -1,9 +1,12 @@
 <script setup>
 import { computed, reactive, ref, watch } from "vue";
 import Swal from "sweetalert2";
-import { authService } from "../../backend/services/authService.js";
+import { authService } from "../services/authService.js";
 
-const props = defineProps({ mode: String });
+const props = defineProps({
+  mode: String,
+});
+
 const emit = defineEmits([
   "navigate",
   "authenticated",
@@ -38,21 +41,36 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function clearError(field) {
   errors[field] = "";
-  if (errors.form) errors.form = "";
+
+  if (errors.form) {
+    errors.form = "";
+  }
 }
 
 function switchMode(target) {
-  if (target !== props.mode) emit("navigate", target);
+  if (target !== props.mode) {
+    emit("navigate", target);
+  }
 }
 
 const passwordStrength = computed(() => {
   const value = password.value;
-  if (!value) return { score: 0, label: "", color: "var(--line)" };
+
+  if (!value) {
+    return {
+      score: 0,
+      label: "",
+      color: "var(--line)",
+    };
+  }
+
   let score = 0;
+
   if (value.length >= 8) score++;
   if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score++;
   if (/\d/.test(value)) score++;
   if (/[^A-Za-z0-9]/.test(value)) score++;
+
   const meta = [
     { label: "Very weak", color: "var(--red)" },
     { label: "Weak", color: "var(--red)" },
@@ -60,12 +78,16 @@ const passwordStrength = computed(() => {
     { label: "Good", color: "#2e9e5b" },
     { label: "Strong", color: "var(--plum)" },
   ][score];
-  return { score, ...meta };
+
+  return {
+    score,
+    ...meta,
+  };
 });
 
-const passwordsMatch = computed(
-  () => confirm.value.length > 0 && confirm.value === password.value,
-);
+const passwordsMatch = computed(() => {
+  return confirm.value.length > 0 && confirm.value === password.value;
+});
 
 watch(
   () => props.mode,
@@ -77,18 +99,24 @@ watch(
     agreeTerms.value = false;
     currentStep.value = 1;
     showPassword.value = false;
-    Object.keys(errors).forEach((key) => (errors[key] = ""));
-  },
+
+    Object.keys(errors).forEach((key) => {
+      errors[key] = "";
+    });
+  }
 );
 
 function validateStep1() {
   errors.name = "";
   errors.email = "";
+
   let valid = true;
+
   if (props.mode === "registration" && !name.value.trim()) {
     errors.name = "Enter your full name";
     valid = false;
   }
+
   if (!email.value.trim()) {
     errors.email = "Enter your email address";
     valid = false;
@@ -96,21 +124,26 @@ function validateStep1() {
     errors.email = "Enter a valid email address";
     valid = false;
   }
+
   return valid;
 }
 
 function validateLogin() {
   errors.email = "";
   errors.password = "";
+
   let valid = true;
+
   if (!email.value.trim()) {
     errors.email = "Enter your email address";
     valid = false;
   }
+
   if (!password.value) {
     errors.password = "Enter your password";
     valid = false;
   }
+
   return valid;
 }
 
@@ -118,24 +151,31 @@ function validateStep2() {
   errors.password = "";
   errors.confirm = "";
   errors.terms = "";
+
   let valid = true;
+
   if (password.value.length < 6) {
     errors.password = "Use at least 6 characters";
     valid = false;
   }
+
   if (confirm.value !== password.value) {
     errors.confirm = "Passwords don't match";
     valid = false;
   }
+
   if (!agreeTerms.value) {
     errors.terms = "Accept the terms to continue";
     valid = false;
   }
+
   return valid;
 }
 
 function nextStep() {
-  if (validateStep1()) currentStep.value = 2;
+  if (validateStep1()) {
+    currentStep.value = 2;
+  }
 }
 
 function prevStep() {
@@ -143,11 +183,36 @@ function prevStep() {
   errors.form = "";
 }
 
-function finishAuth(user, title) {
-  localStorage.setItem("safeher-token", user.token);
-  localStorage.setItem("safeher-user", JSON.stringify(user.user));
+function finishAuth(response, title) {
+  console.log("AUTH RESPONSE:", response);
 
-  emit("authenticated", user.user);
+  if (!response) {
+    throw new Error("No response received from the server.");
+  }
+
+  if (!response.token) {
+    console.error("TOKEN IS MISSING:", response);
+    throw new Error("No token was received from the server.");
+  }
+
+  if (!response.user) {
+    console.error("USER IS MISSING:", response);
+    throw new Error("No user data was received from the server.");
+  }
+
+  localStorage.setItem("safeher-token", response.token);
+  localStorage.setItem(
+    "safeher-user",
+    JSON.stringify(response.user)
+  );
+
+  console.log(
+    "TOKEN SAVED:",
+    localStorage.getItem("safeher-token")
+  );
+
+  emit("authenticated", response.user);
+
   Swal.fire({
     icon: "success",
     title,
@@ -162,22 +227,35 @@ async function submit() {
   errors.form = "";
 
   if (props.mode === "login") {
-    if (!validateLogin()) return;
+    if (!validateLogin()) {
+      return;
+    }
+
     submitting.value = true;
 
     try {
       const response = await authService.login({
-        email: email.value,
+        email: email.value.trim(),
         password: password.value,
       });
 
-      submitting.value = false;
+      console.log("LOGIN RESPONSE:", response);
+
       finishAuth(response, "Welcome back to SafeHer");
     } catch (error) {
-      submitting.value = false;
+      console.error("LOGIN ERROR:", error);
+      console.error("LOGIN STATUS:", error.response?.status);
+      console.error("LOGIN DATA:", error.response?.data);
+
       errors.form =
-        error.response?.data?.error || "Incorrect email or password";
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        "Incorrect email or password";
+    } finally {
+      submitting.value = false;
     }
+
     return;
   }
 
@@ -186,29 +264,40 @@ async function submit() {
     currentStep.value = 1;
     return;
   }
-  if (!validateStep2()) return;
+
+  if (!validateStep2()) {
+    return;
+  }
 
   submitting.value = true;
 
   try {
     const response = await authService.register({
       name: name.value.trim(),
-      email: email.value,
+      email: email.value.trim(),
       password: password.value,
       phone: "",
     });
 
-    submitting.value = false;
+    console.log("REGISTRATION RESPONSE:", response);
+
     finishAuth(response, "Your SafeHer account is ready");
   } catch (error) {
-    submitting.value = false;
+    console.error("REGISTRATION ERROR:", error);
+    console.error("STATUS:", error.response?.status);
+    console.error("DATA:", error.response?.data);
+
     errors.form =
-      error.response?.data?.error || "Registration failed. Please try again.";
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message ||
+      "Registration failed. Please try again.";
+  } finally {
+    submitting.value = false;
   }
 }
 
 const googleLoading = ref(false);
-
 let googleTokenClient = null;
 
 function loadGoogleScript() {
@@ -220,43 +309,43 @@ function loadGoogleScript() {
     }
 
     const existingScript = document.querySelector(
-      'script[src="https://accounts.google.com/gsi/client"]',
+      'script[src="https://accounts.google.com/gsi/client"]'
     );
 
     if (existingScript) {
-      console.log("⏳ Waiting for existing Google script...");
+      console.log("Waiting for existing Google script...");
+
       existingScript.addEventListener(
         "load",
-        () => {
-          console.log("Existing Google script loaded");
-          resolve();
-        },
-        { once: true },
+        () => resolve(),
+        { once: true }
       );
+
       existingScript.addEventListener(
         "error",
-        () => {
-          console.error("Existing Google script failed");
-          reject(new Error("Failed to load Google script"));
-        },
-        { once: true },
+        () => reject(new Error("Failed to load Google script")),
+        { once: true }
       );
+
       return;
     }
 
-    console.log("Loading Google script...");
     const script = document.createElement("script");
+
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
     script.defer = true;
+
     script.onload = () => {
       console.log("Google script loaded successfully");
       resolve();
     };
+
     script.onerror = () => {
       console.error("Google script failed to load");
       reject(new Error("Failed to load Google script"));
     };
+
     document.head.appendChild(script);
   });
 }
@@ -270,128 +359,109 @@ async function continueWithGoogle() {
 
     if (!clientId) {
       throw new Error(
-        "Google Sign-In is not configured. Add VITE_GOOGLE_CLIENT_ID to your .env file.",
+        "Google Sign-In is not configured. Add VITE_GOOGLE_CLIENT_ID to your .env file."
       );
     }
 
-    console.log("Loading Google script...");
     await loadGoogleScript();
-    console.log("Google script loaded");
 
-    googleTokenClient = window.google.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-      scope: "openid email profile",
-      callback: async (response) => {
-        console.log("Google callback received");
+    googleTokenClient =
+      window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: "openid email profile",
 
-        if (response.error) {
-          console.error("Google error:", response);
-          errors.form =
-            response.error_description || "Google sign-in was cancelled.";
-          googleLoading.value = false;
-          return;
-        }
+        callback: async (response) => {
+          if (response.error) {
+            console.error("Google error:", response);
 
-        try {
-          console.log("Fetching user info...");
-          const userResponse = await fetch(
-            "https://openidconnect.googleapis.com/v1/userinfo",
-            {
-              headers: {
-                Authorization: `Bearer ${response.access_token}`,
-              },
-            },
-          );
+            errors.form =
+              response.error_description ||
+              "Google sign-in was cancelled.";
 
-          if (!userResponse.ok) {
-            throw new Error("Unable to retrieve your Google account.");
+            googleLoading.value = false;
+            return;
           }
 
-          const googleUser = await userResponse.json();
-          console.log("Google user:", googleUser);
-
-          if (!googleUser.email) {
-            throw new Error("Google did not provide an email address.");
-          }
-
-          // Try to login with Google email
           try {
-            console.log("Attempting login...");
-            const loginResponse = await authService.login({
-              email: googleUser.email,
-              password: "google_oauth_" + (googleUser.sub || googleUser.id),
-            });
-
-            console.log("Login successful");
-            localStorage.setItem("safeher-token", loginResponse.token);
-            localStorage.setItem(
-              "safeher-user",
-              JSON.stringify(loginResponse.user),
+            const userResponse = await fetch(
+              "https://openidconnect.googleapis.com/v1/userinfo",
+              {
+                headers: {
+                  Authorization: `Bearer ${response.access_token}`,
+                },
+              }
             );
 
-            emit("authenticated", loginResponse.user);
-            Swal.fire({
-              icon: "success",
-              title: "Welcome back to SafeHer",
-              confirmButtonColor: "#351536",
-            }).then(() => {
-              emit("navigate", "index");
-              emit("sign-in-notification-complete");
-            });
-          } catch (loginError) {
-            console.log("ℹ️ User not found, registering...");
-
-            // If login fails, register the user
-            try {
-              const registerResponse = await authService.register({
-                name: googleUser.name || googleUser.email.split("@")[0],
-                email: googleUser.email,
-                password: "google_oauth_" + (googleUser.sub || googleUser.id),
-                phone: "",
-              });
-
-              console.log("Registration successful");
-              localStorage.setItem("safeher-token", registerResponse.token);
-              localStorage.setItem(
-                "safeher-user",
-                JSON.stringify(registerResponse.user),
-              );
-
-              emit("authenticated", registerResponse.user);
-              Swal.fire({
-                icon: "success",
-                title: "Your SafeHer account is ready",
-                confirmButtonColor: "#351536",
-              }).then(() => {
-                emit("navigate", "index");
-                emit("sign-in-notification-complete");
-              });
-            } catch (registerError) {
-              console.error("Registration error:", registerError);
+            if (!userResponse.ok) {
               throw new Error(
-                registerError.response?.data?.error ||
-                  "Failed to create account",
+                "Unable to retrieve your Google account."
               );
             }
-          }
-        } catch (error) {
-          console.error("Google sign-in error:", error);
-          errors.form =
-            error?.message ||
-            "Unable to continue with Google. Please try again.";
-          googleLoading.value = false;
-        }
-      },
-    });
 
-    console.log("Requesting access token...");
+            const googleUser = await userResponse.json();
+
+            if (!googleUser.email) {
+              throw new Error(
+                "Google did not provide an email address."
+              );
+            }
+
+            const googlePassword =
+              "google_oauth_" +
+              (googleUser.sub || googleUser.id);
+
+            try {
+              const loginResponse = await authService.login({
+                email: googleUser.email,
+                password: googlePassword,
+              });
+
+              finishAuth(
+                loginResponse,
+                "Welcome back to SafeHer"
+              );
+            } catch (loginError) {
+              console.log(
+                "Google user not found. Registering..."
+              );
+
+              const registerResponse =
+                await authService.register({
+                  name:
+                    googleUser.name ||
+                    googleUser.email.split("@")[0],
+                  email: googleUser.email,
+                  password: googlePassword,
+                  phone: "",
+                });
+
+              finishAuth(
+                registerResponse,
+                "Your SafeHer account is ready"
+              );
+            }
+          } catch (error) {
+            console.error("Google sign-in error:", error);
+
+            errors.form =
+              error.message ||
+              "Unable to continue with Google. Please try again.";
+
+            googleLoading.value = false;
+          }
+        },
+      });
+
     googleTokenClient.requestAccessToken({
       prompt: "select_account",
     });
   } catch (error) {
     console.error("Google sign-in error:", error);
+
     errors.form =
-      error?.message || "Unable to continue with Google. Please try again.";
+      error.message ||
+      "Unable to continue with Google. Please try again.";
+
     googleLoading.value = false;
   }
 }
@@ -405,11 +475,19 @@ async function forgotPassword() {
     showCancelButton: true,
     confirmButtonText: "Find account",
     confirmButtonColor: "#351536",
-    inputValidator: (value) =>
-      !value ? "Please enter your email address" : undefined,
+
+    inputValidator: (value) => {
+      if (!value) {
+        return "Please enter your email address";
+      }
+
+      return undefined;
+    },
   });
 
-  if (!emailResult.isConfirmed) return;
+  if (!emailResult.isConfirmed) {
+    return;
+  }
 
   try {
     await authService.forgotPassword(emailResult.value);
@@ -421,6 +499,8 @@ async function forgotPassword() {
       confirmButtonColor: "#351536",
     });
   } catch (error) {
+    console.error("Forgot password error:", error);
+
     Swal.fire({
       icon: "error",
       title: "Account not found",
