@@ -2,7 +2,7 @@
 import { t } from "../languageConfig.js";
 import { computed, onMounted, ref } from "vue";
 import api from "../services/api.js";
-import { retryPayment, submitPayfastForm } from "../services/paymentClient.js";
+import { retryPayment } from "../services/paymentClient.js";
 const emit = defineEmits(["navigate"]);
 const orders = ref([]), loading = ref(false), error = ref("");
 const search = ref(""), filter = ref("all"), sort = ref("newest");
@@ -11,7 +11,7 @@ const statuses = ["Confirmed", "Packed", "Out for delivery", "Delivered"];
 const money = (amount) => new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(Number(amount) || 0);
 const isDemo = (order) => order.paymentMethod === "card_demo";
 const isPaid = (order) => order.paymentStatus === "paid" && !isDemo(order);
-const canPay = (order) => order.paymentMethod === "payfast" && ["pending", "failed"].includes(order.paymentStatus);
+const canPay = (order) => ["card", "instant_eft", "bank_transfer", "wallet"].includes(order.paymentMethod) && ["pending", "failed"].includes(order.paymentStatus);
 const paymentLabel = (order) => isDemo(order) ? "Demo - no charge" : ({ paid: "Paid", pending: "Awaiting payment", failed: "Payment not completed", refunded: "Refunded" }[order.paymentStatus] || "Payment unconfirmed");
 const visibleOrders = computed(() => {
   const term = search.value.trim().toLowerCase();
@@ -32,7 +32,7 @@ async function loadOrders() {
 async function pay(order) {
   if (busy.value[order.id]) return;
   busy.value[order.id] = true; messages.value[order.id] = "";
-  try { submitPayfastForm(await retryPayment(order.orderNumber)); }
+  try { await retryPayment(order.orderNumber); messages.value[order.id] = "Payment is ready for confirmation. Refresh the order list to see the latest status."; }
   catch (failure) { messages.value[order.id] = failure.response?.data?.error || failure.message || "Could not start payment."; }
   finally { busy.value[order.id] = false; }
 }
@@ -64,7 +64,7 @@ onMounted(loadOrders);
     <section v-if="visibleOrders.length" class="orders-list" :aria-busy="loading">
       <article v-for="order in visibleOrders" :key="order.id" class="order-card">
         <div class="order-header-row"><div class="order-id-info"><strong>{{ order.orderNumber || `Order #${order.id}` }}</strong><small>{{ new Date(order.createdAt).toLocaleString('en-ZA') }}</small></div><strong class="order-total-amount">{{ money(order.total) }}</strong></div>
-        <p class="order-payment-label">{{ t(paymentLabel(order)) }} <span>- {{ t(order.paymentMethod === 'payfast' ? 'PayFast' : isDemo(order) ? 'Card demo' : order.paymentMethod || 'Unspecified method') }}</span></p>
+        <p class="order-payment-label">{{ t(paymentLabel(order)) }} <span>- {{ t(isDemo(order) ? 'Card demo' : order.paymentMethod || 'Unspecified method') }}</span></p>
         <template v-if="isPaid(order)">
           <ol class="order-timeline" :aria-label="t(&quot;Delivery progress&quot;)"><li v-for="(status, index) in statuses" :key="status" :class="{ reached: statuses.indexOf(order.status) >= index }" :aria-current="order.status === status ? 'step' : undefined">{{ t(status) }}</li></ol>
           <p>{{ t("Delivery:") }} <strong>{{ t(order.status) }}</strong></p>

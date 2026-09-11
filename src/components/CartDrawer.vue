@@ -1,7 +1,7 @@
 <script setup>
 import { t } from "../languageConfig.js";
 defineProps({ open: Boolean, cart: Array, total: Number });
-const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop", "card-payment"]);
+const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop"]);
 </script>
 
 <template>
@@ -64,18 +64,12 @@ const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop", "c
           <strong>R{{ total.toLocaleString() }}</strong>
         </div>
 
-        <!-- PayFast Checkout -->
         <button class="btn btn-sos w-100" @click="emit('checkout')">
-          <i class="bi bi-lock-fill"></i> {{ t("Checkout with PayFast") }} </button>
+          <i class="bi bi-lock-fill"></i> {{ t("Secure checkout") }}
+        </button>
 
-        <!-- Divider -->
-        <div class="drawer-divider">{{ t("or") }}</div>
-
-        <!-- card payment -->
-        <button class="btn btn-outline-plum w-100" @click="emit('card-payment')">
-          <i class="bi bi-credit-card"></i> {{ t("Card form (demo ? no charge)") }} </button>
-
-        <button class="drawer-continue" @click="emit('shop')"> {{ t("Continue shopping") }} <i class="bi bi-arrow-right"></i>
+        <button class="drawer-continue" @click="emit('shop')">
+          {{ t("Continue shopping") }} <i class="bi bi-arrow-right"></i>
         </button>
       </div>
     </aside>

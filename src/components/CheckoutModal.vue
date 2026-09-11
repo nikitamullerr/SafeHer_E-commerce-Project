@@ -1,14 +1,15 @@
 <script setup>
 import { t } from "../languageConfig.js";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
-import PaymentForm from "./paymentForm.vue";
 import api from "../services/api.js";
-import { createPayfastPayment, createCardPayment, getPaymentConfig, submitPayfastForm } from "../services/paymentClient.js";
-const props = defineProps({ items: { type: Array, required: true }, initialMethod: { type: String, default: "payfast" } });
+import { createPayment, getPaymentConfig } from "../services/paymentClient.js";
+const props = defineProps({ items: { type: Array, required: true }, initialMethod: { type: String, default: "card" } });
 const emit = defineEmits(["close", "success"]);
-const method = ref(props.initialMethod);
+const method = ref(props.initialMethod || "card");
 const delivery = ref("standard");
 const address = ref("");
+const paymentReference = ref("");
+const cardDetails = ref({ cardHolder: "", cardNumber: "", expiryMonth: "01", expiryYear: new Date().getFullYear() + 2, cvv: "" });
 const addresses = ref([]), selectedAddress = ref(""), saveAddress = ref(false);
 const addressError = ref(""), addressMessage = ref(""), savingAddress = ref(false);
 async function loadAddresses() {
@@ -53,14 +54,14 @@ watch(address, (value) => {
   if (selected && selected.address !== value) selectedAddress.value = "";
 });
 const busy = ref(false), error = ref(""), configLoading = ref(true);
-const config = ref({ payfastAvailable: false, cardDemoAvailable: false, sandbox: true });
-const cardForm = ref(null), dialog = ref(null);
+const config = ref({ methods: ["card", "instant_eft", "bank_transfer", "wallet"], payfastAvailable: false, cardDemoAvailable: false, sandbox: false });
+const dialog = ref(null);
 const requestId = ref(crypto.randomUUID());
 const options = [{ value: "standard", label: "Standard delivery", fee: 49 }, { value: "express", label: "Express delivery", fee: 99 }];
 const money = (value) => new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(value);
 const subtotal = computed(() => props.items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0));
 const fee = computed(() => options.find((item) => item.value === delivery.value).fee);
-const available = computed(() => method.value === "payfast" ? config.value.payfastAvailable : config.value.cardDemoAvailable);
+const available = computed(() => config.value.methods.includes(method.value));
 watch([method, delivery, address], () => { requestId.value = crypto.randomUUID(); error.value = ""; });
 async function loadConfig() {
   configLoading.value = true; error.value = "";
@@ -81,14 +82,11 @@ async function submit() {
   if (busy.value || !available.value) return;
   error.value = "";
   if (!address.value.trim()) { error.value = "Enter a delivery address."; return; }
-  if (method.value === "card_demo" && !cardForm.value?.validate()) return;
   busy.value = true;
   try {
     if (saveAddress.value && !(await storeAddress())) return;
-    const payload = { items: props.items.map(({ id, quantity }) => ({ product_id: id, quantity })), delivery_method: delivery.value, delivery_address: address.value.trim(), request_id: requestId.value };
-    const result = await (method.value === "payfast" ? createPayfastPayment(payload) : createCardPayment(payload));
-    if (method.value === "payfast") submitPayfastForm(result);
-    cardForm.value?.clear();
+    const payload = { items: props.items.map(({ id, quantity }) => ({ product_id: id, quantity })), delivery_method: delivery.value, delivery_address: address.value.trim(), request_id: requestId.value, payment_method: method.value, payment_reference: paymentReference.value.trim(), card_details: method.value === "card" ? { ...cardDetails.value, cardNumber: cardDetails.value.cardNumber.replace(/\s+/g, "") } : undefined };
+    const result = await createPayment(payload);
     emit("success", result);
   } catch (failure) { error.value = failure.response?.data?.error || failure.message || "Payment could not be started. Please try again."; }
   finally { busy.value = false; }
@@ -118,22 +116,53 @@ async function submit() {
           <p v-if="addressMessage" role="status">{{ t(addressMessage) }}</p>
           <legend class="mt-3">{{ t("Payment method") }}</legend>
           <div class="checkout-methods">
-            <label><input v-model="method" type="radio" value="payfast" /> PayFast</label>
-            <label><input v-model="method" type="radio" value="card_demo" /> {{ t("Card form (demo)") }}</label>
+            <label><input v-model="method" type="radio" value="card" /> Card</label>
+            <label><input v-model="method" type="radio" value="instant_eft" /> Instant EFT</label>
+            <label><input v-model="method" type="radio" value="bank_transfer" /> Bank transfer</label>
+            <label><input v-model="method" type="radio" value="wallet" /> Wallet / QR</label>
           </div>
-          <template v-if="method === 'payfast'">
-            <p v-if="config.payfastAvailable">{{ t(config.sandbox ? 'PayFast sandbox: test checkout, no real charge.' : 'Complete your payment securely on PayFast.') }}</p>
-            <p v-else class="checkout-error">{{ t("PayFast checkout is currently unavailable. Please try again once payment confirmation has been enabled.") }}</p>
+
+          <template v-if="method === 'card'">
+            <label for="card-holder">Cardholder name</label>
+            <input id="card-holder" v-model="cardDetails.cardHolder" type="text" placeholder="Name on card" />
+            <label for="card-number">Card number</label>
+            <input id="card-number" v-model="cardDetails.cardNumber" type="text" inputmode="numeric" placeholder="4242 4242 4242 4242" />
+            <div class="card-expiry">
+              <div><label for="card-month">Month</label><select id="card-month" v-model="cardDetails.expiryMonth"><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></div>
+              <div><label for="card-year">Year</label><select id="card-year" v-model="cardDetails.expiryYear"><option v-for="year in Array.from({ length: 12 }, (_, i) => new Date().getFullYear() + i + 1)" :key="year" :value="year">{{ year }}</option></select></div>
+              <div><label for="card-cvv">CVV</label><input id="card-cvv" v-model="cardDetails.cvv" type="password" maxlength="4" inputmode="numeric" /></div>
+            </div>
           </template>
-          <template v-else><p v-if="!config.cardDemoAvailable" class="checkout-error">{{ t("Card demo is disabled on this server.") }}</p><PaymentForm v-else ref="cardForm" /></template>
+
+          <template v-else>
+            <label for="payment-reference">{{ method === 'instant_eft' ? 'Instant EFT reference' : method === 'bank_transfer' ? 'Bank transfer reference' : 'Wallet reference' }}</label>
+            <input id="payment-reference" v-model="paymentReference" type="text" :placeholder="method === 'wallet' ? 'e.g. 082 123 4567 or payment code' : 'Reference or payment note'" />
+          </template>
+
           <dl class="checkout-totals"><div><dt>{{ t("Items (") }}{{ items.reduce((n, item) => n + item.quantity, 0) }})</dt><dd>{{ money(subtotal) }}</dd></div><div><dt>{{ t("Delivery") }}</dt><dd>{{ money(fee) }}</dd></div><div><dt>{{ t("Total") }}</dt><dd>{{ money(subtotal + fee) }}</dd></div></dl>
-          <button type="submit" class="btn btn-sos w-100" :disabled="!available || !items.length">{{ t(busy ? 'Processing...' : method === 'payfast' ? 'Continue to PayFast' : 'Create demo order') }}</button>
+          <button type="submit" class="btn btn-sos w-100" :disabled="!available || !items.length">{{ t(busy ? 'Processing...' : 'Complete payment') }}</button>
         </fieldset>
       </form>
       <button v-if="!configLoading && !available" class="btn btn-outline-plum mt-3" @click="loadConfig">{{ t("Refresh payment options") }}</button>
     </section>
   </div>
 </template>
+<style>
+.checkout-backdrop { position: fixed; inset: 0; z-index: 1100; background: #120d12b3; display: grid; place-items: center; padding: 16px; }
+.checkout-dialog { width: min(580px, 100%); max-height: 92vh; overflow: auto; border-radius: 18px; padding: 24px; background: var(--surface); color: var(--ink); box-shadow: 0 18px 70px #0006; }
+.checkout-dialog header, .checkout-totals > div { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+.checkout-dialog h2 { font-size: 26px; margin: 0; }
+.checkout-dialog legend { font-size: 18px; margin: 18px 0 10px; font-weight: 700; }
+.checkout-dialog label { display: block; font-size: 14px; font-weight: 600; margin: 12px 0 6px; }
+.checkout-dialog :is(input:not([type="radio"]):not([type="checkbox"]), select, textarea) { width: 100%; padding: 10px; color: var(--ink); background: var(--surface); border: 1px solid var(--muted); border-radius: 8px; }
+.checkout-dialog p { font-size: 14px; margin-top: 12px; }
+.checkout-methods { display: flex; gap: 22px; flex-wrap: wrap; }
+.checkout-methods input { accent-color: #8b2450; }
+.card-expiry { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.checkout-totals { margin: 20px 0; border-top: 1px solid var(--line); padding-top: 12px; }
+.checkout-totals dd { margin: 4px 0; }
+.checkout-error { padding: 12px; border-radius: 8px; background: #fff0f1; color: #951626; }
+</style>
 <style>
 .checkout-backdrop { position: fixed; inset: 0; z-index: 1100; background: #120d12b3; display: grid; place-items: center; padding: 16px; }
 .checkout-dialog { width: min(580px, 100%); max-height: 92vh; overflow: auto; border-radius: 18px; padding: 24px; background: var(--surface); color: var(--ink); box-shadow: 0 18px 70px #0006; }

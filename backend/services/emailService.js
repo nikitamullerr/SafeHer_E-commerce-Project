@@ -26,37 +26,67 @@ dotenv.config({ path: new URL('../.env', import.meta.url) });
  * - EMAIL_FROM: From email address
  */
 
-class EmailService {
+export class EmailService {
 	constructor() {
 		this.transporter = null;
-		this.fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@safeher.co.za';
-		this.emailService = process.env.EMAIL_SERVICE || 'smtp';
+		this.emailService = (process.env.EMAIL_SERVICE || 'smtp').toLowerCase();
+		this.fromEmail = this.resolveFromAddress();
 		this.initializeTransporter();
+	}
+
+	resolveFromAddress() {
+		const configuredFrom = (process.env.EMAIL_FROM || '').trim();
+		const accountEmail = (process.env.EMAIL_USER || '').trim();
+		const accountValid = this.isValidEmail(accountEmail);
+		const configuredValid = configuredFrom && (() => {
+			const match = configuredFrom.match(/<([^>]+)>/);
+			return this.isValidEmail(match ? match[1] : configuredFrom);
+		})();
+		if (accountValid && configuredValid) {
+			const accountDomain = accountEmail.split('@')[1]?.toLowerCase();
+			const configuredAddress = configuredFrom.match(/<([^>]+)>/) ? configuredFrom.match(/<([^>]+)>/)[1] : configuredFrom;
+			const configuredDomain = configuredAddress.split('@')[1]?.toLowerCase();
+			if (accountDomain === 'gmail.com' && configuredDomain && configuredDomain !== accountDomain) {
+				return accountEmail;
+			}
+			if (configuredAddress.toLowerCase() !== accountEmail.toLowerCase()) {
+				return configuredFrom;
+			}
+		}
+		if (configuredValid) {
+			return configuredFrom;
+		}
+		if (accountValid) return accountEmail;
+		return 'noreply@safeher.co.za';
+	}
+
+	normalizeSmtpValue(value) {
+		return String(value ?? '').replace(/\s+/g, '').trim();
 	}
 
 	initializeTransporter() {
 		if (this.emailService === 'resend') {
 			console.log('Email service configured: Resend API');
-			// Resend will be handled separately if needed
 			return;
 		}
 
-		// Default to SMTP
+		const smtpUser = this.normalizeSmtpValue(process.env.EMAIL_USER);
+		const smtpPass = this.normalizeSmtpValue(process.env.EMAIL_PASSWORD);
+		const smtpHost = (process.env.EMAIL_HOST || '').trim();
 		const smtpConfig = {
 			dnsTimeout: 10000,
 			connectionTimeout: 10000,
 			greetingTimeout: 10000,
 			socketTimeout: 15000,
-			host: process.env.EMAIL_HOST,
-			port: parseInt(process.env.EMAIL_PORT || '587'),
-			secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
+			host: smtpHost,
+			port: parseInt(process.env.EMAIL_PORT || '587', 10),
+			secure: process.env.EMAIL_SECURE === 'true',
 			auth: {
-				user: process.env.EMAIL_USER,
-				pass: process.env.EMAIL_PASSWORD,
+				user: smtpUser,
+				pass: smtpPass,
 			},
 		};
 
-		// Validate SMTP configuration
 		if (!smtpConfig.host || !smtpConfig.auth.user || !smtpConfig.auth.pass) {
 			console.warn('⚠️  Email service not fully configured. Check .env variables:');
 			console.warn('   - EMAIL_HOST');
@@ -64,7 +94,7 @@ class EmailService {
 			console.warn('   - EMAIL_PASSWORD');
 			console.warn('   - EMAIL_PORT (optional, default: 587)');
 			console.warn('   - EMAIL_SECURE (optional, default: false)');
-			console.warn('   - EMAIL_FROM (optional, default: noreply@safeher.co.za)');
+			console.warn('   - EMAIL_FROM (optional, default: your authenticated email)');
 			this.transporter = null;
 			return;
 		}
@@ -128,8 +158,10 @@ class EmailService {
 	 * @returns {boolean} - Valid or not
 	 */
 	isValidEmail(email) {
+		if (!email || typeof email !== 'string') return false;
+		const value = email.trim();
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		return emailRegex.test(email);
+		return emailRegex.test(value);
 	}
 
 	/**
