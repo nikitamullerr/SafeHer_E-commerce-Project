@@ -70,9 +70,12 @@ export const register = async (req, res) => {
   } catch (error) {
     console.error("Register error:", error);
     console.error("Error stack:", error.stack);
+    const databaseUnavailable = ["ECONNREFUSED", "ER_ACCESS_DENIED_ERROR", "ER_BAD_DB_ERROR"].includes(error.code);
     res.status(500).json({
       success: false,
-      error: error.message || "Registration failed",
+      error: databaseUnavailable
+        ? "The authentication database is unavailable. Check the backend .env settings and make sure MySQL is running."
+        : "Registration failed. Please try again.",
     });
   }
 };
@@ -119,9 +122,12 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
+    const databaseUnavailable = ["ECONNREFUSED", "ER_ACCESS_DENIED_ERROR", "ER_BAD_DB_ERROR"].includes(error.code);
     res.status(500).json({
       success: false,
-      error: "Login failed",
+      error: databaseUnavailable
+        ? "The authentication database is unavailable. Check the backend .env settings and make sure MySQL is running."
+        : "Login failed. Please try again.",
     });
   }
 };

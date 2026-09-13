@@ -8,7 +8,8 @@ const pool = mysql.createPool({
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'safeher_db',
-    port: parseInt(process.env.DB_PORT) || 3307,
+    // MySQL uses 3306 by default. Override this in backend/.env when needed.
+    port: parseInt(process.env.DB_PORT, 10) || 3306,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0

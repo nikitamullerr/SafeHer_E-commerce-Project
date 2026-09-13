@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import Swal from "sweetalert2";
 import LiveMap from "../components/LiveMap.vue";
 import { t } from "../languageConfig.js";
 import checkinService from "../services/checkinService.js";
@@ -17,16 +18,24 @@ const emit = defineEmits([
   "share",
   "track",
   "sos",
+  "sos-all",
   "call-contact",
   "message-contact",
 ]);
 const checkInMinutes = ref(0);
 const checkInSeconds = ref(0);
+const customCheckinMinutes = ref(30);
 const checkInStatus = ref(localStorage.getItem("safeher-checkin-status") || "Not checked in yet");
 const panicStatus = ref("Ready");
 const panicCountdown = ref(0);
 const selectedPlan = ref(localStorage.getItem("safeher-active-plan") || "Home mode");
 const safetyPlans = ["Home mode", "Travel mode", "Night mode"];
+const nightChecklist = ref({ phoneCharged: false, locationReady: false, contactSelected: false, routePlanned: false });
+const tripDestination = ref("");
+const tripArrival = ref("");
+const tripDuration = ref(60);
+const activeTrip = ref(null);
+const tripNotice = ref("");
 const orders = ref([]);
 const orderStages = ["Confirmed", "Packed", "Out for delivery", "Delivered"];
 let timer;
@@ -89,6 +98,7 @@ async function startTimer(minutes) {
           "safeher-active-checkin-id"
         );
 
+        showMissedCheckinAlert();
         return;
       }
 
@@ -110,6 +120,31 @@ async function startTimer(minutes) {
   }
 }
 
+function adjustCustomCheckin(minutes) {
+  customCheckinMinutes.value = Math.min(240, Math.max(5, customCheckinMinutes.value + minutes));
+}
+
+function startCustomCheckin() {
+  startTimer(customCheckinMinutes.value);
+}
+
+async function showMissedCheckinAlert() {
+  const result = await Swal.fire({
+    icon: "warning",
+    title: "Check-in missed",
+    text: "We did not receive your check-in. Choose an action now.",
+    showDenyButton: true,
+    showCancelButton: true,
+    confirmButtonText: "Send SOS to contacts",
+    denyButtonText: `Add ${customCheckinMinutes.value} minutes`,
+    cancelButtonText: "Dismiss",
+    confirmButtonColor: "#d92d36",
+    denyButtonColor: "#351536",
+  });
+
+  if (result.isConfirmed) emit("sos-all");
+  else if (result.isDenied) startCustomCheckin();
+}
 async function checkInNow() {
   try {
     const checkinId = localStorage.getItem(
@@ -180,6 +215,28 @@ function setSafetyPlan(plan) {
   panicStatus.value = `${plan} active`;
 }
 
+const nightChecklistItems = [
+  { key: "phoneCharged", label: "My phone is charged" },
+  { key: "locationReady", label: "Location sharing is ready" },
+  { key: "contactSelected", label: "A trusted contact is available" },
+  { key: "routePlanned", label: "I have planned a safer route" },
+];
+const nightReadyCount = computed(() => Object.values(nightChecklist.value).filter(Boolean).length);
+function saveNightChecklist() { localStorage.setItem("safeher-night-checklist", JSON.stringify(nightChecklist.value)); }
+function startNightCheckin(minutes) { startTimer(minutes); panicStatus.value = `Night check-in started for ${minutes} minutes`; }
+function saveTrip() { localStorage.setItem("safeher-active-trip", JSON.stringify(activeTrip.value)); }
+async function startTrip() {
+  const destination = tripDestination.value.trim();
+  if (!destination || !tripArrival.value) { tripNotice.value = "Add a destination and expected arrival time to start your trip."; return; }
+  activeTrip.value = { destination, arrival: tripArrival.value, duration: Number(tripDuration.value), startedAt: new Date().toISOString(), active: true };
+  saveTrip(); tripNotice.value = `Trip to ${destination} is active. Check in when you arrive.`; await startTimer(Number(tripDuration.value));
+}
+async function arriveSafely() {
+  await checkInNow();
+  if (activeTrip.value) { activeTrip.value = { ...activeTrip.value, active: false, arrivedAt: new Date().toISOString() }; saveTrip(); }
+  tripNotice.value = "Arrival recorded. Your check-in has been completed.";
+}
+function clearTrip() { activeTrip.value = null; tripDestination.value = ""; tripArrival.value = ""; tripNotice.value = "Trip cleared."; localStorage.removeItem("safeher-active-trip"); }
 function startPanicCountdown() {
   clearInterval(panicTimer);
   panicCountdown.value = 5;
@@ -225,6 +282,12 @@ const latestOrder = computed(() => orders.value[orders.value.length - 1]);
 
 onMounted(() => {
   loadOrders();
+  try {
+    const savedChecklist = JSON.parse(localStorage.getItem("safeher-night-checklist") || "null");
+    if (savedChecklist) nightChecklist.value = { ...nightChecklist.value, ...savedChecklist };
+    const savedTrip = JSON.parse(localStorage.getItem("safeher-active-trip") || "null");
+    if (savedTrip) { activeTrip.value = savedTrip; tripDestination.value = savedTrip.destination || ""; tripArrival.value = savedTrip.arrival || ""; tripDuration.value = savedTrip.duration || 60; }
+  } catch { localStorage.removeItem("safeher-night-checklist"); localStorage.removeItem("safeher-active-trip"); }
 });
 onBeforeUnmount(() => {
   clearInterval(timer);
@@ -378,10 +441,25 @@ onBeforeUnmount(() => {
         <div class="panic-actions">
           <button class="btn btn-sos" @click="startPanicCountdown">Start countdown</button>
           <button class="btn btn-outline-plum" @click="cancelPanicCountdown">Cancel</button>
+          <button class="btn btn-dark-plum" @click="emit('sos-all')"><i class="bi bi-send-fill"></i> Send SOS to all contacts</button>
         </div>
       </div>
     </section>
 
+    <section v-if="selectedPlan === 'Night mode'" class="hub-panel mode-tools-panel night-mode-panel">
+      <div class="mode-tools-heading"><span class="mode-tools-icon"><i class="bi bi-moon-stars-fill"></i></span><div><p class="eyebrow">NIGHT MODE</p><h2>Get ready for a safer journey home</h2><p>Complete your check, then start a timed check-in when you leave.</p></div><strong>{{ nightReadyCount }}/{{ nightChecklistItems.length }} ready</strong></div>
+      <div class="mode-checklist"><label v-for="item in nightChecklistItems" :key="item.key"><input v-model="nightChecklist[item.key]" type="checkbox" @change="saveNightChecklist" /><span>{{ item.label }}</span><i :class="nightChecklist[item.key] ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i></label></div>
+      <div class="mode-action-row"><button v-for="minutes in [15, 30, 60]" :key="minutes" @click="startNightCheckin(minutes)">Start {{ minutes }} min check-in</button><button class="btn btn-sos" @click="startPanicCountdown"><i class="bi bi-exclamation-triangle-fill"></i> Quick alert</button></div>
+      <small class="mode-tools-note">Quick alert starts the existing five-second SOS countdown; it does not send an alert automatically.</small>
+    </section>
+
+    <section v-if="selectedPlan === 'Travel mode'" class="hub-panel mode-tools-panel travel-mode-panel">
+      <div class="mode-tools-heading"><span class="mode-tools-icon"><i class="bi bi-airplane-engines-fill"></i></span><div><p class="eyebrow">TRAVEL MODE</p><h2>Share a plan and check in on arrival</h2><p>Save your destination, choose a check-in window, and confirm when you arrive.</p></div></div>
+      <form class="trip-form" @submit.prevent="startTrip"><label>Destination<input v-model="tripDestination" required maxlength="120" placeholder="e.g. Rosebank Mall" /></label><label>Expected arrival<input v-model="tripArrival" required type="datetime-local" /></label><label>Check-in window<select v-model.number="tripDuration"><option :value="30">30 minutes</option><option :value="60">60 minutes</option><option :value="90">90 minutes</option></select></label><button class="btn btn-dark-plum" type="submit"><i class="bi bi-play-circle"></i> Start trip</button></form>
+      <div v-if="activeTrip" class="trip-status" :class="{ complete: !activeTrip.active }"><span><i :class="activeTrip.active ? 'bi bi-geo-alt-fill' : 'bi bi-check-circle-fill'"></i></span><div><strong>{{ activeTrip.active ? `Trip to ${activeTrip.destination}` : `Arrived at ${activeTrip.destination}` }}</strong><small>Expected arrival: {{ new Date(activeTrip.arrival).toLocaleString() }}</small></div><button v-if="activeTrip.active" class="btn btn-dark-plum" @click="arriveSafely">I arrived safely</button><button class="hub-mini-action" aria-label="Clear saved trip" @click="clearTrip"><i class="bi bi-x-lg"></i></button></div>
+      <p v-if="tripNotice" class="mode-tools-note">{{ tripNotice }}</p>
+      <div class="travel-readiness"><span><i :class="locationReady ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i> Location {{ locationReady ? "ready" : "not ready" }}</span><span><i :class="contacts.length ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i> {{ contacts.length ? `${contacts.length} trusted contact${contacts.length === 1 ? "" : "s"} ready` : "Add a trusted contact" }}</span><button @click="emit('share')"><i class="bi bi-send"></i> Share route</button></div>
+    </section>
     <section class="hub-panel checkin-panel">
       <div>
         <h2>{{ t("checkinTimer") }}</h2>
@@ -403,7 +481,13 @@ onBeforeUnmount(() => {
           @click="startTimer(minutes)"
         >
           {{ minutes }} min</button
-        ><button class="btn btn-dark-plum" @click="checkInNow">
+        ><div class="checkin-custom-time">
+          <span>Custom time</span>
+          <button type="button" aria-label="Decrease check-in time by five minutes" @click="adjustCustomCheckin(-5)"><i class="bi bi-dash-lg"></i></button>
+          <strong>{{ customCheckinMinutes }} min</strong>
+          <button type="button" aria-label="Increase check-in time by five minutes" @click="adjustCustomCheckin(5)"><i class="bi bi-plus-lg"></i></button>
+          <button type="button" class="checkin-custom-start" @click="startCustomCheckin">Start</button>
+        </div><button class="btn btn-dark-plum" @click="checkInNow">
           <i class="bi bi-check-circle"></i> Check in now
         </button>
         <button class="btn btn-dark-plum" @click="emit('share')">

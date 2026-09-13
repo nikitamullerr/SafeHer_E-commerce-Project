@@ -7711,3 +7711,53 @@ body,
 .app-shell.dark-mode .featured-product-copy h2 {
   color: var(--plum) !important;
 }
+
+/* Safety Hub: Night and Travel mode tools */
+.mode-tools-panel { margin-top: 22px; }
+.mode-tools-heading { display: flex; gap: 14px; align-items: flex-start; }
+.mode-tools-heading > div { flex: 1; }
+.mode-tools-heading h2 { font: 700 22px "Syne"; color: var(--plum); margin: 0 0 7px; }
+.mode-tools-heading p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.mode-tools-heading .eyebrow { color: var(--red); font-size: 10px; font-weight: 700; letter-spacing: .1em; margin-bottom: 5px; }
+.mode-tools-heading > strong { white-space: nowrap; color: var(--plum); background: var(--blush); padding: 8px 10px; font-size: 11px; }
+.mode-tools-icon { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 42px; border-radius: 50%; background: var(--plum); color: #fff; }
+.travel-mode-panel .mode-tools-icon { background: var(--red); }
+.mode-checklist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 22px 0 16px; }
+.mode-checklist label { display: flex; align-items: center; gap: 9px; padding: 12px; border: 1px solid var(--line); color: var(--ink); font-size: 12px; cursor: pointer; }
+.mode-checklist input { accent-color: var(--red); }
+.mode-checklist span { flex: 1; }
+.mode-checklist i, .travel-readiness i { color: var(--red); }
+.mode-action-row, .travel-readiness { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.mode-action-row > button:not(.btn), .travel-readiness button { border: 1px solid var(--line); padding: 10px 12px; color: var(--plum); background: #fff; font-size: 11px; font-weight: 700; }
+.mode-action-row > button:not(.btn):hover, .travel-readiness button:hover { border-color: var(--red); color: var(--red); }
+.mode-tools-note { display: block; margin-top: 13px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.trip-form { display: grid; grid-template-columns: 1.2fr 1fr .8fr auto; gap: 12px; align-items: end; margin: 22px 0 14px; }
+.trip-form label { color: var(--plum); font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+.trip-form input, .trip-form select { width: 100%; display: block; margin-top: 6px; padding: 11px; border: 1px solid var(--line); color: var(--ink); background: #fff; font: 12px "DM Sans"; }
+.trip-status { display: flex; align-items: center; gap: 11px; background: #f8f2f6; border: 1px solid #ead8e2; padding: 13px; }
+.trip-status.complete { background: #eff8f1; border-color: #cfe6d4; }
+.trip-status > span { color: var(--red); font-size: 19px; }
+.trip-status.complete > span { color: #2e9e5b; }
+.trip-status > div { flex: 1; }
+.trip-status strong, .trip-status small { display: block; }
+.trip-status strong { color: var(--plum); font-size: 12px; }
+.trip-status small { color: var(--muted); font-size: 10px; margin-top: 3px; }
+.travel-readiness { margin-top: 15px; font-size: 11px; color: var(--muted); }
+.travel-readiness span { display: inline-flex; align-items: center; gap: 5px; }
+.travel-readiness button { margin-left: auto; }
+.dark-mode .mode-tools-heading h2, .dark-mode .trip-status strong { color: #fff; }
+.dark-mode .mode-checklist, .dark-mode .trip-form input, .dark-mode .trip-form select, .dark-mode .mode-action-row > button:not(.btn), .dark-mode .travel-readiness button { background: #2b202b; color: #f4eaf1; border-color: #604d60; }
+.dark-mode .trip-status { background: #382a38; border-color: #604d60; }
+.dark-mode .trip-status.complete { background: #24382a; border-color: #42624b; }
+@media (max-width: 780px) { .mode-checklist { grid-template-columns: 1fr; } .trip-form { grid-template-columns: 1fr; } .trip-form .btn { width: 100%; } .mode-tools-heading { flex-wrap: wrap; } .mode-tools-heading > strong { margin-left: 56px; } .travel-readiness button { margin-left: 0; } .trip-status { flex-wrap: wrap; } }
+
+/* Adjustable Safety Hub check-in controls */
+.checkin-custom-time { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); padding: 5px 7px 5px 10px; background: #fff; color: var(--plum); }
+.checkin-custom-time > span { color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.checkin-custom-time strong { min-width: 48px; text-align: center; font-size: 11px; }
+.checkin-custom-time > button { width: 26px; height: 26px; display: grid; place-items: center; border: 1px solid var(--line); color: var(--plum); background: #fff; }
+.checkin-custom-time > button:hover { border-color: var(--red); color: var(--red); }
+.checkin-custom-time > .checkin-custom-start { width: auto; padding: 0 9px; background: var(--plum); border-color: var(--plum); color: #fff; font-weight: 700; font-size: 10px; }
+.dark-mode .checkin-custom-time, .dark-mode .checkin-custom-time > button { color: #f4eaf1; background: #2b202b; border-color: #604d60; }
+.dark-mode .checkin-custom-time > .checkin-custom-start { background: #f2b6c6; border-color: #f2b6c6; color: var(--plum); }
+@media (max-width: 780px) { .checkin-custom-time { width: 100%; justify-content: center; } }
