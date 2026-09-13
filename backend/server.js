@@ -3,11 +3,14 @@ import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
 import routes from "./routes/index.js";
+import { ensureRequiredOrderColumns } from "./database/ensureSchema.js";
 
 dotenv.config({ path: new URL('./.env', import.meta.url) });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+await ensureRequiredOrderColumns();
 
 // Middleware
 app.use(helmet());

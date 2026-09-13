@@ -82,7 +82,7 @@ export const PremiumService = {
     );
 
     const expiresAt = new Date();
-    if (plan === "annual") {
+    if (plan === "Annual") {
       expiresAt.setFullYear(expiresAt.getFullYear() + 1);
     } else {
       expiresAt.setMonth(expiresAt.getMonth() + 1);

@@ -208,18 +208,19 @@ export const getSubscription = async (req, res) => {
 export const subscribe = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { plan, amount, method, receipt_email, reference } = req.body;
+        const { plan, method, receipt_email, reference } = req.body || {};
+        const prices = { Essential: 49, Circle: 89, Annual: 899 };
 
-        if (!plan || !amount) {
+        if (!Object.hasOwn(prices, plan)) {
             return res.status(400).json({
                 success: false,
-                error: 'Plan and amount are required'
+                error: 'Choose Essential, Circle or Annual'
             });
         }
 
         const updated = await PremiumService.upsertSubscription(userId, {
             plan,
-            amount,
+            amount: prices[plan],
             method: method || 'card',
             receipt_email: receipt_email || req.user.email,
             reference: reference || `SUB-${Date.now()}`

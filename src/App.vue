@@ -440,18 +440,10 @@ function contactTrustedPerson() {
 
 // ----- Checkout -----
 const checkoutOpen = ref(false);
-const checkoutMethod = ref("payfast");
+const checkoutMethod = ref("card");
 function checkout() {
   if (!cart.value.length) return;
-  if (!isAuthenticated.value) return requireSignIn({ type: "checkout", method: "payfast" });
-  checkoutMethod.value = "payfast";
-  checkoutOpen.value = true;
-  cartOpen.value = false;
-}
-function openCardPayment() {
-  if (!cart.value.length) return;
-  if (!isAuthenticated.value) return requireSignIn({ type: "checkout", method: "card_demo" });
-  checkoutMethod.value = "card_demo";
+  checkoutMethod.value = "card";
   checkoutOpen.value = true;
   cartOpen.value = false;
 }
@@ -612,7 +604,6 @@ onMounted(() => {
         @remove="removeFromCart"
         @checkout="checkout"
         @shop="navigate('products')"
-        @card-payment="openCardPayment"
       />
       <section v-if="['products', 'store-all'].includes(activeView)" class="container-fluid px-4 py-3" aria-live="polite">
         <p v-if="productsLoading" role="status">{{ t("Loading products...") }}</p>

@@ -1,16 +1,22 @@
 import crypto from "node:crypto";
 
-const encode = (value) => encodeURIComponent(String(value).trim())
-  .replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)
-  .replace(/%20/g, "+");
-const parameters = (data) => Object.entries(data)
+const encode = (value) => encodeURIComponent(String(value).trim());
+
+const sortedParameters = (data) => Object.entries(data)
   .filter(([key, value]) => key !== "signature" && value !== undefined && value !== null && value !== "")
-  .map(([key, value]) => `${key}=${encode(value)}`).join("&");
+  .sort(([left], [right]) => left.localeCompare(right))
+  .map(([key, value]) => `${key}=${encode(value)}`)
+  .join("&");
+
 const host = () => process.env.PAYFAST_SANDBOX === "false" ? "https://www.payfast.co.za" : "https://sandbox.payfast.co.za";
+
+export function buildPayfastParameterString(data) {
+  return sortedParameters(data);
+}
 
 export function createPayfastSignature(data) {
   const passphrase = process.env.PAYFAST_PASSPHRASE;
-  const content = parameters(data) + (passphrase ? `&passphrase=${encode(passphrase)}` : "");
+  const content = `${sortedParameters(data)}${passphrase ? `&passphrase=${encode(passphrase)}` : ""}`;
   return crypto.createHash("md5").update(content).digest("hex");
 }
 
@@ -27,10 +33,14 @@ export function isValidPayfastSignature(payload) {
 
 export async function verifyPayfastNotification(payload) {
   if (!isValidPayfastSignature(payload)) return false;
+  const parameterString = buildPayfastParameterString({
+    ...payload,
+    ...(process.env.PAYFAST_PASSPHRASE ? { passphrase: process.env.PAYFAST_PASSPHRASE } : {}),
+  });
   const response = await fetch(`${host()}/eng/query/validate`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: parameters(payload),
+    body: parameterString,
     signal: AbortSignal.timeout(10000),
   });
   return response.ok && (await response.text()).trim() === "VALID";

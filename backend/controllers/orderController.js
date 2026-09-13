@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import { deliveryFee } from "../../shared/delivery.js";
 import { sendOrderConfirmationEmail, resendOrderConfirmationEmail } from "../utils/orderEmailService.js";
 
 const ORDER_STATUSES = ["Confirmed", "Packed", "Out for delivery", "Delivered"];
@@ -110,21 +111,23 @@ export const createOrder = async (req, res) => {
 			return res.status(400).json({ success: false, error: "One or more products are unavailable" });
 		}
 
-		let total = DELIVERY_FEES[deliveryMethod] || 0;
+		let subtotalCents = 0;
 		for (const [productId, quantity] of requestedItems) {
 			const product = productsById.get(productId);
 			if (product.stock < quantity) {
 				await connection.rollback();
 				return res.status(409).json({ success: false, error: `${product.name} does not have enough stock` });
 			}
-			total += Number(product.price) * quantity;
+			subtotalCents += Math.round(Number(product.price) * 100) * quantity;
 		}
+		const fee = deliveryFee(subtotalCents, DELIVERY_FEES[deliveryMethod]);
+		const total = subtotalCents / 100 + fee;
 
 		const orderNumber = `SH-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
 		const [orderResult] = await connection.query(
 			`INSERT INTO orders
-				(user_id, order_number, total, delivery_address, delivery_method, payment_method, notes)
-			 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+				(user_id, order_number, total, delivery_address, delivery_method, payment_method, notes, subtotal, delivery_fee)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			[
 				req.user.id,
 				orderNumber,
@@ -133,6 +136,8 @@ export const createOrder = async (req, res) => {
 				deliveryMethod || null,
 				paymentMethod || null,
 				notes || null,
+				subtotalCents / 100,
+				fee,
 			],
 		);
 
