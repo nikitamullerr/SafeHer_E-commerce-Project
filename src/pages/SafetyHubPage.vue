@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import Swal from "sweetalert2";
 import LiveMap from "../components/LiveMap.vue";
 import { t } from "../languageConfig.js";
+import api from "../services/api.js";
 import checkinService from "../services/checkinService.js";
 
 const props = defineProps({
@@ -11,6 +12,7 @@ const props = defineProps({
   userLocation: Object,
   locationLoading: Boolean,
   locationError: String,
+  premiumMembership: Object,
 });
 const emit = defineEmits([
   "add-contact",
@@ -22,198 +24,14 @@ const emit = defineEmits([
   "call-contact",
   "message-contact",
 ]);
-const checkInMinutes = ref(0);
-const checkInSeconds = ref(0);
+const checkInMinutes = ref(0), checkInSeconds = ref(0);
 const customCheckinMinutes = ref(30);
-const checkInStatus = ref(localStorage.getItem("safeher-checkin-status") || "Not checked in yet");
-const panicStatus = ref("Ready");
-const panicCountdown = ref(0);
-const selectedPlan = ref(localStorage.getItem("safeher-active-plan") || "Home mode");
+const checkInStatus = ref("Not checked in yet");
+const checkInStatusText = computed(() => t(checkInStatus.value));
+const panicStatus = ref("Ready"), panicCountdown = ref(0);
+const selectedPlan = ref("Home mode");
 const safetyPlans = ["Home mode", "Travel mode", "Night mode"];
 const nightChecklist = ref({ phoneCharged: false, locationReady: false, contactSelected: false, routePlanned: false });
-const tripDestination = ref("");
-const tripArrival = ref("");
-const tripDuration = ref(60);
-const activeTrip = ref(null);
-const tripNotice = ref("");
-const orders = ref([]);
-const orderStages = ["Confirmed", "Packed", "Out for delivery", "Delivered"];
-let timer;
-
-async function startTimer(minutes) {
-  try {
-    clearInterval(timer);
-
-    checkInStatus.value = "Starting check-in...";
-
-    const response = await checkinService.start(minutes);
-
-    if (!response.success) {
-      throw new Error(response.error || "Failed to start check-in");
-    }
-
-    const checkin = response.checkin;
-
-    // Set the timer numbers
-    checkInMinutes.value = checkin.duration_minutes;
-    checkInSeconds.value = 0;
-
-    checkInStatus.value =
-      `Timer started • ${checkin.duration_minutes} minute check-in`;
-
-    localStorage.setItem(
-      "safeher-checkin-status",
-      checkInStatus.value
-    );
-
-    localStorage.setItem(
-      "safeher-active-checkin-id",
-      checkin.id
-    );
-
-    // Countdown
-    timer = setInterval(() => {
-      if (
-        checkInMinutes.value === 0 &&
-        checkInSeconds.value === 0
-      ) {
-        clearInterval(timer);
-
-        checkinService.updateStatus(
-          checkin.id,
-          "missed"
-        ).catch((error) => {
-          console.error("Failed to update missed check-in:", error);
-        });
-
-        checkInStatus.value = "Check-in missed";
-
-        localStorage.setItem(
-          "safeher-checkin-status",
-          "Check-in missed"
-        );
-
-        localStorage.removeItem(
-          "safeher-active-checkin-id"
-        );
-
-        showMissedCheckinAlert();
-        return;
-      }
-
-      if (checkInSeconds.value === 0) {
-        checkInMinutes.value -= 1;
-        checkInSeconds.value = 59;
-      } else {
-        checkInSeconds.value -= 1;
-      }
-    }, 1000);
-
-  } catch (error) {
-    console.error("Start check-in error:", error);
-
-    checkInStatus.value =
-      error.response?.data?.error ||
-      error.message ||
-      "Failed to start check-in";
-  }
-}
-
-function adjustCustomCheckin(minutes) {
-  customCheckinMinutes.value = Math.min(240, Math.max(5, customCheckinMinutes.value + minutes));
-}
-
-function startCustomCheckin() {
-  startTimer(customCheckinMinutes.value);
-}
-
-async function showMissedCheckinAlert() {
-  const result = await Swal.fire({
-    icon: "warning",
-    title: "Check-in missed",
-    text: "We did not receive your check-in. Choose an action now.",
-    showDenyButton: true,
-    showCancelButton: true,
-    confirmButtonText: "Send SOS to contacts",
-    denyButtonText: `Add ${customCheckinMinutes.value} minutes`,
-    cancelButtonText: "Dismiss",
-    confirmButtonColor: "#d92d36",
-    denyButtonColor: "#351536",
-  });
-
-  if (result.isConfirmed) emit("sos-all");
-  else if (result.isDenied) startCustomCheckin();
-}
-async function checkInNow() {
-  try {
-    const checkinId = localStorage.getItem(
-      "safeher-active-checkin-id"
-    );
-
-    // If there is no active backend check-in,
-    // simply show the current status.
-    if (!checkinId) {
-      checkInStatus.value = "Checked in • safe and active";
-
-      localStorage.setItem(
-        "safeher-checkin-status",
-        checkInStatus.value
-      );
-
-      clearInterval(timer);
-
-      checkInMinutes.value = 0;
-      checkInSeconds.value = 0;
-
-      return;
-    }
-
-    const response = await checkinService.updateStatus(
-      checkinId,
-      "completed"
-    );
-
-    if (!response.success) {
-      throw new Error(
-        response.error || "Failed to complete check-in"
-      );
-    }
-
-    clearInterval(timer);
-
-    checkInMinutes.value = 0;
-    checkInSeconds.value = 0;
-
-    checkInStatus.value = "Checked in • safe and active";
-
-    localStorage.setItem(
-      "safeher-checkin-status",
-      checkInStatus.value
-    );
-
-    localStorage.removeItem(
-      "safeher-active-checkin-id"
-    );
-
-    if (props.contacts.length) {
-      emit("message-contact", props.contacts[0]);
-    }
-  } catch (error) {
-    console.error("Complete check-in error:", error);
-
-    checkInStatus.value =
-      error.response?.data?.error ||
-      error.message ||
-      "Failed to complete check-in";
-  }
-}
-
-function setSafetyPlan(plan) {
-  selectedPlan.value = plan;
-  localStorage.setItem("safeher-active-plan", plan);
-  panicStatus.value = `${plan} active`;
-}
-
 const nightChecklistItems = [
   { key: "phoneCharged", label: "My phone is charged" },
   { key: "locationReady", label: "Location sharing is ready" },
@@ -221,76 +39,114 @@ const nightChecklistItems = [
   { key: "routePlanned", label: "I have planned a safer route" },
 ];
 const nightReadyCount = computed(() => Object.values(nightChecklist.value).filter(Boolean).length);
-function saveNightChecklist() { localStorage.setItem("safeher-night-checklist", JSON.stringify(nightChecklist.value)); }
-function startNightCheckin(minutes) { startTimer(minutes); panicStatus.value = `Night check-in started for ${minutes} minutes`; }
-function saveTrip() { localStorage.setItem("safeher-active-trip", JSON.stringify(activeTrip.value)); }
-async function startTrip() {
-  const destination = tripDestination.value.trim();
-  if (!destination || !tripArrival.value) { tripNotice.value = "Add a destination and expected arrival time to start your trip."; return; }
-  activeTrip.value = { destination, arrival: tripArrival.value, duration: Number(tripDuration.value), startedAt: new Date().toISOString(), active: true };
-  saveTrip(); tripNotice.value = `Trip to ${destination} is active. Check in when you arrive.`; await startTimer(Number(tripDuration.value));
-}
-async function arriveSafely() {
-  await checkInNow();
-  if (activeTrip.value) { activeTrip.value = { ...activeTrip.value, active: false, arrivedAt: new Date().toISOString() }; saveTrip(); }
-  tripNotice.value = "Arrival recorded. Your check-in has been completed.";
-}
-function clearTrip() { activeTrip.value = null; tripDestination.value = ""; tripArrival.value = ""; tripNotice.value = "Trip cleared."; localStorage.removeItem("safeher-active-trip"); }
-function startPanicCountdown() {
-  clearInterval(panicTimer);
-  panicCountdown.value = 5;
-  panicStatus.value = "Panic countdown started";
+const tripDestination = ref(""), tripArrival = ref(""), tripDuration = ref(60);
+const activeTrip = ref(null), tripNotice = ref("");
+const completedCheckins = ref(0), activeCheckin = ref(null);
+const hubError = ref(""), hubBusy = ref(false), hubLoading = ref(true);
+let timer, panicTimer, pollTimer, expiresAt = 0, clockOffset = 0, loadingState = false, disposed = false;
+let lastMissedId = null;
 
-  panicTimer = setInterval(() => {
-    if (panicCountdown.value <= 1) {
-      clearInterval(panicTimer);
-      panicCountdown.value = 0;
-      panicStatus.value = "SOS triggered";
-      emit("sos");
-      return;
+function displayCheckins(checkins, serverTime) {
+  clockOffset = serverTime ? Date.parse(serverTime) - Date.now() : clockOffset;
+  activeCheckin.value = checkins.find(item => item.status === "active") || null;
+  clearInterval(timer);
+  if (activeCheckin.value) {
+    expiresAt = Date.parse(activeCheckin.value.expires_at);
+    checkInStatus.value = "Check-in active";
+    const tick = () => {
+      const seconds = Math.max(0, Math.ceil((expiresAt - Date.now() - clockOffset) / 1000));
+      checkInMinutes.value = Math.floor(seconds / 60);
+      checkInSeconds.value = seconds % 60;
+      if (!seconds) { clearInterval(timer); loadState(); }
+    };
+    tick(); timer = setInterval(tick, 1000);
+  } else {
+    checkInMinutes.value = 0; checkInSeconds.value = 0;
+    const latest = checkins[0];
+    checkInStatus.value = latest?.status === "completed" ? "Check-in completed" : latest?.status === "missed" ? "Check-in missed" : "Not checked in yet";
+    if (latest?.status === "missed" && lastMissedId !== latest.id) {
+      lastMissedId = latest.id;
+      showMissedCheckinAlert();
     }
-    panicCountdown.value -= 1;
-  }, 1000);
-}
-
-function cancelPanicCountdown() {
-  clearInterval(panicTimer);
-  panicCountdown.value = 0;
-  panicStatus.value = "Countdown cancelled";
-}
-
-function loadOrders() {
-  try {
-    orders.value = JSON.parse(localStorage.getItem("safeher-orders") || "[]");
-  } catch {
-    orders.value = [];
   }
 }
-
-function advanceOrder(orderId) {
-  const targetOrder = orders.value.find((order) => order.id === orderId);
-  if (!targetOrder) return;
-  const currentIndex = orderStages.indexOf(targetOrder.status || "Confirmed");
-  const nextIndex = Math.min(currentIndex + 1, orderStages.length - 1);
-  targetOrder.status = orderStages[nextIndex];
-  localStorage.setItem("safeher-orders", JSON.stringify(orders.value));
-  orders.value = [...orders.value];
-}
-
-const latestOrder = computed(() => orders.value[orders.value.length - 1]);
-
-onMounted(() => {
-  loadOrders();
+async function loadState() {
+  if (loadingState) return;
+  loadingState = true;
   try {
-    const savedChecklist = JSON.parse(localStorage.getItem("safeher-night-checklist") || "null");
-    if (savedChecklist) nightChecklist.value = { ...nightChecklist.value, ...savedChecklist };
-    const savedTrip = JSON.parse(localStorage.getItem("safeher-active-trip") || "null");
-    if (savedTrip) { activeTrip.value = savedTrip; tripDestination.value = savedTrip.destination || ""; tripArrival.value = savedTrip.arrival || ""; tripDuration.value = savedTrip.duration || 60; }
-  } catch { localStorage.removeItem("safeher-night-checklist"); localStorage.removeItem("safeher-active-trip"); }
+    const { data } = await api.get("/safety-hub/state");
+    if (disposed) return;
+    selectedPlan.value = data.state.selectedPlan;
+    nightChecklist.value = data.state.nightChecklist;
+    activeTrip.value = data.state.trip;
+    completedCheckins.value = data.completedCheckins;
+    displayCheckins(data.checkins, data.serverTime);
+    hubError.value = "";
+  } catch (error) { hubError.value = error.response?.data?.error || "Unable to load your safety data. Please try again."; }
+  finally { loadingState = false; hubLoading.value = false; }
+}
+async function perform(action) {
+  if (hubBusy.value || hubLoading.value || loadingState) return false;
+  hubBusy.value = true; hubError.value = "";
+  try { await action(); await loadState(); return true; }
+  catch (error) { hubError.value = error.response?.data?.error || error.message || "Unable to save safety data."; return false; }
+  finally { hubBusy.value = false; }
+}
+async function startTimer(minutes) {
+  return perform(() => checkinService.start(Number(minutes)));
+}
+function adjustCustomCheckin(minutes) { customCheckinMinutes.value = Math.min(240, Math.max(5, customCheckinMinutes.value + minutes)); }
+function startCustomCheckin() { return startTimer(customCheckinMinutes.value); }
+async function checkInNow() {
+  if (!activeCheckin.value) { hubError.value = "Start a check-in before confirming that you are safe."; return false; }
+  return perform(() => checkinService.updateStatus(activeCheckin.value.id, "completed"));
+}
+async function showMissedCheckinAlert() {
+  const result = await Swal.fire({ icon: "warning", title: "Check-in missed", text: "Your check-in time has passed. Choose an action.", showDenyButton: true, showCancelButton: true, confirmButtonText: "Send SOS to contacts", denyButtonText: "Start another check-in", cancelButtonText: "Dismiss" });
+  if (result.isConfirmed) emit("sos-all");
+  else if (result.isDenied) startCustomCheckin();
+}
+function setSafetyPlan(plan) { return perform(() => api.put("/safety-hub/state", { selectedPlan: plan })); }
+async function saveNightChecklist() {
+  const saved = await perform(() => api.put("/safety-hub/state", { nightChecklist: { ...nightChecklist.value } }));
+  if (!saved) {
+    const error = hubError.value;
+    await loadState();
+    hubError.value = error;
+  }
+}
+function startNightCheckin(minutes) { return startTimer(minutes); }
+async function startTrip() {
+  if (!tripDestination.value.trim() || !tripArrival.value) { tripNotice.value = "Add a destination and expected arrival time to start your trip."; return; }
+  const saved = await perform(() => api.post("/safety-hub/trips", {
+    destination: tripDestination.value.trim(), arrival: new Date(tripArrival.value).toISOString(), duration: Number(tripDuration.value),
+  }));
+  if (saved) tripNotice.value = "Trip and check-in saved to your account.";
+}
+async function arriveSafely() {
+  if (await perform(() => api.post("/safety-hub/trips/arrive"))) tripNotice.value = "Arrival and completed check-in saved.";
+}
+async function clearTrip() {
+  if (await perform(() => api.delete("/safety-hub/trips"))) {
+    tripDestination.value = ""; tripArrival.value = "";
+    tripNotice.value = "Saved trip cleared. Any active check-in remains running.";
+  }
+}
+function startPanicCountdown() {
+  clearInterval(panicTimer); panicCountdown.value = 5; panicStatus.value = "Panic countdown started";
+  panicTimer = setInterval(() => {
+    if (--panicCountdown.value <= 0) {
+      clearInterval(panicTimer); panicStatus.value = "Opening SOS"; emit("sos", { skipCountdown: true });
+    }
+  }, 1000);
+}
+function cancelPanicCountdown() { clearInterval(panicTimer); panicCountdown.value = 0; panicStatus.value = "Countdown cancelled"; }
+onMounted(async () => {
+  await loadState();
+  if (disposed) return;
+  pollTimer = setInterval(() => { if (!hubBusy.value) loadState(); }, 15000);
 });
-onBeforeUnmount(() => {
-  clearInterval(timer);
-});
+onBeforeUnmount(() => { disposed = true; clearInterval(timer); clearInterval(panicTimer); clearInterval(pollTimer); });
 </script>
 <template>
   <main class="hub-page container-fluid px-4 px-xl-5">
@@ -301,10 +157,12 @@ onBeforeUnmount(() => {
         <p>{{ t("hubLead") }}</p>
       </div>
       <div class="hub-plan">
-        <small>{{ t("SAFEHER PLAN") }}</small><strong>{{ t("Community") }}</strong
+        <small>{{ t("SAFEHER PLAN") }}</small><strong>{{ t(premiumMembership?.name || "Community") }}</strong
         ><span>{{ t("Always protected") }}</span>
       </div>
     </div>
+    <p v-if="hubLoading" role="status">{{ t("Loading safety data...") }}</p>
+    <p v-if="hubError" role="alert">{{ hubError }} <button @click="loadState">{{ t("Retry") }}</button></p>
     <section class="hub-metrics">
       <article class="hub-sos-card">
         <div class="hub-card-title">
@@ -334,11 +192,11 @@ onBeforeUnmount(() => {
         <i class="bi bi-check-square-fill"></i
         ><strong>{{ String(checkInMinutes).padStart(2, "0") }}:{{String(checkInSeconds).padStart(2, "0")}}
         </strong><b>{{ t("checkins") }}</b
-        ><small>This session</small>
+        ><small>{{ t("This session") }}</small>
         </article>
         <article class="hub-stat">
-        <i class="bi bi-shield-fill"></i><strong>24/7</strong
-        ><b>{{ t("Safe Hours Logged") }}</b><small>{{ t("Since joining SafeHer") }}</small>
+        <i class="bi bi-shield-fill"></i><strong>{{ completedCheckins }}</strong
+        ><b>{{ t("Completed check-ins") }}</b><small>{{ t("Since joining SafeHer") }}</small>
       </article>
     </section>
     <section class="hub-main-grid">
@@ -424,7 +282,7 @@ onBeforeUnmount(() => {
           v-for="plan in safetyPlans"
           :key="plan"
           :class="{ active: selectedPlan === plan }"
-          @click="setSafetyPlan(plan)"
+          :disabled="hubBusy || hubLoading" @click="setSafetyPlan(plan)"
         >
           {{ plan }}
         </button>
@@ -444,15 +302,15 @@ onBeforeUnmount(() => {
 
     <section v-if="selectedPlan === 'Night mode'" class="hub-panel mode-tools-panel night-mode-panel">
       <div class="mode-tools-heading"><span class="mode-tools-icon"><i class="bi bi-moon-stars-fill"></i></span><div><p class="eyebrow">NIGHT MODE</p><h2>Get ready for a safer journey home</h2><p>Complete your check, then start a timed check-in when you leave.</p></div><strong>{{ nightReadyCount }}/{{ nightChecklistItems.length }} ready</strong></div>
-      <div class="mode-checklist"><label v-for="item in nightChecklistItems" :key="item.key"><input v-model="nightChecklist[item.key]" type="checkbox" @change="saveNightChecklist" /><span>{{ item.label }}</span><i :class="nightChecklist[item.key] ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i></label></div>
-      <div class="mode-action-row"><button v-for="minutes in [15, 30, 60]" :key="minutes" @click="startNightCheckin(minutes)">Start {{ minutes }} min check-in</button><button class="btn btn-sos" @click="startPanicCountdown"><i class="bi bi-exclamation-triangle-fill"></i> Quick alert</button></div>
+      <div class="mode-checklist"><label v-for="item in nightChecklistItems" :key="item.key"><input v-model="nightChecklist[item.key]" type="checkbox" :disabled="hubBusy || hubLoading" @change="saveNightChecklist" /><span>{{ item.label }}</span><i :class="nightChecklist[item.key] ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i></label></div>
+      <div class="mode-action-row"><button v-for="minutes in [15, 30, 60]" :key="minutes" :disabled="hubBusy || hubLoading" @click="startNightCheckin(minutes)">Start {{ minutes }} min check-in</button><button class="btn btn-sos" @click="startPanicCountdown"><i class="bi bi-exclamation-triangle-fill"></i> Quick alert</button></div>
       <small class="mode-tools-note">Quick alert starts the existing five-second SOS countdown; it does not send an alert automatically.</small>
     </section>
 
     <section v-if="selectedPlan === 'Travel mode'" class="hub-panel mode-tools-panel travel-mode-panel">
       <div class="mode-tools-heading"><span class="mode-tools-icon"><i class="bi bi-airplane-engines-fill"></i></span><div><p class="eyebrow">TRAVEL MODE</p><h2>Share a plan and check in on arrival</h2><p>Save your destination, choose a check-in window, and confirm when you arrive.</p></div></div>
-      <form class="trip-form" @submit.prevent="startTrip"><label>Destination<input v-model="tripDestination" required maxlength="120" placeholder="e.g. Rosebank Mall" /></label><label>Expected arrival<input v-model="tripArrival" required type="datetime-local" /></label><label>Check-in window<select v-model.number="tripDuration"><option :value="30">30 minutes</option><option :value="60">60 minutes</option><option :value="90">90 minutes</option></select></label><button class="btn btn-dark-plum" type="submit"><i class="bi bi-play-circle"></i> Start trip</button></form>
-      <div v-if="activeTrip" class="trip-status" :class="{ complete: !activeTrip.active }"><span><i :class="activeTrip.active ? 'bi bi-geo-alt-fill' : 'bi bi-check-circle-fill'"></i></span><div><strong>{{ activeTrip.active ? `Trip to ${activeTrip.destination}` : `Arrived at ${activeTrip.destination}` }}</strong><small>Expected arrival: {{ new Date(activeTrip.arrival).toLocaleString() }}</small></div><button v-if="activeTrip.active" class="btn btn-dark-plum" @click="arriveSafely">I arrived safely</button><button class="hub-mini-action" aria-label="Clear saved trip" @click="clearTrip"><i class="bi bi-x-lg"></i></button></div>
+      <form class="trip-form" @submit.prevent="startTrip"><label>Destination<input v-model="tripDestination" required maxlength="120" placeholder="e.g. Rosebank Mall" /></label><label>Expected arrival<input v-model="tripArrival" required type="datetime-local" /></label><label>Check-in window<select v-model.number="tripDuration"><option :value="30">30 minutes</option><option :value="60">60 minutes</option><option :value="90">90 minutes</option></select></label><button class="btn btn-dark-plum" type="submit" :disabled="hubBusy || hubLoading"><i class="bi bi-play-circle"></i> Start trip</button></form>
+      <div v-if="activeTrip" class="trip-status" :class="{ complete: !activeTrip.active }"><span><i :class="activeTrip.active ? 'bi bi-geo-alt-fill' : 'bi bi-check-circle-fill'"></i></span><div><strong>{{ activeTrip.active ? `Trip to ${activeTrip.destination}` : `Arrived at ${activeTrip.destination}` }}</strong><small>Expected arrival: {{ new Date(activeTrip.arrival).toLocaleString() }}</small></div><button v-if="activeTrip.active" class="btn btn-dark-plum" :disabled="hubBusy || hubLoading" @click="arriveSafely">I arrived safely</button><button class="hub-mini-action" aria-label="Clear saved trip" :disabled="hubBusy || hubLoading" @click="clearTrip"><i class="bi bi-x-lg"></i></button></div>
       <p v-if="tripNotice" class="mode-tools-note">{{ tripNotice }}</p>
       <div class="travel-readiness"><span><i :class="locationReady ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i> Location {{ locationReady ? "ready" : "not ready" }}</span><span><i :class="contacts.length ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i> {{ contacts.length ? `${contacts.length} trusted contact${contacts.length === 1 ? "" : "s"} ready` : "Add a trusted contact" }}</span><button @click="emit('share')"><i class="bi bi-send"></i> Share route</button></div>
     </section>
@@ -474,7 +332,7 @@ onBeforeUnmount(() => {
         <button
           v-for="minutes in [15, 30, 60, 90]"
           :key="minutes"
-          @click="startTimer(minutes)"
+          :disabled="hubBusy || hubLoading" @click="startTimer(minutes)"
         >
           {{ minutes }} min</button
         ><div class="checkin-custom-time">
@@ -482,8 +340,8 @@ onBeforeUnmount(() => {
           <button type="button" aria-label="Decrease check-in time by five minutes" @click="adjustCustomCheckin(-5)"><i class="bi bi-dash-lg"></i></button>
           <strong>{{ customCheckinMinutes }} min</strong>
           <button type="button" aria-label="Increase check-in time by five minutes" @click="adjustCustomCheckin(5)"><i class="bi bi-plus-lg"></i></button>
-          <button type="button" class="checkin-custom-start" @click="startCustomCheckin">Start</button>
-        </div><button class="btn btn-dark-plum" @click="checkInNow">
+          <button type="button" class="checkin-custom-start" :disabled="hubBusy || hubLoading" @click="startCustomCheckin">Start</button>
+        </div><button class="btn btn-dark-plum" :disabled="hubBusy || hubLoading" @click="checkInNow">
           <i class="bi bi-check-circle"></i> Check in now
         </button>
         <button class="btn btn-dark-plum" @click="emit('share')">

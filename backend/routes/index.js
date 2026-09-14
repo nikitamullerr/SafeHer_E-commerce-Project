@@ -6,8 +6,8 @@ import productRoutes from './productRoutes.js';
 import premiumRoutes from './premiumRoutes.js';
 import paymentRoutes from './paymentRoutes.js';
 import addressRoutes from './addressRoutes.js';
-import express from "express";
 import safetyHubRoutes from "./safetyHubRoutes.js";
+import reviewRoutes from "./reviewRoutes.js";
 
 const router = express.Router();
 
@@ -27,6 +27,6 @@ router.use('/premium', premiumRoutes);
 router.use('/payments', paymentRoutes);
 router.use('/addresses', addressRoutes);
 router.use("/safety-hub", safetyHubRoutes);
-router.use("/auth", authRoutes);
+router.use("/reviews", reviewRoutes);
 
 export default router;

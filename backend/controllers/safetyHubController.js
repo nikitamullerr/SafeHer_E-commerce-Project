@@ -188,10 +188,10 @@ export const startCheckin = async (req, res) => {
             });
         }
 
-        if (duration_minutes <= 0) {
+        if (!Number.isInteger(duration_minutes) || duration_minutes < 1 || duration_minutes > 240) {
             return res.status(400).json({
                 success: false,
-                error: "Duration must be greater than 0"
+                error: "Duration must be a whole number between 1 and 240 minutes"
             });
         }
 
@@ -209,9 +209,9 @@ export const startCheckin = async (req, res) => {
     } catch (error) {
         console.error("❌ Start check-in error:", error);
 
-        res.status(500).json({
+        res.status(error.status || 500).json({
             success: false,
-            error: "Failed to start check-in"
+            error: error.status ? error.message : "Failed to start check-in"
         });
     }
 };

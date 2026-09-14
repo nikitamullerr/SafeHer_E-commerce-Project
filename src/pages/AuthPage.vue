@@ -183,19 +183,19 @@ function prevStep() {
 }
 
 function finishAuth(response, title) {
-  console.log("AUTH RESPONSE:", response);
+
 
   if (!response) {
     throw new Error("No response received from the server.");
   }
 
   if (!response.token) {
-    console.error("TOKEN IS MISSING:", response);
+    console.error("Authentication response is missing a token.");
     throw new Error("No token was received from the server.");
   }
 
   if (!response.user) {
-    console.error("USER IS MISSING:", response);
+    console.error("Authentication response is missing a user.");
     throw new Error("No user data was received from the server.");
   }
 
@@ -205,17 +205,12 @@ function finishAuth(response, title) {
     JSON.stringify(response.user)
   );
 
-  console.log(
-    "TOKEN SAVED:",
-    localStorage.getItem("safeher-token")
-  );
-
   Swal.fire({
     icon: "success",
     title,
     confirmButtonColor: "#351536",
   }).then(() => {
-    emit("authenticated", user.user);
+    emit("authenticated", response.user);
     emit("sign-in-notification-complete");
   });
 }
@@ -236,8 +231,6 @@ async function submit() {
         password: password.value,
       });
 
-      console.log("LOGIN RESPONSE:", response);
-
       finishAuth(response, "Welcome back to SafeHer");
     } catch (error) {
       console.error("LOGIN ERROR:", error);
@@ -247,7 +240,7 @@ async function submit() {
       errors.form =
         error.response?.data?.error ||
         (error.response ? "Login failed. Please try again." : "Cannot reach the server. Check that the backend is running and try again.");
-    }
+    } finally { submitting.value = false; }
     return;
   }
 
@@ -270,8 +263,6 @@ async function submit() {
       password: password.value,
       phone: "",
     });
-
-    console.log("REGISTRATION RESPONSE:", response);
 
     finishAuth(response, "Your SafeHer account is ready");
   } catch (error) {
@@ -310,7 +301,7 @@ function renderGoogleButton() {
   if (!googleIdentity || !googleButton.value || disposed) return;
   googleButton.value.replaceChildren();
   googleIdentity.renderButton(googleButton.value, {
-    type: "standard", theme: "filled_black", size: "large", shape: "pill",
+    type: "standard", theme: "outline", size: "large", shape: "pill",
     text: props.mode === "registration" ? "signup_with" : "signin_with",
     width: Math.min(400, googleButton.value.clientWidth || 280), locale: locale.value.split("-")[0],
   });

@@ -1,3 +1,4 @@
+import { premiumPlans } from "../config/premiumPlans.js";
 import express from "express";
 import { verifyToken } from "../middleware/verifyToken.js";
 import {
@@ -11,6 +12,7 @@ import {
 } from "../controllers/premiumController.js";
 
 const router = express.Router();
+router.get("/plans", (req, res) => res.json({ success: true, plans: premiumPlans }));
 
 // ============================================
 // LESSON ROUTES

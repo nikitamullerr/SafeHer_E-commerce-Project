@@ -1,4 +1,9 @@
 export default {
+  "Retry": { "Afrikaans": "Probeer weer", "isiZulu": "Zama futhi", "isiXhosa": "Zama kwakhona" },
+  "Out of stock": { "Afrikaans": "Uit voorraad", "isiZulu": "Akusekho esitokweni", "isiXhosa": "Iphelile esitokhweni" },
+  "Loading safety data...": { "Afrikaans": "Veiligheidsdata laai...", "isiZulu": "Ilayisha idatha yokuphepha...", "isiXhosa": "Kulayishwa idatha yokhuseleko..." },
+  "Completed check-ins": { "Afrikaans": "Voltooide aanmeldings", "isiZulu": "Ukungena okuqediwe", "isiXhosa": "Ukungena okugqityiweyo" },
+  "No reviews yet": { "Afrikaans": "Nog geen resensies nie", "isiZulu": "Azikho izibuyekezo okwamanje", "isiXhosa": "Akukho zimvo okwangoku" },
   "Close cart": { "Afrikaans": "Maak mandjie toe", "isiZulu": "Vala inqola", "isiXhosa": "Vala inqwelo" },
   "Decrease quantity": { "Afrikaans": "Verminder hoeveelheid", "isiZulu": "Yehlisa ubuningi", "isiXhosa": "Nciphisa ubuninzi" },
   "Increase quantity": { "Afrikaans": "Vermeerder hoeveelheid", "isiZulu": "Khulisa ubuningi", "isiXhosa": "Yandisa ubuninzi" },

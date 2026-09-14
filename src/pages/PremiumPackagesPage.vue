@@ -1,45 +1,20 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 import { t, formatDate } from "../languageConfig.js";
 import Swal from "../services/localizedSwal.js";
 import { getSubscription, subscribeToPremium, cancelSubscription, mapSubscription } from "../services/premiumClient.js";
+import api from "../services/api.js";
 import CheckoutModal from "../components/CheckoutModal.vue";
 
 const props = defineProps({ email: String, isAuthenticated: Boolean });
 const emit = defineEmits(["navigate", "premium-updated", "require-auth"]);
 
-const packages = [
-  {
-    name: "Essential",
-    price: "R49",
-    billing: "monthly",
-    detail: "A focused start for everyday confidence.",
-    features: ["Full premium video library", "SafeHer AI safety companion", "Cancel anytime"],
-  },
-  {
-    name: "Circle",
-    price: "R89",
-    billing: "monthly",
-    detail: "More support for you and your trusted people.",
-    featured: true,
-    features: [
-      "Everything in Essential",
-      "Shared safety plans",
-      "Priority support",
-    ],
-  },
-  {
-    name: "Annual",
-    price: "R899",
-    billing: "annual",
-    detail: "The best value for a year of preparedness.",
-    features: [
-      "Everything in Circle",
-      "Two months free",
-      "Annual safety review",
-    ],
-  },
-];
+const packages = ref([]);
+const plansError = ref("");
+onMounted(async () => {
+  try { const { data } = await api.get("/premium/plans"); packages.value = data.plans; }
+  catch { plansError.value = "Unable to load packages. Please refresh and try again."; }
+});
 
 const selectedPackage = ref(null);
 const checkoutItems = computed(() => selectedPackage.value ? [{
@@ -126,6 +101,7 @@ async function checkoutComplete() {
       </div>
       <button class="btn btn-outline-plum" :disabled="cancelling" @click="cancelMembership">{{ t("Cancel membership") }}</button>
     </section>
+    <p v-if="plansError" role="alert">{{ plansError }}</p>
     <section class="package-grid">
       <article
         v-for="item in packages"

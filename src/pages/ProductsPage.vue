@@ -16,135 +16,15 @@ const selectedFilter = ref("all");
 const showModal = ref(false);
 const selectedProduct = ref(null);
 
-const productReviews = {
-  1: [
-    {
-      name: "Sarah M.",
-      stars: 5,
-      text: "Absolutely reliable. Gave me peace of mind immediately.",
-    },
-    {
-      name: "James K.",
-      stars: 5,
-      text: "Fast delivery and excellent build quality. Highly recommended.",
-    },
-    {
-      name: "Amara N.",
-      stars: 4,
-      text: "Works great, though the battery life could be longer.",
-    },
-  ],
-  2: [
-    {
-      name: "Thandi L.",
-      stars: 5,
-      text: "Powerful and discreet. Exactly what I needed.",
-    },
-    {
-      name: "Maria G.",
-      stars: 5,
-      text: "Very easy to carry and deploy. Great safety tool.",
-    },
-    {
-      name: "Sophie T.",
-      stars: 4,
-      text: "Good product, took a bit to get used to it.",
-    },
-  ],
-  3: [
-    {
-      name: "Zoe P.",
-      stars: 5,
-      text: "Incredibly loud and attention-grabbing. Perfect for emergencies.",
-    },
-    {
-      name: "Leah B.",
-      stars: 5,
-      text: "Lightweight and portable. Every woman should have one.",
-    },
-  ],
-  4: [
-    { name: "Nina H.", stars: 5, text: "Medical info is always with me now." },
-    {
-      name: "Alex R.",
-      stars: 4,
-      text: "Nice design, good quality card stock.",
-    },
-  ],
-  5: [
-    {
-      name: "Elena K.",
-      stars: 5,
-      text: "Smart installation and brilliant app integration.",
-    },
-    {
-      name: "Lisa M.",
-      stars: 5,
-      text: "Feels secure knowing doors are monitored.",
-    },
-  ],
-  6: [
-    {
-      name: "Jade S.",
-      stars: 5,
-      text: "Everything essential in one compact bag.",
-    },
-    {
-      name: "Carmen L.",
-      stars: 5,
-      text: "Perfect for business trips and vacations.",
-    },
-  ],
-  7: [
-    {
-      name: "Ruby T.",
-      stars: 5,
-      text: "Bright LED and emergency whistle—great combo.",
-    },
-    { name: "Iris D.", stars: 5, text: "Durable and always ready to grab." },
-  ],
-  8: [
-    {
-      name: "Nora C.",
-      stars: 5,
-      text: "Highly secure and difficult to tamper with.",
-    },
-    {
-      name: "Sophia W.",
-      stars: 4,
-      text: "Installation took 30 minutes, very satisfied.",
-    },
-  ],
-  9: [
-    {
-      name: "Vera L.",
-      stars: 5,
-      text: "Fast charging and reliable backup power.",
-    },
-    {
-      name: "Diana M.",
-      stars: 5,
-      text: "Essential emergency backup on every trip.",
-    },
-  ],
+const averageRating = product => {
+  const reviews = product?.reviews || [];
+  return reviews.length ? (reviews.reduce((sum, review) => sum + Number(review.stars), 0) / reviews.length).toFixed(1) : "?";
 };
-
-const getReviews = (productId) => {
-  return (
-    productReviews[productId] || [
-      {
-        name: "Verified buyer",
-        stars: 5,
-        text: "A reliable SafeHer essential for everyday confidence.",
-      },
-      {
-        name: "Happy customer",
-        stars: 4,
-        text: "Practical, easy to use, and designed with real-life safety in mind.",
-      },
-    ]
-  );
+const ratingStars = product => {
+  const rating = Math.round(Number(averageRating(product)) || 0);
+  return "?".repeat(rating) + "?".repeat(5 - rating);
 };
+const getReviews = (productId) => props.products?.find(product => product.id === productId)?.reviews || [];
 
 const filteredProducts = computed(() => {
   if (!props.products) return [];
@@ -206,13 +86,13 @@ function closeModal() {
 
         <div class="product-rating-row">
           <span class="rating-stars">★★★★★</span>
-          <span>4.8</span>
-          <span class="rating-count">{{ t("(126 reviews)") }}</span>
+          <span>{{ averageRating(featuredProduct) }}</span>
+          <span class="rating-count">{{ getReviews(featuredProduct.id).length }} {{ t("Customer Reviews") }}</span>
         </div>
 
         <div class="product-price-row">
           <strong>{{ formatPrice(featuredProduct.price) }}</strong>
-          <span>{{ t("In stock") }}</span>
+          <span>{{ t(featuredProduct.stock > 0 ? "In stock" : "Out of stock") }}</span>
         </div>
 
         <p class="product-summary">
@@ -221,7 +101,7 @@ function closeModal() {
         <div class="feature-actions">
           <button
             class="btn btn-dark-plum"
-            @click="emit('add', featuredProduct)"
+            :disabled="featuredProduct.stock <= 0" @click="emit('add', featuredProduct)"
           >
             <i class="bi bi-bag-plus"></i> {{ t("add") }}
           </button>
@@ -269,7 +149,7 @@ function closeModal() {
             <div class="product-buy">
               <strong>{{ formatPrice(product.price) }}</strong>
               <div class="product-buy-actions">
-                <button class="btn btn-dark-plum" @click="emit('add', product)">
+                <button class="btn btn-dark-plum" :disabled="product.stock <= 0" @click="emit('add', product)">
                   <i class="bi bi-bag-plus"></i> {{ t("add") }}
                 </button>
                 <button class="btn btn-light-plum" @click="openModal(product)">
@@ -318,7 +198,7 @@ function closeModal() {
 
               <div class="product-rating-row">
                 <span class="rating-stars">★★★★★</span>
-                <span>4.8</span>
+                <span>{{ averageRating(selectedProduct) }}</span>
                 <span class="rating-count"
                   >({{ getReviews(selectedProduct.id).length }} {{ t("reviews)") }}</span
                 >
@@ -326,7 +206,7 @@ function closeModal() {
 
               <div class="product-price-row">
                 <strong>{{ formatPrice(selectedProduct.price) }}</strong>
-                <span>{{ t("In stock") }}</span>
+                <span>{{ t(selectedProduct.stock > 0 ? "In stock" : "Out of stock") }}</span>
               </div>
 
               <p class="modal-description">

@@ -12,12 +12,14 @@ export const getProducts = async (req, res) => {
 			 ORDER BY p.id`,
 		);
 
+		const [reviews] = await pool.query("SELECT product_id, name, stars, text FROM product_reviews WHERE is_approved = TRUE ORDER BY id DESC");
 		return res.json({
 			success: true,
 			products: products.map((product) => ({
 				...product,
 				price: Number(product.price),
 				image: product.image_url,
+				reviews: reviews.filter(review => review.product_id === product.id),
 			})),
 		});
 	} catch (error) {

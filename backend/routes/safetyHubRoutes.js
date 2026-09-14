@@ -1,4 +1,5 @@
 import express from "express";
+import safetyStateRoutes from "./safetyStateRoutes.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
 import {
@@ -16,6 +17,7 @@ import {
 } from "../controllers/safetyHubController.js";
 
 const router = express.Router();
+router.use(safetyStateRoutes);
 
 // ================================
 // EMERGENCY CONTACT ROUTES

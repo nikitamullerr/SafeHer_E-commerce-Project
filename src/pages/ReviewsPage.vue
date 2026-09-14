@@ -1,86 +1,15 @@
 <script setup>
+import api from "../services/api.js";
 import { t, formatDate } from "../languageConfig.js";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 
-const testimonials = [
-  {
-    name: "Lerato M.",
-    location: "Johannesburg",
-    title: "A reassuring everyday essential",
-    quote:
-      "The SOS tools are simple and calm when you need them most. I feel safer every time I leave the house.",
-    stars: 5,
-    date: "28 August 2026",
-    helpful: 12,
-    initials: "LM",
-  },
-  {
-    name: "Daniel K.",
-    location: "Pretoria",
-    title: "Easy to share and trust",
-    quote:
-      "I love how easy it is to share my location with my family. It gives me peace of mind without being complicated.",
-    stars: 5,
-    date: "11 August 2026",
-    helpful: 8,
-    initials: "DK",
-  },
-  {
-    name: "Nandi S.",
-    location: "Cape Town",
-    title: "Practical support for my family",
-    quote:
-      "The safety videos and checked-in routines helped my whole family feel more prepared. It feels practical and supportive.",
-    stars: 4,
-    date: "03 August 2026",
-    helpful: 5,
-    initials: "NS",
-  },
-  {
-    name: "Thandi M.",
-    location: "Soweto",
-    title: "Good features but could be simpler",
-    quote:
-      "The app has really useful safety features and the emergency response is quick. However, the menu navigation could be more intuitive for first-time users.",
-    stars: 3,
-    date: "25 July 2026",
-    helpful: 4,
-    initials: "TM",
-  },
-  {
-    name: "Aisha P.",
-    location: "Durban",
-    title: "Clean, calming and effective",
-    quote:
-      "Everything is straightforward, reassuring, and fast. It feels like a digital safety net that actually works for daily life.",
-    stars: 5,
-    date: "19 July 2026",
-    helpful: 15,
-    initials: "AP",
-  },
-  {
-    name: "James L.",
-    location: "Bloemfontein",
-    title: "Reliable safety companion",
-    quote:
-      "Been using SafeHer for 6 months now and I trust it completely. The location sharing with my trusted circle works seamlessly and the support team is responsive.",
-    stars: 4,
-    date: "16 July 2026",
-    helpful: 9,
-    initials: "JL",
-  },
-  {
-    name: "Nomvula R.",
-    location: "Pietermaritzburg",
-    title: "Helpful but interface needs work",
-    quote:
-      "The safety hub content is informative and the SOS feature works well. The app could use better visual organization - some buttons are hard to find when you need them quickly.",
-    stars: 3,
-    date: "08 July 2026",
-    helpful: 6,
-    initials: "NR",
-  },
-];
+const testimonials = ref([]);
+const loadError = ref("");
+onMounted(async () => {
+  try { const { data } = await api.get("/reviews"); testimonials.value = data.reviews; }
+  catch { loadError.value = "Unable to load reviews. Please refresh and try again."; }
+});
+const averageRating = computed(() => testimonials.value.length ? (testimonials.value.reduce((sum, review) => sum + review.stars, 0) / testimonials.value.length).toFixed(1) : "?");
 
 const filterOptions = [
   { value: "all", label: "All reviews" },
@@ -94,16 +23,13 @@ const filterOptions = [
 const selectedFilter = ref("all");
 const selectedSort = ref("most-recent");
 
-const reviewBreakdown = [
-  { label: "5 stars", value: 85 },
-  { label: "4 stars", value: 10 },
-  { label: "3 stars", value: 3 },
-  { label: "2 stars", value: 1 },
-  { label: "1 star", value: 1 },
-];
+const reviewBreakdown = computed(() => [5, 4, 3, 2, 1].map(stars => ({
+  label: `${stars} star${stars === 1 ? "" : "s"}`,
+  value: testimonials.value.length ? Math.round(testimonials.value.filter(review => review.stars === stars).length / testimonials.value.length * 100) : 0,
+})));
 
 const filteredReviews = computed(() => {
-  let items = [...testimonials];
+  let items = [...testimonials.value];
 
   if (selectedFilter.value !== "all") {
     items = items.filter((item) => String(item.stars) === selectedFilter.value);
@@ -116,7 +42,7 @@ const filteredReviews = computed(() => {
   return [...items].sort((a, b) => b.helpful - a.helpful);
 });
 
-const ratingText = computed(() => Array.from({ length: 5 }, (_, index) => index < 5).join(""));
+const ratingText = computed(() => "★".repeat(Math.round(Number(averageRating.value) || 0)) + "☆".repeat(5 - Math.round(Number(averageRating.value) || 0)));
 </script>
 
 <template>
@@ -129,15 +55,16 @@ const ratingText = computed(() => Array.from({ length: 5 }, (_, index) => index 
       </div>
 
       <div class="rating-summary-card" :aria-label="t(&quot;Overall rating summary&quot;)">
-        <div class="rating-summary-stars">★★★★★</div>
+        <div class="rating-summary-stars">{{ ratingText }}</div>
         <div class="rating-summary-score">
-          <strong>4.8</strong>
+          <strong>{{ averageRating }}</strong>
           <span>{{ t("out of 5") }}</span>
         </div>
-        <small>{{ t("Based on 126 reviews") }}</small>
+        <small>{{ testimonials.length }} {{ t("Customer Reviews") }}</small>
       </div>
     </section>
 
+    <p v-if="loadError" role="alert">{{ loadError }}</p>
     <section class="reviews-toolbar" :aria-label="t(&quot;Review filters and sorting&quot;)">
       <div class="filter-group">
         <button
@@ -164,11 +91,11 @@ const ratingText = computed(() => Array.from({ length: 5 }, (_, index) => index 
       <aside class="review-summary-panel">
         <h2>{{ t("Customer Reviews") }}</h2>
         <div class="summary-score-row">
-          <strong>4.8</strong>
+          <strong>{{ averageRating }}</strong>
           <span>/ 5</span>
         </div>
-        <div class="summary-stars">★★★★★</div>
-        <p>{{ t("126 reviews") }}</p>
+        <div class="summary-stars">{{ ratingText }}</div>
+        <p>{{ testimonials.length }} {{ t("Customer Reviews") }}</p>
 
         <div class="rating-breakdown">
           <div v-for="row in reviewBreakdown" :key="row.label" class="breakdown-row">
@@ -209,13 +136,14 @@ const ratingText = computed(() => Array.from({ length: 5 }, (_, index) => index 
 
         <div class="customer-reviews-block">
           <h2>{{ t("Recent feedback") }}</h2>
+          <p v-if="!loadError && !filteredReviews.length">{{ t("No reviews yet") }}</p>
 
           <article v-for="item in filteredReviews" :key="item.name + item.date" class="review-card">
             <div class="review-card-header">
               <div class="avatar">{{ item.initials }}</div>
               <div class="reviewer-meta">
                 <h3>{{ item.name }}</h3>
-                <span>{{ t("Verified Purchase") }}</span>
+
               </div>
             </div>
 

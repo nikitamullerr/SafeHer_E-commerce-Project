@@ -1,0 +1,114 @@
+/* Shared control colors keep text and its background paired in both themes. */
+.app-shell {
+  --control-bg: #fff;
+  --control-text: #351536;
+  --control-border: #937789;
+  --control-active: #713650;
+  --control-active-text: #fff;
+  color-scheme: light;
+}
+.app-shell.dark-mode {
+  --control-bg: #30232e;
+  --control-text: #fff1f7;
+  --control-border: #a28b9a;
+  --control-active: #f1b6cf;
+  --control-active-text: #301325;
+  color-scheme: dark;
+}
+.app-shell :is(button, input, select, textarea):focus-visible {
+  outline: 3px solid #b55b89;
+  outline-offset: 3px;
+}
+.app-shell :is(.btn-light-plum, .btn-outline-plum, .product-filter button, .filter-group button, .sf-ghost, .browse-return) {
+  background: var(--control-bg) !important;
+  color: var(--control-text) !important;
+  border: 1px solid var(--control-border) !important;
+}
+.app-shell :is(.product-filter button.selected, .filter-group button.active, .safety-plan-row button.active, .sf-tabs button.active) {
+  background: var(--control-active) !important;
+  color: var(--control-active-text) !important;
+  border-color: var(--control-active) !important;
+}
+.app-shell :is(.btn-dark-plum, .sf-submit) {
+  background: var(--control-active) !important;
+  color: var(--control-active-text) !important;
+  border-color: var(--control-active) !important;
+}
+.app-shell :is(.btn-sos, .hub-sos-button) { background: #b9213c; color: #fff; }
+.app-shell button:disabled { cursor: not-allowed; opacity: .65; }
+.app-shell :is(.nav-actions select, .auth-language select, .sort-picker select) {
+  background: var(--control-bg);
+  color: var(--control-text);
+  border: 1px solid var(--control-border);
+  border-radius: 10px;
+  min-height: 42px;
+  padding: 8px 12px;
+  font: inherit;
+  max-width: 100%;
+}
+.app-shell select option { background: var(--control-bg); color: var(--control-text); }
+.app-shell .auth-language {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px clamp(16px, 4vw, 48px);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.app-shell .browse-return { border-radius: 999px; min-height: 42px; padding: 10px 18px; text-transform: none; }
+.app-shell .top-strip { background: #351536; color: #fff; }
+.app-shell .top-strip > div { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding-block: 8px; }
+.app-shell .guest-account-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.app-shell .guest-account-links button { border-radius: 999px; padding: 7px 14px; min-height: 36px; font-weight: 600; }
+.app-shell .guest-login { color: #fff; background: transparent; border: 1px solid #e2bdd2; }
+.app-shell .guest-register { color: #351536; background: #f4c5d8; border: 1px solid #f4c5d8; }
+.app-shell.dark-mode .site-nav { background: #211821 !important; border-color: #705766; }
+.app-shell.dark-mode :is(.brand, .brand small, .nav-links button, .navbar-toggler, .theme-toggle, .bag-button, .icon-button) { color: #fff1f7 !important; }
+.app-shell.dark-mode .nav-links button.active { color: #f4bfd7 !important; border-color: #f4bfd7; }
+.app-shell.dark-mode :is(.nav-links.show, .sf-card, .product-card, .hub-panel, .hub-stat, .package-card, .order-card, .checkout-dialog, .product-modal, .drawer-footer) {
+  background: #211821;
+  color: #fff1f7;
+  border-color: #705766;
+}
+.app-shell.dark-mode :is(input:not([type=checkbox]):not([type=radio]), textarea, select) {
+  background: #30232e;
+  color: #fff1f7;
+  border-color: #a28b9a;
+}
+.app-shell.dark-mode ::placeholder { color: #cdbdca; opacity: 1; }
+.app-shell.dark-mode :is(.sf-link, .sf-tabs button, .sf-label, .sf-check, .sf-switch, .product-info p, .hub-panel p, .hub-stat small, .package-card p, .order-card p, .checkout-totals) { color: #e4d3df; }
+.app-shell.dark-mode :is(.safety-plan-row button, .checkin-actions > button, .hub-mini-action, .helpful-button) { background: #30232e; color: #fff1f7; border-color: #a28b9a; }
+.app-shell.dark-mode .product-price-row span { background: #193829 !important; color: #a2ecc0 !important; border-radius: 6px; padding: 3px 8px; }
+.app-shell.dark-mode .featured-product-copy .product-price-row span { color: #a2ecc0 !important; }
+.app-shell .sf-toggle { background: var(--control-bg); border: 1px solid var(--control-border); }
+.app-shell .sf-toggle button { color: var(--control-text); }
+.app-shell .sf-toggle button.active { color: var(--control-active-text); }
+.app-shell .sf-thumb { background: var(--control-active); }
+.app-shell .product-image { display: block; max-width: 100%; object-fit: contain !important; object-position: center; }
+.app-shell :is(.product-art, .featured-product-visual, .modal-product-art) { min-width: 0; overflow: hidden; }
+.app-shell :is(.product-art, .featured-product-visual, .modal-product-art) .product-image {
+  position: static; width: 100%; height: 100%; max-height: 100%; padding: 0; transform: none !important;
+}
+.app-shell .product-art .product-image { object-fit: cover !important; }
+.app-shell :is(.featured-product-visual, .modal-product-art):has(.product-image) {
+  height: auto; min-height: 0; align-self: start;
+}
+.app-shell :is(.featured-product-visual, .modal-product-art) .product-image {
+  height: auto; max-height: none;
+}
+.app-shell .drawer-product-art .product-image { width: 100%; height: 100%; padding: 4px; }
+@media (max-width: 767px) {
+  .app-shell :is(.product-grid, .products-grid, .featured-product-card, .modal-product-section) { grid-template-columns: minmax(0, 1fr); }
+  .app-shell .product-art { height: clamp(190px, 60vw, 300px); }
+  .app-shell :is(.featured-product-visual, .modal-product-art) { min-height: 0; }
+  .app-shell .featured-product-card { padding: 10px; gap: 16px; }
+  .app-shell .featured-product-copy { padding: 8px; }
+  .app-shell :is(.product-card, .product-modal, .featured-product-copy, .modal-product-info) { min-width: 0; }
+  .app-shell .product-modal { width: calc(100vw - 24px); max-height: 90dvh; overflow-y: auto; }
+  .app-shell :is(.feature-actions, .product-filter, .filter-group) { flex-wrap: wrap; gap: 8px; }
+  .app-shell .nav-actions { flex-wrap: wrap; gap: 8px; }
+  .app-shell .sf-card { padding: 28px 20px; }
+  .app-shell .sf-shell { padding: 24px 12px; }
+}

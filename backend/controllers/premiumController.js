@@ -1,3 +1,4 @@
+import { premiumPlans } from "../config/premiumPlans.js";
 import { PremiumService } from '../services/premiumService.js';
 
 // ============================================
@@ -209,7 +210,7 @@ export const subscribe = async (req, res) => {
     try {
         const userId = req.user.id;
         const { plan, method, receipt_email, reference } = req.body || {};
-        const prices = { Essential: 49, Circle: 89, Annual: 899 };
+        const prices = Object.fromEntries(premiumPlans.map(item => [item.name, Number(item.price.slice(1))]));
 
         if (!Object.hasOwn(prices, plan)) {
             return res.status(400).json({
