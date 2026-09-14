@@ -10,14 +10,15 @@ export const register = async (req, res) => {
     try {
         console.log('📝 Register request received');
 
-        const { name, email, password, phone } = req.body;
+    const { name, email, password, phone } = req.body;
 
-        if (!name || !email || !password) {
-            return res.status(400).json({
-                success: false,
-                error: 'Name, email and password are required'
-            });
-        }
+    if (!name || !email || !password) {
+      console.log("Missing required fields");
+      return res.status(400).json({
+        success: false,
+        error: "Name, email and password are required",
+      });
+    }
 
         const [existing] = await pool.query(
             'SELECT id FROM users WHERE email = ?',
@@ -30,8 +31,9 @@ export const register = async (req, res) => {
             });
         }
 
-        const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+    console.log("Hashing password...");
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     console.log("Creating user...");
     const userId = await UserModel.create({
@@ -109,16 +111,15 @@ export const login = async (req, res) => {
             });
         }
 
-        const user = rows[0];
-        const isMatch = await bcrypt.compare(password, user.password_hash);
-        if (!isMatch) {
-            return res.status(401).json({
-                success: false,
-                error: 'Invalid email or password'
-            });
-        }
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        error: "Invalid email or password",
+      });
+    }
 
-        delete user.password_hash;
+    delete user.password_hash;
 
     const token = jwt.sign(
       {
@@ -130,162 +131,157 @@ export const login = async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
     );
 
-        res.json({
-            success: true,
-            user,
-            token
-        });
-
-    } catch (error) {
-        console.error('❌ Login error:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message || 'Login failed'
-        });
-    }
+    res.json({
+      success: true,
+      user,
+      token,
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    const databaseUnavailable = ["ECONNREFUSED", "ER_ACCESS_DENIED_ERROR", "ER_BAD_DB_ERROR"].includes(error.code);
+    res.status(500).json({
+      success: false,
+      error: databaseUnavailable
+        ? "The authentication database is unavailable. Check the backend .env settings and make sure MySQL is running."
+        : "Login failed. Please try again.",
+    });
+  }
 };
 
 export const getMe = async (req, res) => {
-    try {
-        const [rows] = await pool.query(
-            'SELECT id, name, email, phone, created_at FROM users WHERE id = ?',
-            [req.user.id]
-        );
-
-        if (rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                error: 'User not found'
-            });
-        }
-
-        res.json({
-            success: true,
-            user: rows[0]
-        });
-
-    } catch (error) {
-        console.error('❌ Get profile error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to get profile'
-        });
+  try {
+    const user = await UserModel.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
     }
+    res.json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.error("Get profile error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to get profile",
+    });
+  }
 };
 
 export const updateProfile = async (req, res) => {
-    try {
-        const { name, phone } = req.body;
-        const userId = req.user.id;
+  try {
+    const { name, phone } = req.body;
+    const userId = req.user.id;
 
-        if (!name && !phone) {
-            return res.status(400).json({
-                success: false,
-                error: 'At least one field to update is required'
-            });
-        }
-
-        await pool.query(
-            'UPDATE users SET name = ?, phone = ? WHERE id = ?',
-            [name, phone, userId]
-        );
-
-        const [user] = await pool.query(
-            'SELECT id, name, email, phone, created_at FROM users WHERE id = ?',
-            [userId]
-        );
-
-        res.json({
-            success: true,
-            user: user[0]
-        });
-
-    } catch (error) {
-        console.error('❌ Update profile error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to update profile'
-        });
+    if (!name && !phone) {
+      return res.status(400).json({
+        success: false,
+        error: "At least one field to update is required",
+      });
     }
+
+    const updated = await UserModel.update(userId, { name, phone });
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+
+    const user = await UserModel.findById(userId);
+    res.json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.error("Update profile error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update profile",
+    });
+  }
 };
 
 export const changePassword = async (req, res) => {
-    try {
-        const { currentPassword, newPassword } = req.body;
-        const userId = req.user.id;
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
 
-        if (!currentPassword || !newPassword) {
-            return res.status(400).json({
-                success: false,
-                error: 'Current and new password are required'
-            });
-        }
-
-        if (newPassword.length < 6) {
-            return res.status(400).json({
-                success: false,
-                error: 'New password must be at least 6 characters'
-            });
-        }
-
-        const [rows] = await pool.query(
-            'SELECT password_hash FROM users WHERE id = ?',
-            [userId]
-        );
-
-        if (rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                error: 'User not found'
-            });
-        }
-
-        const isMatch = await bcrypt.compare(currentPassword, rows[0].password_hash);
-        if (!isMatch) {
-            return res.status(401).json({
-                success: false,
-                error: 'Current password is incorrect'
-            });
-        }
-
-        const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 10;
-        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-
-        await pool.query(
-            'UPDATE users SET password_hash = ? WHERE id = ?',
-            [hashedPassword, userId]
-        );
-
-        res.json({
-            success: true,
-            message: 'Password updated successfully'
-        });
-
-    } catch (error) {
-        console.error('❌ Change password error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to change password'
-        });
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        error: "Current and new password are required",
+      });
     }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: "New password must be at least 6 characters",
+      });
+    }
+
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        error: "Current password is incorrect",
+      });
+    }
+
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    const updated = await UserModel.updatePassword(userId, hashedPassword);
+    if (!updated) {
+      return res.status(500).json({
+        success: false,
+        error: "Failed to update password",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to change password",
+    });
+  }
 };
 
 export const deleteAccount = async (req, res) => {
-    try {
-        const userId = req.user.id;
-
-        await pool.query('DELETE FROM users WHERE id = ?', [userId]);
-
-        res.json({
-            success: true,
-            message: 'Account deleted successfully'
-        });
-
-    } catch (error) {
-        console.error('❌ Delete account error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to delete account'
-        });
+  try {
+    const userId = req.user.id;
+    const deleted = await UserModel.delete(userId);
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
     }
+    res.json({
+      success: true,
+      message: "Account deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete account error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to delete account",
+    });
+  }
 };

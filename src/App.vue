@@ -62,21 +62,248 @@ const userLocation = ref(null);
 const locationLoading = ref(false);
 const locationError = ref("");
 
-const products = ref([]);
-const productsLoading = ref(true);
-const productsError = ref("");
-async function loadProducts() {
-  productsLoading.value = true;
-  productsError.value = "";
-  try {
-    const { data } = await api.get("/products");
-    if (!data.success || !Array.isArray(data.products)) throw new Error("Invalid product response");
-    products.value = data.products;
-  } catch {
-    products.value = [];
-    productsError.value = "Could not load the store. Check the backend and try again.";
-  } finally { productsLoading.value = false; }
-}
+const products = [
+  {
+    id: 1,
+    name: "Smart Panic Button",
+    detail: "Wearable GPS alert",
+    price: 1299,
+    icon: "bi-broadcast-pin",
+    image: "/images/products/smart-panic-button.png",
+    tone: "rose",
+    category: "personal-safety",
+  },
+  {
+    id: 2,
+    name: "Defender Spray",
+    detail: "Compact & discreet",
+    price: 119,
+    icon: "bi-shield-shaded",
+    image: "/images/products/defender-spray.png",
+    tone: "plum",
+    category: "home",
+  },
+  {
+    id: 3,
+    name: "Safety Whistle",
+    detail: "High-decibel alarm",
+    price: 79,
+    icon: "bi-megaphone",
+    image: "/images/products/safety-whistle.png",
+    tone: "gold",
+    category: "travel",
+  },
+  {
+    id: 4,
+    name: "Emergency Contact Card",
+    detail: "Quick-access ID and medical info",
+    price: 49,
+    icon: "bi-person-vcard",
+    image: "/images/products/emergency-contact-card.png",
+    tone: "cream",
+    category: "personal-safety",
+  },
+  {
+    id: 5,
+    name: "Door Alarm Sensor",
+    detail: "Smart entry alert for your home",
+    price: 129,
+    icon: "bi-door-open",
+    image: "/images/products/door-alarm-sensor.png",
+    tone: "rose",
+    category: "home",
+  },
+  {
+    id: 6,
+    name: "Travel Safety Kit",
+    detail: "Compact essentials for on-the-go trips",
+    price: 349,
+    icon: "bi-bag-check",
+    image: "/images/products/travel-safety-kit.png",
+    tone: "plum",
+    category: "travel",
+  },
+  {
+    id: 7,
+    name: "Keychain SOS Beacon",
+    detail: "Small, bright and always within reach",
+    price: 119,
+    icon: "bi-key",
+    image: "/images/products/keychain-sos-beacon.png",
+    tone: "gold",
+    category: "personal-safety",
+  },
+  {
+    id: 8,
+    name: "Window Safety Lock",
+    detail: "Extra deterrent for secure homes",
+    price: 129,
+    icon: "bi-window",
+    image: "/images/products/window-safety-lock.png",
+    tone: "cream",
+    category: "home",
+  },
+  {
+    id: 9,
+    name: "Portable Phone Charger",
+    detail: "Emergency backup for daily travel",
+    price: 299,
+    icon: "bi-phone",
+    image: "/images/products/portable-phone-charger.png",
+    tone: "rose",
+    category: "travel",
+  },
+  {
+    id: 10,
+    name: "Personal Alarm Clip",
+    detail: "Attachable siren for busy commutes",
+    price: 179,
+    icon: "bi-bell",
+    image: "/images/products/personal-alarm-clip.png",
+    tone: "rose",
+    category: "personal-safety",
+  },
+  {
+    id: 11,
+    name: "Nightlight Safety Lamp",
+    detail: "Soft light for entryways and hallways",
+    price: 169,
+    icon: "bi-lightbulb",
+    image: "/images/products/nightlight-safety-lamp.png",
+    tone: "gold",
+    category: "home",
+  },
+  {
+    id: 12,
+    name: "Travel Lock Box",
+    detail: "Discreet secure storage for valuables",
+    price: 299,
+    icon: "bi-lock",
+    image: "/images/products/travel-lock-box.png",
+    tone: "plum",
+    category: "travel",
+  },
+  {
+    id: 13,
+    name: "Flashlight Keyring",
+    detail: "Mini torch with emergency beacon",
+    price: 149,
+    icon: "bi-flashlight",
+    image: "/images/products/flashlight-keyring.png",
+    tone: "cream",
+    category: "personal-safety",
+  },
+  {
+    id: 14,
+    name: "Home Entry Alarm",
+    detail: "Alerts you the moment the door opens",
+    price: 129,
+    icon: "bi-door-closed",
+    image: "/images/products/home-entry-alarm.png",
+    tone: "rose",
+    category: "home",
+  },
+  {
+    id: 15,
+    name: "Passport Safety Sleeve",
+    detail: "Hidden document protection for travel",
+    price: 129,
+    icon: "bi-passport",
+    image: "/images/products/passport-safety-sleeve.png",
+    tone: "gold",
+    category: "travel",
+  },
+  {
+    id: 16,
+    name: "Pepper Spray Holder",
+    detail: "Easy-grip case with quick access design",
+    price: 99,
+    icon: "bi-shield-lock",
+    image: "/images/products/pepper-spray-holder.png",
+    tone: "plum",
+    category: "personal-safety",
+  },
+  {
+    id: 17,
+    name: "Smart Window Sensor",
+    detail: "Notifies you of movement or tampering",
+    price: 229,
+    icon: "bi-window-fullscreen",
+    image: "/images/products/smart-window-sensor.png",
+    tone: "rose",
+    category: "home",
+  },
+  {
+    id: 18,
+    name: "Road Trip Essentials Kit",
+    detail: "Safety basics for long-distance travel",
+    price: 499,
+    icon: "bi-car-front",
+    image: "/images/products/road-trip-essentials-kit.png",
+    tone: "gold",
+    category: "travel",
+  },
+  {
+    id: 19,
+    name: "Safety Bracelet",
+    detail: "Medical alert bracelet with quick ID",
+    price: 149,
+    icon: "bi-heart-pulse",
+    image: "/images/products/safety-bracelet.png",
+    tone: "cream",
+    category: "personal-safety",
+  },
+  {
+    id: 20,
+    name: "Fire Escape Plan Set",
+    detail: "Preparedness cards for your home",
+    price: 99,
+    icon: "bi-exclamation-triangle",
+    image: "/images/products/fire-escape-plan-set.png",
+    tone: "plum",
+    category: "home",
+  },
+  {
+    id: 21,
+    name: "Travel First-Aid Pouch",
+    detail: "Compact emergency essentials case",
+    price: 299,
+    icon: "bi-bandaid",
+    image: "/images/products/travel-first-aid-pouch.png",
+    tone: "gold",
+    category: "travel",
+  },
+  {
+    id: 22,
+    name: "Digital Safety Sticker",
+    detail: "Visible ID and emergency response note",
+    price: 69,
+    icon: "bi-tag",
+    image: "/images/products/digital-safety-sticker.png",
+    tone: "rose",
+    category: "personal-safety",
+  },
+  {
+    id: 23,
+    name: "Safe Home Sensor Pack",
+    detail: "Multi-room motion and alert support",
+    price: 499,
+    icon: "bi-house-door",
+    image: "/images/products/safe-home-sensor-pack.png",
+    tone: "plum",
+    category: "home",
+  },
+  {
+    id: 24,
+    name: "Travel Buddy Kit",
+    detail: "All-in-one essentials for safer trips",
+    price: 449,
+    icon: "bi-bag-heart",
+    image: "/images/products/travel-buddy-kit.png",
+    tone: "gold",
+    category: "travel",
+  },
+];
 
 const cartCount = computed(() =>
   cart.value.reduce((sum, item) => sum + item.quantity, 0),
@@ -336,10 +563,7 @@ function startTracking() {
 function toggleTracking() {
   startTracking();
 }
-async function showSos() {
-  if (!isAuthenticated.value) return requireSignIn({ type: "view", view: "safetyhub" });
-  if (Swal.isVisible()) return;
-  sosActive.value = true;
+function showSos(sendToAll = false) {
   const countdownSeconds = 5;
   let countdownTimer;
   await Swal.fire({
@@ -359,12 +583,51 @@ async function showSos() {
         if (counter) counter.textContent = String(Math.max(--secondsLeft, 0));
       }, 1000);
     },
-    willClose: () => clearInterval(countdownTimer),
-  });
-  sosActive.value = false;
+    willClose: () => {
+      clearInterval(countdownTimer);
+    },
+  }).then((result) => {
+    if (result.dismiss === Swal.DismissReason.timer) {
+      if (sendToAll) sendSosToAllContacts();
 
+      sosActive.value = true;
+
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        title: "SOS activated",
+        text: sendToAll ? "Your SOS message is ready for all saved contacts." : "Your safety circle has been notified.",
+        icon: "success",
+        timer: 1500,
+      });
+
+      setTimeout(() => {
+        sosActive.value = false;
+      }, 3000);
+    }
+  });
 }
 
+function sendSosToAllContacts() {
+  if (!contacts.value.length) {
+    Swal.fire({ icon: "info", title: "Add an emergency contact", text: "Save at least one contact before sending an SOS message.", confirmButtonColor: "#351536" });
+    return false;
+  }
+  const locationLink = userLocation.value ? ` https://www.google.com/maps/search/?api=1&query=${userLocation.value.lat},${userLocation.value.lng}` : "";
+  const body = `SafeHer SOS: I may need help. Please contact me and check my location.${locationLink}`;
+  const recipients = contacts.value.map((contact) => contact.phone).filter(Boolean).join(",");
+  if (!recipients) return false;
+  window.location.href = `sms:${recipients}?body=${encodeURIComponent(body)}`;
+  return true;
+}
+
+function sendSosToAll() {
+  if (!contacts.value.length) {
+    Swal.fire({ icon: "info", title: "Add an emergency contact", text: "Save at least one contact before sending an SOS message.", confirmButtonColor: "#351536" });
+    return;
+  }
+  showSos(true);
+}
 // ----- Contacts -----
 function addContact(event) {
   const form = new FormData(event.target);
@@ -528,6 +791,7 @@ const pageProps = computed(() => ({
 
 const pageEvents = {
   sos: showSos,
+  "sos-all": sendSosToAll,
   track: toggleTracking,
   navigate: navigate,
   add: addToCart,

@@ -40,21 +40,36 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function clearError(field) {
   errors[field] = "";
-  if (errors.form) errors.form = "";
+
+  if (errors.form) {
+    errors.form = "";
+  }
 }
 
 function switchMode(target) {
-  if (target !== props.mode) emit("navigate", target);
+  if (target !== props.mode) {
+    emit("navigate", target);
+  }
 }
 
 const passwordStrength = computed(() => {
   const value = password.value;
-  if (!value) return { score: 0, label: "", color: "var(--line)" };
+
+  if (!value) {
+    return {
+      score: 0,
+      label: "",
+      color: "var(--line)",
+    };
+  }
+
   let score = 0;
+
   if (value.length >= 8) score++;
   if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score++;
   if (/\d/.test(value)) score++;
   if (/[^A-Za-z0-9]/.test(value)) score++;
+
   const meta = [
     { label: "Very weak", color: "var(--red)" },
     { label: "Weak", color: "var(--red)" },
@@ -62,12 +77,16 @@ const passwordStrength = computed(() => {
     { label: "Good", color: "#2e9e5b" },
     { label: "Strong", color: "var(--plum)" },
   ][score];
-  return { score, ...meta };
+
+  return {
+    score,
+    ...meta,
+  };
 });
 
-const passwordsMatch = computed(
-  () => confirm.value.length > 0 && confirm.value === password.value,
-);
+const passwordsMatch = computed(() => {
+  return confirm.value.length > 0 && confirm.value === password.value;
+});
 
 watch(
   () => props.mode,
@@ -79,18 +98,24 @@ watch(
     agreeTerms.value = false;
     currentStep.value = 1;
     showPassword.value = false;
-    Object.keys(errors).forEach((key) => (errors[key] = ""));
-  },
+
+    Object.keys(errors).forEach((key) => {
+      errors[key] = "";
+    });
+  }
 );
 
 function validateStep1() {
   errors.name = "";
   errors.email = "";
+
   let valid = true;
+
   if (props.mode === "registration" && !name.value.trim()) {
     errors.name = "Enter your full name";
     valid = false;
   }
+
   if (!email.value.trim()) {
     errors.email = "Enter your email address";
     valid = false;
@@ -98,21 +123,26 @@ function validateStep1() {
     errors.email = "Enter a valid email address";
     valid = false;
   }
+
   return valid;
 }
 
 function validateLogin() {
   errors.email = "";
   errors.password = "";
+
   let valid = true;
+
   if (!email.value.trim()) {
     errors.email = "Enter your email address";
     valid = false;
   }
+
   if (!password.value) {
     errors.password = "Enter your password";
     valid = false;
   }
+
   return valid;
 }
 
@@ -120,24 +150,31 @@ function validateStep2() {
   errors.password = "";
   errors.confirm = "";
   errors.terms = "";
+
   let valid = true;
+
   if (password.value.length < 6) {
     errors.password = "Use at least 6 characters";
     valid = false;
   }
+
   if (confirm.value !== password.value) {
     errors.confirm = "Passwords don't match";
     valid = false;
   }
+
   if (!agreeTerms.value) {
     errors.terms = "Accept the terms to continue";
     valid = false;
   }
+
   return valid;
 }
 
 function nextStep() {
-  if (validateStep1()) currentStep.value = 2;
+  if (validateStep1()) {
+    currentStep.value = 2;
+  }
 }
 
 function prevStep() {
@@ -145,9 +182,33 @@ function prevStep() {
   errors.form = "";
 }
 
-function finishAuth(user, title) {
-  localStorage.setItem("safeher-token", user.token);
-  localStorage.setItem("safeher-user", JSON.stringify(user.user));
+function finishAuth(response, title) {
+  console.log("AUTH RESPONSE:", response);
+
+  if (!response) {
+    throw new Error("No response received from the server.");
+  }
+
+  if (!response.token) {
+    console.error("TOKEN IS MISSING:", response);
+    throw new Error("No token was received from the server.");
+  }
+
+  if (!response.user) {
+    console.error("USER IS MISSING:", response);
+    throw new Error("No user data was received from the server.");
+  }
+
+  localStorage.setItem("safeher-token", response.token);
+  localStorage.setItem(
+    "safeher-user",
+    JSON.stringify(response.user)
+  );
+
+  console.log(
+    "TOKEN SAVED:",
+    localStorage.getItem("safeher-token")
+  );
 
   Swal.fire({
     icon: "success",
@@ -163,7 +224,10 @@ async function submit() {
   errors.form = "";
 
   if (props.mode === "login") {
-    if (!validateLogin()) return;
+    if (!validateLogin()) {
+      return;
+    }
+
     submitting.value = true;
 
     try {
@@ -172,10 +236,14 @@ async function submit() {
         password: password.value,
       });
 
-      submitting.value = false;
+      console.log("LOGIN RESPONSE:", response);
+
       finishAuth(response, "Welcome back to SafeHer");
     } catch (error) {
-      submitting.value = false;
+      console.error("LOGIN ERROR:", error);
+      console.error("LOGIN STATUS:", error.response?.status);
+      console.error("LOGIN DATA:", error.response?.data);
+
       errors.form =
         error.response?.data?.error ||
         (error.response ? "Login failed. Please try again." : "Cannot reach the server. Check that the backend is running and try again.");
@@ -188,7 +256,10 @@ async function submit() {
     currentStep.value = 1;
     return;
   }
-  if (!validateStep2()) return;
+
+  if (!validateStep2()) {
+    return;
+  }
 
   submitting.value = true;
 
@@ -200,12 +271,21 @@ async function submit() {
       phone: "",
     });
 
-    submitting.value = false;
+    console.log("REGISTRATION RESPONSE:", response);
+
     finishAuth(response, "Your SafeHer account is ready");
   } catch (error) {
-    submitting.value = false;
+    console.error("REGISTRATION ERROR:", error);
+    console.error("STATUS:", error.response?.status);
+    console.error("DATA:", error.response?.data);
+
     errors.form =
-      error.response?.data?.error || "Registration failed. Please try again.";
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message ||
+      "Registration failed. Please try again.";
+  } finally {
+    submitting.value = false;
   }
 }
 
@@ -262,11 +342,19 @@ async function forgotPassword() {
     showCancelButton: true,
     confirmButtonText: "Find account",
     confirmButtonColor: "#351536",
-    inputValidator: (value) =>
-      !value ? "Please enter your email address" : undefined,
+
+    inputValidator: (value) => {
+      if (!value) {
+        return "Please enter your email address";
+      }
+
+      return undefined;
+    },
   });
 
-  if (!emailResult.isConfirmed) return;
+  if (!emailResult.isConfirmed) {
+    return;
+  }
 
   try {
     await authService.forgotPassword(emailResult.value);
@@ -278,6 +366,8 @@ async function forgotPassword() {
       confirmButtonColor: "#351536",
     });
   } catch (error) {
+    console.error("Forgot password error:", error);
+
     Swal.fire({
       icon: "error",
       title: "Account not found",

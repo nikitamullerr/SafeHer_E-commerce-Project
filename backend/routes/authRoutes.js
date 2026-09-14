@@ -1,6 +1,7 @@
 import express from 'express';
 import { googleAuth } from '../controllers/googleAuthController.js';
 import { verifyToken } from '../middleware/verifyToken.js';
+
 import {
     register,
     login,
@@ -12,10 +13,12 @@ import {
 
 const router = express.Router();
 
+// PUBLIC ROUTES
 router.post('/register', register);
 router.post('/login', login);
 router.post('/google', googleAuth);
 
+// PROTECTED ROUTES
 router.get('/me', verifyToken, getMe);
 router.put('/me', verifyToken, updateProfile);
 router.put('/change-password', verifyToken, changePassword);

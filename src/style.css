@@ -7714,114 +7714,52 @@ body,
   color: var(--plum) !important;
 }
 
-/* Shared contrast pairs: keep foreground and surface together in both themes. */
-.app-shell .site-nav { background: var(--surface); color: var(--ink); }
-.app-shell .nav-links button { color: var(--ink); }
-.app-shell .nav-links button:hover,
-.app-shell .nav-links button.active { color: var(--plum); border-bottom-color: currentColor; }
-.app-shell .nav-actions select,
-.app-shell .nav-actions option,
-.app-shell .navbar-toggler,
-.app-shell .theme-toggle,
-.app-shell .bag-button,
-.app-shell .icon-button {
-  background-color: var(--surface);
-  color: var(--ink);
-  border-color: var(--muted);
-}
-.app-shell .nav-links.show { background-color: var(--surface); }
-.app-shell .btn-dark-plum,
-.app-shell .btn-track { background: #351536; color: #fff; border: 1px solid #876889; }
-.app-shell .btn-dark-plum:hover,
-.app-shell .btn-dark-plum:active,
-.app-shell .btn-track:hover { background: #512151; color: #fff; }
-.app-shell .btn-light-plum,
-.app-shell .btn-outline-plum {
-  background: var(--surface); color: var(--ink); border: 1px solid var(--muted);
-}
-.app-shell .btn-light-plum:hover,
-.app-shell .btn-light-plum:active,
-.app-shell .btn-outline-plum:hover,
-.app-shell .btn-outline-plum:active { background: #351536; color: #fff; border-color: #876889; }
-.app-shell .btn-sos { background: #bd2030; color: #fff; }
-.app-shell .btn-sos:hover { background: #991827; color: #fff; }
-.app-shell :is(button, a, select, input, textarea):focus-visible {
-  outline: 3px solid var(--plum); outline-offset: 3px;
-  box-shadow: 0 0 0 2px var(--surface);
-}
-.app-shell :is(input, textarea)::placeholder { color: var(--muted); opacity: 1; }
-.app-shell .text-muted { color: var(--muted) !important; }
-.app-shell .drawer-divider span { background: var(--surface); }
-/* Leaflet keeps light tiles, controls and popups, including in dark mode. */
-.app-shell .leaflet-container { color: #351536; }
-.app-shell .leaflet-control-zoom a { background: #fff; color: #351536 !important; }
-.app-shell .leaflet-popup-content-wrapper,
-.app-shell .leaflet-popup-tip,
-.app-shell .leaflet-tooltip,
-.app-shell .leaflet-control-attribution { background: #fff; color: #351536; }
-.app-shell .leaflet-container a { color: #512151; }
-.app-shell .map-overlay { background: var(--surface); color: var(--ink); border-color: var(--muted); }
-.app-shell .map-overlay strong { color: var(--ink); }
-.app-shell .map-overlay small { color: var(--muted); }
-.app-shell .map-status { background: var(--surface); color: var(--ink); }
-.app-shell .map-status.active { color: #17683d; background: #edf9f1; }
-.app-shell .map-location-error { background: #fff1f1; color: #a11c25; }
-.app-shell .premium-videos-status { color: var(--ink); }
-.app-shell .video-player-modal { background: var(--surface); color: var(--ink); }
-.app-shell .video-player-meta h3 { color: var(--ink); }
-.app-shell .video-player-meta > p:last-child { color: var(--muted); }
+/* Safety Hub: Night and Travel mode tools */
+.mode-tools-panel { margin-top: 22px; }
+.mode-tools-heading { display: flex; gap: 14px; align-items: flex-start; }
+.mode-tools-heading > div { flex: 1; }
+.mode-tools-heading h2 { font: 700 22px "Syne"; color: var(--plum); margin: 0 0 7px; }
+.mode-tools-heading p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.mode-tools-heading .eyebrow { color: var(--red); font-size: 10px; font-weight: 700; letter-spacing: .1em; margin-bottom: 5px; }
+.mode-tools-heading > strong { white-space: nowrap; color: var(--plum); background: var(--blush); padding: 8px 10px; font-size: 11px; }
+.mode-tools-icon { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 42px; border-radius: 50%; background: var(--plum); color: #fff; }
+.travel-mode-panel .mode-tools-icon { background: var(--red); }
+.mode-checklist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 22px 0 16px; }
+.mode-checklist label { display: flex; align-items: center; gap: 9px; padding: 12px; border: 1px solid var(--line); color: var(--ink); font-size: 12px; cursor: pointer; }
+.mode-checklist input { accent-color: var(--red); }
+.mode-checklist span { flex: 1; }
+.mode-checklist i, .travel-readiness i { color: var(--red); }
+.mode-action-row, .travel-readiness { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.mode-action-row > button:not(.btn), .travel-readiness button { border: 1px solid var(--line); padding: 10px 12px; color: var(--plum); background: #fff; font-size: 11px; font-weight: 700; }
+.mode-action-row > button:not(.btn):hover, .travel-readiness button:hover { border-color: var(--red); color: var(--red); }
+.mode-tools-note { display: block; margin-top: 13px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.trip-form { display: grid; grid-template-columns: 1.2fr 1fr .8fr auto; gap: 12px; align-items: end; margin: 22px 0 14px; }
+.trip-form label { color: var(--plum); font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+.trip-form input, .trip-form select { width: 100%; display: block; margin-top: 6px; padding: 11px; border: 1px solid var(--line); color: var(--ink); background: #fff; font: 12px "DM Sans"; }
+.trip-status { display: flex; align-items: center; gap: 11px; background: #f8f2f6; border: 1px solid #ead8e2; padding: 13px; }
+.trip-status.complete { background: #eff8f1; border-color: #cfe6d4; }
+.trip-status > span { color: var(--red); font-size: 19px; }
+.trip-status.complete > span { color: #2e9e5b; }
+.trip-status > div { flex: 1; }
+.trip-status strong, .trip-status small { display: block; }
+.trip-status strong { color: var(--plum); font-size: 12px; }
+.trip-status small { color: var(--muted); font-size: 10px; margin-top: 3px; }
+.travel-readiness { margin-top: 15px; font-size: 11px; color: var(--muted); }
+.travel-readiness span { display: inline-flex; align-items: center; gap: 5px; }
+.travel-readiness button { margin-left: auto; }
+.dark-mode .mode-tools-heading h2, .dark-mode .trip-status strong { color: #fff; }
+.dark-mode .mode-checklist, .dark-mode .trip-form input, .dark-mode .trip-form select, .dark-mode .mode-action-row > button:not(.btn), .dark-mode .travel-readiness button { background: #2b202b; color: #f4eaf1; border-color: #604d60; }
+.dark-mode .trip-status { background: #382a38; border-color: #604d60; }
+.dark-mode .trip-status.complete { background: #24382a; border-color: #42624b; }
+@media (max-width: 780px) { .mode-checklist { grid-template-columns: 1fr; } .trip-form { grid-template-columns: 1fr; } .trip-form .btn { width: 100%; } .mode-tools-heading { flex-wrap: wrap; } .mode-tools-heading > strong { margin-left: 56px; } .travel-readiness button { margin-left: 0; } .trip-status { flex-wrap: wrap; } }
 
-.app-shell .footer-bottom { color: var(--muted); }
-.app-shell .product-filter button { background: var(--surface); color: var(--ink); border-color: var(--muted); }
-.app-shell .product-filter button.selected { background: #351536; color: #fff; }
-.app-shell .summary-stars,
-.app-shell .review-stars,
-.app-shell .interactive-stars span { color: #825600; }
-.app-shell.dark-mode .summary-stars,
-.app-shell.dark-mode .review-stars,
-.app-shell.dark-mode .interactive-stars span { color: #ffd16b; }
-.app-shell.dark-mode .guide-callout { background: var(--surface); }
-.app-shell.dark-mode .guide-callout p:last-child { color: var(--muted); }
-
-.app-shell.dark-mode .tracking-control,
-.app-shell.dark-mode .mini-grid span,
-.app-shell.dark-mode .feature-card.card-purple { background: var(--surface); color: var(--ink); }
-.app-shell.dark-mode .feature-card small { color: var(--muted); }
-.app-shell.dark-mode .reviewer-meta > span { color: #79d9aa; }
-.app-shell.dark-mode .sf-google b { color: #8ab4f8; }
-
-.app-shell.dark-mode .feature-card.card-red small { color: #fff; }
-@media (max-width: 700px) {
-  .app-shell .site-nav > .container-fluid { flex-wrap: wrap; row-gap: 12px; }
-  .app-shell .nav-actions { flex-basis: 100%; justify-content: flex-end; }
-  .app-shell .nav-actions select { display: block; margin-right: auto; font-size: 13px; }
-}
-
-.app-shell.dark-mode .hero-lead { color: var(--muted); }
-
-/* Language controls remain available before signing in. */
-.auth-language { display: grid; grid-template-columns: minmax(0, 1fr) minmax(90px, 140px); align-items: center; gap: 12px; padding: 12px 24px; color: var(--ink); background: var(--blush); }
-.auth-language select { width: 100%; min-width: 0; padding: 8px 12px; border: 1px solid var(--muted); border-radius: 8px; background: var(--surface); color: var(--ink); }
-.nav-actions select { max-width: 130px; }
-@media (max-width: 600px) { .auth-language { padding: 10px 16px; } .nav-links button { white-space: normal; overflow-wrap: anywhere; } }
-
-.browse-return { justify-self: start; max-width: 100%; margin-right: 0; line-height: 1.3; }
-.auth-access-notice { grid-column: 1 / -1; margin: 12px 24px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); }
-.nav-actions .guest-login, .nav-actions .guest-register { padding: 8px 12px; font-size: 12px; white-space: normal; }
-@media (max-width: 600px) { .nav-actions { flex-wrap: wrap; } .nav-actions .guest-login, .nav-actions .guest-register { flex: 1 1 auto; } .browse-return { font-size: 12px; } }
-
-/* The auth toolbar and form share one themed viewport. */
-.app-shell.auth-view { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; background: var(--blush); }
-.app-shell.auth-view .sf-shell { flex: 1; min-height: 0; }
-
-.app-shell .auth-language .browse-return { background: var(--surface); color: var(--ink); border-color: var(--muted); }
-.app-shell .auth-language .browse-return:hover, .app-shell .auth-language .browse-return:focus-visible { background: var(--ink); color: var(--surface); border-color: var(--ink); }
-
-/* Account links sit above the main navigation; its controls have no decorative outlines. */
-.guest-account-links { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px 20px; margin-left: auto; }
-.app-shell .guest-account-links button { border: 0; box-shadow: none; background: transparent; color: inherit; font: inherit; font-weight: 700; padding: 4px 0; }
-.app-shell .guest-account-links button:hover { text-decoration: underline; text-underline-offset: 4px; }
-.app-shell .site-nav .nav-actions :is(select, button), .app-shell .site-nav .navbar-toggler { border: 0; outline: none; box-shadow: none; background-color: transparent; }
-.app-shell .site-nav .nav-actions :is(select, button):focus:not(:focus-visible), .app-shell .site-nav .navbar-toggler:focus:not(:focus-visible) { outline: none; box-shadow: none; }
-.app-shell .site-nav :is(button, select):focus-visible, .app-shell .guest-account-links button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
-@media (max-width: 700px) { .top-strip .container-fluid { flex-wrap: wrap; gap: 4px 12px; } .guest-account-links { width: 100%; } }
+/* Adjustable Safety Hub check-in controls */
+.checkin-custom-time { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); padding: 5px 7px 5px 10px; background: #fff; color: var(--plum); }
+.checkin-custom-time > span { color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.checkin-custom-time strong { min-width: 48px; text-align: center; font-size: 11px; }
+.checkin-custom-time > button { width: 26px; height: 26px; display: grid; place-items: center; border: 1px solid var(--line); color: var(--plum); background: #fff; }
+.checkin-custom-time > button:hover { border-color: var(--red); color: var(--red); }
+.checkin-custom-time > .checkin-custom-start { width: auto; padding: 0 9px; background: var(--plum); border-color: var(--plum); color: #fff; font-weight: 700; font-size: 10px; }
+.dark-mode .checkin-custom-time, .dark-mode .checkin-custom-time > button { color: #f4eaf1; background: #2b202b; border-color: #604d60; }
+.dark-mode .checkin-custom-time > .checkin-custom-start { background: #f2b6c6; border-color: #f2b6c6; color: var(--plum); }
+@media (max-width: 780px) { .checkin-custom-time { width: 100%; justify-content: center; } }
