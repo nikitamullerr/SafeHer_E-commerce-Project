@@ -1,19 +1,47 @@
 <script setup>
 import { t, formatMoney } from "../languageConfig.js";
-defineProps({ open: Boolean, cart: Array, total: Number });
+import { nextTick, onBeforeUnmount, ref, watch } from "vue";
+const props = defineProps({ open: Boolean, cart: { type: Array, default: () => [] }, total: { type: Number, default: 0 } });
 const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop"]);
+const drawer = ref(null);
+let previousFocus;
+let previousOverflow;
+function releaseDrawer() {
+  if (previousOverflow !== undefined) {
+    document.body.style.overflow = previousOverflow;
+    previousOverflow = undefined;
+  }
+  if (drawer.value?.contains(document.activeElement) && previousFocus?.isConnected) previousFocus.focus();
+}
+watch(() => props.open, async (open) => {
+  if (!open) { releaseDrawer(); return; }
+  previousFocus = document.activeElement;
+  previousOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+  await nextTick();
+  if (props.open) drawer.value?.querySelector("button")?.focus();
+}, { immediate: true });
+onBeforeUnmount(releaseDrawer);
+function handleKeydown(event) {
+  if (event.key === "Escape") { event.preventDefault(); emit("toggle"); }
+  if (event.key !== "Tab") return;
+  const buttons = [...drawer.value.querySelectorAll("button:not(:disabled)")];
+  const first = buttons[0], last = buttons.at(-1);
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+}
 </script>
 
 <template>
   <div>
     <div v-if="open" class="cart-backdrop" @click="emit('toggle')"></div>
-    <aside class="cart-drawer" :class="{ open }" :aria-label="t(&quot;Shopping cart&quot;)">
+    <aside ref="drawer" class="cart-drawer" :class="{ open }" role="dialog" :aria-modal="open ? 'true' : undefined" :aria-hidden="!open" :inert="!open" :aria-label="t('Shopping cart')" @keydown="handleKeydown">
       <div class="drawer-header">
         <div>
           <p class="eyebrow">{{ t("SAFEHER STORE") }}</p>
           <h2>{{ t("Your bag") }}</h2>
         </div>
-        <button class="drawer-close" @click="emit('toggle')">
+        <button type="button" class="drawer-close" :aria-label="t('Close cart')" @click="emit('toggle')">
           <i class="bi bi-x-lg"></i>
         </button>
       </div>
@@ -33,18 +61,18 @@ const emit = defineEmits(["toggle", "quantity", "remove", "checkout", "shop"]);
             <strong>{{ item.name }}</strong>
             <small>{{ formatMoney(item.price) }} {{ t("each") }}</small>
             <div class="quantity-control">
-              <button @click="emit('quantity', item, -1)">
+              <button type="button" :aria-label="t('Decrease quantity')" @click="emit('quantity', item, -1)">
                 <i class="bi bi-dash"></i>
               </button>
               <span>{{ item.quantity }}</span>
-              <button @click="emit('quantity', item, 1)">
+              <button type="button" :aria-label="t('Increase quantity')" @click="emit('quantity', item, 1)">
                 <i class="bi bi-plus"></i>
               </button>
             </div>
           </div>
           <div class="drawer-item-end">
             <strong>{{ formatMoney(item.price * item.quantity) }}</strong>
-            <button @click="emit('remove', item.id)">
+            <button type="button" :aria-label="t('Remove from cart')" @click="emit('remove', item.id)">
               <i class="bi bi-trash3"></i>
             </button>
           </div>

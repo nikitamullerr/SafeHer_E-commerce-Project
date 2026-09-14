@@ -23,6 +23,7 @@ import PaymentCancelledPage from "./pages/PaymentCancelledPage.vue";
 import { language, supportedLanguages } from "./languageConfig.js";
 import { assessDangerLevel } from "./services/dangerAssessment.js";
 import api from "./services/api.js";
+import { getSubscription, mapSubscription } from "./services/premiumClient.js";
 import { publicViews, authViews, memberViews, normalizeView, resolveView } from "./services/viewAccess.js";
 
 const isAuthenticated = ref(
@@ -39,7 +40,7 @@ function saveSession(key, value) {
 const restoredAction = readSession("safeher-after-login", null);
 const pendingAction = ref(restoredAction && (
   (restoredAction.type === "view" && (memberViews.has(restoredAction.view) || restoredAction.view === "packages")) ||
-  (restoredAction.type === "checkout" && ["payfast", "card_demo"].includes(restoredAction.method))
+  (restoredAction.type === "checkout" && ["payfast", "card", "card_demo"].includes(restoredAction.method))
 ) ? restoredAction : null);
 watch(pendingAction, value => saveSession("safeher-after-login", value), { deep: true, flush: "sync" });
 const savedView = localStorage.getItem("safeher-active-view");
@@ -90,21 +91,15 @@ const nearest = computed(() =>
     : "Use live tracking to locate yourself",
 );
 
-function readPremiumMembership() {
-  if (!isAuthenticated.value) return null;
-  const email = localStorage.getItem("safeher-client-email");
-  if (!email) return null;
+const premiumMembership = ref(null);
+async function loadPremiumMembership() {
+  const token = localStorage.getItem("safeher-token");
+  if (!isAuthenticated.value || !token) return;
   try {
-    const memberships = JSON.parse(
-      localStorage.getItem("safeher-premium-memberships") || "{}",
-    );
-    const membership = memberships[email];
-    return membership ? { ...membership, email } : null;
-  } catch {
-    return null;
-  }
+    const data = await getSubscription();
+    if (token === localStorage.getItem("safeher-token")) premiumMembership.value = mapSubscription(data.subscription);
+  } catch { premiumMembership.value = null; }
 }
-const premiumMembership = ref(readPremiumMembership());
 const hasPremiumAccess = computed(() =>
   Boolean(
     premiumMembership.value?.expiresAt &&
@@ -443,6 +438,7 @@ const checkoutOpen = ref(false);
 const checkoutMethod = ref("card");
 function checkout() {
   if (!cart.value.length) return;
+  if (!isAuthenticated.value) return requireSignIn({ type: "checkout", method: "card" });
   checkoutMethod.value = "card";
   checkoutOpen.value = true;
   cartOpen.value = false;
@@ -460,7 +456,7 @@ function authenticated(user) {
   isAuthenticated.value = true;
   localStorage.setItem("safeher-authenticated", "true");
   if (email) localStorage.setItem("safeher-client-email", email);
-  premiumMembership.value = readPremiumMembership();
+  loadPremiumMembership();
   loadContacts();
   const action = pendingAction.value;
   pendingAction.value = null;
@@ -560,6 +556,7 @@ onMounted(() => {
   if (isAuthenticated.value && (pendingAction.value || showingAuth.value)) authenticated(localStorage.getItem("safeher-client-email"));
   loadContacts();
   loadProducts();
+  loadPremiumMembership();
 });
 </script>
 

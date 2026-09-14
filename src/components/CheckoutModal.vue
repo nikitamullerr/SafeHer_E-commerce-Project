@@ -2,8 +2,10 @@
 import { t, formatMoney } from "../languageConfig.js";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import api from "../services/api.js";
+import { deliveryFee } from "../../shared/delivery.js";
+import { validateDemoCard } from "../services/cardValidation.js";
 import { createPayment, getPaymentConfig } from "../services/paymentClient.js";
-const props = defineProps({ items: { type: Array, required: true }, initialMethod: { type: String, default: "card" } });
+const props = defineProps({ items: { type: Array, required: true }, initialMethod: { type: String, default: "card" }, requiresDelivery: { type: Boolean, default: true }, submitPayment: { type: Function, default: null } });
 const emit = defineEmits(["close", "success"]);
 const method = ref(props.initialMethod || "card");
 const delivery = ref("standard");
@@ -59,8 +61,9 @@ const dialog = ref(null);
 const requestId = ref(crypto.randomUUID());
 const options = [{ value: "standard", label: "Standard delivery", fee: 49 }, { value: "express", label: "Express delivery", fee: 99 }];
 const money = formatMoney;
-const subtotal = computed(() => props.items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0));
-const fee = computed(() => options.find((item) => item.value === delivery.value).fee);
+const subtotalCents = computed(() => props.items.reduce((sum, item) => sum + Math.round(Number(item.price) * 100) * item.quantity, 0));
+const subtotal = computed(() => subtotalCents.value / 100);
+const fee = computed(() => props.requiresDelivery ? deliveryFee(subtotalCents.value, options.find((item) => item.value === delivery.value).fee) : 0);
 const available = computed(() => config.value.methods.includes(method.value));
 watch([method, delivery, address], () => { requestId.value = crypto.randomUUID(); error.value = ""; });
 async function loadConfig() {
@@ -69,7 +72,7 @@ async function loadConfig() {
   catch { error.value = "Could not load payment options. Check the backend and try again."; }
   finally { configLoading.value = false; }
 }
-onMounted(async () => { await nextTick(); dialog.value?.focus(); loadConfig(); loadAddresses(); });
+onMounted(async () => { await nextTick(); dialog.value?.focus(); loadConfig(); if (props.requiresDelivery) loadAddresses(); });
 function trapFocus(event) {
   if (event.key === "Escape" && !busy.value) { emit("close"); return; }
   if (event.key !== "Tab") return;
@@ -81,12 +84,16 @@ function trapFocus(event) {
 async function submit() {
   if (busy.value || !available.value) return;
   error.value = "";
-  if (!address.value.trim()) { error.value = "Enter a delivery address."; return; }
+  if (props.requiresDelivery && !address.value.trim()) { error.value = "Enter a delivery address."; return; }
+  if (method.value === "card") {
+    error.value = validateDemoCard(cardDetails.value);
+    if (error.value) return;
+  } else if (!paymentReference.value.trim()) { error.value = "Add the payment reference for this method."; return; }
   busy.value = true;
   try {
     if (saveAddress.value && !(await storeAddress())) return;
     const payload = { items: props.items.map(({ id, quantity }) => ({ product_id: id, quantity })), delivery_method: delivery.value, delivery_address: address.value.trim(), request_id: requestId.value, payment_method: method.value, payment_reference: paymentReference.value.trim(), card_details: method.value === "card" ? { ...cardDetails.value, cardNumber: cardDetails.value.cardNumber.replace(/\s+/g, "") } : undefined };
-    const result = await createPayment(payload);
+    const result = await (props.submitPayment || createPayment)(payload);
     emit("success", result);
   } catch (failure) { error.value = failure.response?.data?.error || failure.message || "Payment could not be started. Please try again."; }
   finally { busy.value = false; }
@@ -100,9 +107,11 @@ async function submit() {
       <p v-if="configLoading" role="status">{{ t("Loading payment options...") }}</p>
       <form @submit.prevent="submit">
         <fieldset :disabled="busy || configLoading">
+          <p v-if="!requiresDelivery" v-for="item in items" :key="item.id"><strong>{{ t(item.name) }}</strong> — {{ money(item.price) }}</p>
+          <template v-if="requiresDelivery">
           <legend>{{ t("Delivery") }}</legend>
           <label for="checkout-delivery">{{ t("Delivery method") }}</label>
-          <select id="checkout-delivery" v-model="delivery"><option v-for="option in options" :key="option.value" :value="option.value">{{ t(option.label) }} - {{ money(option.fee) }}</option></select>
+          <select id="checkout-delivery" v-model="delivery"><option v-for="option in options" :key="option.value" :value="option.value">{{ t(option.label) }} - {{ money(deliveryFee(subtotalCents, option.fee)) }}</option></select>
           <p v-if="addressError" class="checkout-error" role="alert">{{ t(addressError) }} <button type="button" class="btn btn-outline-plum" @click="loadAddresses">{{ t("Reload addresses") }}</button></p>
           <template v-if="addresses.length">
             <label for="saved-address">{{ t("Saved addresses") }}</label>
@@ -114,6 +123,7 @@ async function submit() {
           <label class="save-address-label"><input v-model="saveAddress" type="checkbox" /> {{ t("Save this address for next time") }}</label>
           <button type="button" class="btn btn-outline-plum" :disabled="savingAddress || !address.trim()" @click="storeAddress">{{ t(savingAddress ? 'Saving...' : 'Save address now') }}</button>
           <p v-if="addressMessage" role="status">{{ t(addressMessage) }}</p>
+          </template>
           <legend class="mt-3">{{ t("Payment method") }}</legend>
           <div class="checkout-methods">
             <label><input v-model="method" type="radio" value="card" /> Card</label>
@@ -139,7 +149,7 @@ async function submit() {
             <input id="payment-reference" v-model="paymentReference" type="text" :placeholder="method === 'wallet' ? 'e.g. 082 123 4567 or payment code' : 'Reference or payment note'" />
           </template>
 
-          <dl class="checkout-totals"><div><dt>{{ t("Items (") }}{{ items.reduce((n, item) => n + item.quantity, 0) }})</dt><dd>{{ money(subtotal) }}</dd></div><div><dt>{{ t("Delivery") }}</dt><dd>{{ money(fee) }}</dd></div><div><dt>{{ t("Total") }}</dt><dd>{{ money(subtotal + fee) }}</dd></div></dl>
+          <dl class="checkout-totals"><div><dt>{{ t("Items (") }}{{ items.reduce((n, item) => n + item.quantity, 0) }})</dt><dd>{{ money(subtotal) }}</dd></div><div v-if="requiresDelivery"><dt>{{ t("Delivery") }}</dt><dd>{{ money(fee) }}</dd></div><div><dt>{{ t("Total") }}</dt><dd>{{ money(subtotal + fee) }}</dd></div></dl>
           <button type="submit" class="btn btn-sos w-100" :disabled="!available || !items.length">{{ t(busy ? 'Processing...' : 'Complete payment') }}</button>
         </fieldset>
       </form>

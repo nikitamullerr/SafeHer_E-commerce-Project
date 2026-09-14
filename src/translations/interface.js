@@ -1,4 +1,9 @@
 export default {
+  "Close cart": { "Afrikaans": "Maak mandjie toe", "isiZulu": "Vala inqola", "isiXhosa": "Vala inqwelo" },
+  "Decrease quantity": { "Afrikaans": "Verminder hoeveelheid", "isiZulu": "Yehlisa ubuningi", "isiXhosa": "Nciphisa ubuninzi" },
+  "Increase quantity": { "Afrikaans": "Vermeerder hoeveelheid", "isiZulu": "Khulisa ubuningi", "isiXhosa": "Yandisa ubuninzi" },
+  "Remove from cart": { "Afrikaans": "Verwyder uit mandjie", "isiZulu": "Susa enqoleni", "isiXhosa": "Susa enqwelweni" },
+  "Secure checkout": { "Afrikaans": "Veilige betaling", "isiZulu": "Ukukhokha okuphephile", "isiXhosa": "Intlawulo ekhuselekileyo" },
   "Loading products...": {
     "Afrikaans": "Produkte laai...",
     "isiZulu": "Ilayisha imikhiqizo...",
