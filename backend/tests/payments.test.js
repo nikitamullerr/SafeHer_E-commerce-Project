@@ -200,7 +200,7 @@ test("PayFast creates a pending order and a signed sandbox form", async () => {
   assert.equal(res.body.formInputs.amount, "79.00");
   assert.equal(res.body.paymentStatus, "pending");
   const [, values] = calls.find(([sql]) => sql.startsWith("INSERT INTO orders"));
-  assert.equal(values.at(-1), "pending");
+  assert.equal(values[10], "pending");
   assert.equal(res.body.emailSent, undefined);
 });
 
@@ -261,4 +261,36 @@ test("PayFast ITNs preserve empty fields, spaces and PHP encoding in both verifi
   delete process.env.PAYFAST_PASSPHRASE;
   payload.signature = createHash("md5").update(parameters).digest("hex");
   assert.equal(isValidPayfastSignature(payload), true);
+});
+
+ test("Premium PayFast uses authoritative price with no delivery or stock changes", async () => {
+  const res = response();
+  await createPayment({user:{id:2},body:{premium_plan:"Essential",payment_method:"payfast",request_id:requestId,amount:0.01}},res);
+  assert.equal(res.code,201);
+  assert.equal(res.body.paymentStatus,"pending");
+  const [,values]=calls.find(([sql])=>sql.startsWith("INSERT INTO orders"));
+  assert.equal(values[5],0);
+  assert.equal(values[11],"Essential");
+  assert.equal(values[6],49);
+  assert.ok(!calls.some(([sql])=>sql.includes("UPDATE products") || sql.includes("INSERT INTO premium_subscriptions")));
+ });
+ test("Premium rejects unknown plan before database access",async()=>{
+  const res=response();
+  await createPayment({user:{id:2},body:{premium_plan:"Fake",payment_method:"payfast",request_id:requestId}},res);
+  assert.equal(res.code,400);
+  assert.equal(calls.length,0);
+ });
+
+test("Premium activates inside verified payment transaction and duplicate ITN does not reactivate", async () => {
+ existing={id:7,user_id:2,order_number:'SH-test',customer_email:'test@example.com',premium_plan:'Essential',total:49,payment_status:'pending',payment_method:'payfast'};
+ globalThis.fetch=async()=>({ok:true,text:async()=> 'VALID'});
+ const wrong=response();await payfastItn({body:notification('1.00')},wrong);
+ assert.equal(wrong.code,400);
+ assert.ok(!calls.some(([sql])=>sql.includes('INSERT INTO premium_subscriptions')));
+ const valid=response();await payfastItn({body:notification('49.00')},valid);
+ assert.equal(valid.code,200);
+ assert.equal(calls.filter(([sql])=>sql.includes('INSERT INTO premium_subscriptions')).length,1);
+ existing.payment_status='paid';existing.payfast_payment_id='987654';
+ await payfastItn({body:notification('49.00')},response());
+ assert.equal(calls.filter(([sql])=>sql.includes('INSERT INTO premium_subscriptions')).length,1);
 });

@@ -1,3 +1,4 @@
+import { createPayment } from "./paymentController.js";
 import { premiumPlans } from "../config/premiumPlans.js";
 import { PremiumService } from '../services/premiumService.js';
 
@@ -206,50 +207,9 @@ export const getSubscription = async (req, res) => {
 // ============================================
 // SUBSCRIBE TO PREMIUM
 // ============================================
-export const subscribe = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const { plan, method, receipt_email, reference } = req.body || {};
-        if (method === "payfast") return res.status(400).json({ success: false, error: "PayFast is currently available for product orders only." });
-        const prices = Object.fromEntries(premiumPlans.map(item => [item.name, Number(item.price.slice(1))]));
-
-        if (!Object.hasOwn(prices, plan)) {
-            return res.status(400).json({
-                success: false,
-                error: 'Choose Essential, Circle or Annual'
-            });
-        }
-
-        const updated = await PremiumService.upsertSubscription(userId, {
-            plan,
-            amount: prices[plan],
-            method: method || 'card',
-            receipt_email: receipt_email || req.user.email,
-            reference: reference || `SUB-${Date.now()}`
-        });
-
-        if (!updated) {
-            return res.status(500).json({
-                success: false,
-                error: 'Failed to process subscription'
-            });
-        }
-
-        const subscription = await PremiumService.getSubscription(userId);
-
-        res.json({
-            success: true,
-            message: 'Subscription successful',
-            subscription
-        });
-
-    } catch (error) {
-        console.error('Subscribe error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to process subscription'
-        });
-    }
+export const subscribe = (req, res) => {
+    req.body = { ...req.body, premium_plan: req.body?.plan, payment_method: req.body?.payment_method || req.body?.method };
+    return createPayment(req, res);
 };
 
 // ============================================

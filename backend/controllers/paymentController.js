@@ -1,3 +1,5 @@
+import { premiumPlans } from "../config/premiumPlans.js";
+import { PremiumService } from "../services/premiumService.js";
 import pool from "../config/db.js";
 import { createPayfastPaymentUrl, verifyPayfastNotification } from "../services/payfastService.js";
 import { deliveryFee } from "../../shared/delivery.js";
@@ -73,9 +75,11 @@ export async function createPayment(req, res) {
     if (payment_method === "payfast" && !payfastAvailable()) throw fail("PayFast is not configured.", 503);
     if (!supportedMethods.has(payment_method) && payment_method !== "payfast") throw fail("Choose a valid payment method.");
     if (req.body?.card_details && payment_method !== "card") throw fail("Card details are only valid for the card payment method.");
-    if (!Array.isArray(items) || !items.length || items.length > 100) throw fail("Choose at least one item (maximum 100 lines).");
-    if (!Object.hasOwn(fees, delivery_method)) throw fail("Choose a valid delivery method.");
-    if (typeof delivery_address !== "string" || !delivery_address.trim() || delivery_address.length > 1000) throw fail("Enter a delivery address (maximum 1000 characters).");
+    const plan = req.body?.premium_plan == null ? null : premiumPlans.find(plan => plan.name === req.body.premium_plan);
+    if (req.body?.premium_plan != null && !plan) throw fail("Choose a valid premium package.");
+    if (!plan && (!Array.isArray(items) || !items.length || items.length > 100)) throw fail("Choose at least one item (maximum 100 lines).");
+    if (!plan && !Object.hasOwn(fees, delivery_method)) throw fail("Choose a valid delivery method.");
+    if (!plan && (typeof delivery_address !== "string" || !delivery_address.trim() || delivery_address.length > 1000)) throw fail("Enter a delivery address (maximum 1000 characters).");
     if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(request_id || "")) throw fail("A checkout request ID is required.");
 
     if (payment_method === "card") validateCardDetails(card_details || {});
@@ -84,7 +88,7 @@ export async function createPayment(req, res) {
     await ensureRequiredOrderColumns();
 
     const quantities = new Map();
-    for (const item of items) {
+    for (const item of plan ? [] : items) {
       const id = Number(item?.product_id), quantity = Number(item?.quantity);
       if (!Number.isSafeInteger(id) || id <= 0 || !Number.isSafeInteger(quantity) || quantity < 1 || quantity > 100) throw fail("Invalid order items.");
       quantities.set(id, (quantities.get(id) || 0) + quantity);
@@ -97,7 +101,7 @@ export async function createPayment(req, res) {
     if (!user) throw fail("Account not found.", 404);
     const [[existing]] = await connection.query("SELECT * FROM orders WHERE order_number = ?", [number]);
     if (existing) {
-      if (existing.user_id !== req.user.id || existing.payment_method !== payment_method || existing.delivery_address !== delivery_address.trim() || existing.delivery_method !== labels[delivery_method]) throw fail("Checkout request already used. Start a new checkout.", 409);
+      if (existing.user_id !== req.user.id || existing.payment_method !== payment_method || (existing.premium_plan || null) !== (plan?.name || null) || existing.delivery_address !== (plan ? "Digital access" : delivery_address.trim()) || existing.delivery_method !== (plan ? "Digital access" : labels[delivery_method])) throw fail("Checkout request already used. Start a new checkout.", 409);
       const [existingItems] = await connection.query("SELECT product_id, quantity FROM order_items WHERE order_id = ?", [existing.id]);
       if (existingItems.length !== quantities.size || existingItems.some((item) => quantities.get(item.product_id) !== item.quantity)) throw fail("Checkout contents changed. Start a new checkout.", 409);
       if (existing.payment_status === "paid") throw fail("This order has already been paid.", 409);
@@ -105,24 +109,25 @@ export async function createPayment(req, res) {
       const response = paymentResponse(existing);
       return res.json(response);
     }
-    const [products] = await connection.query("SELECT id, name, price, stock FROM products WHERE id IN (?) AND is_active = TRUE ORDER BY id FOR UPDATE", [[...quantities.keys()]]);
+    const [products] = plan ? [[]] : await connection.query("SELECT id, name, price, stock FROM products WHERE id IN (?) AND is_active = TRUE ORDER BY id FOR UPDATE", [[...quantities.keys()]]);
     if (products.length !== quantities.size) throw fail("One or more products are unavailable.");
-    let subtotalCents = 0;
+    let subtotalCents = plan ? Math.round(Number(plan.price.replace(/[^0-9.]/g, "")) * 100) : 0;
     for (const product of products) {
       if (product.stock < quantities.get(product.id)) throw fail(`${product.name} does not have enough stock.`, 409);
       subtotalCents += Math.round(Number(product.price) * 100) * quantities.get(product.id);
     }
-    const fee = deliveryFee(subtotalCents, fees[delivery_method]);
+    const fee = plan ? 0 : deliveryFee(subtotalCents, fees[delivery_method]);
     const order = { order_number: number, customer_name: user.name, customer_email: user.email, total: subtotalCents / 100 + fee, payment_method };
     const [result] = await connection.query(`INSERT INTO orders
-      (user_id, order_number, customer_name, customer_email, subtotal, delivery_fee, total, delivery_address, delivery_method, payment_method, payment_status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [req.user.id, number, user.name, user.email, subtotalCents / 100, fee, order.total, delivery_address.trim(), labels[delivery_method], payment_method, payment_method === "payfast" ? "pending" : "paid"]);
+      (user_id, order_number, customer_name, customer_email, subtotal, delivery_fee, total, delivery_address, delivery_method, payment_method, payment_status, premium_plan)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [req.user.id, number, user.name, user.email, subtotalCents / 100, fee, order.total, plan ? "Digital access" : delivery_address.trim(), plan ? "Digital access" : labels[delivery_method], payment_method, payment_method === "payfast" ? "pending" : "paid", plan?.name || null]);
     for (const product of products) {
       const quantity = quantities.get(product.id);
       await connection.query("INSERT INTO order_items (order_id, product_id, product_name, quantity, price_at_purchase) VALUES (?, ?, ?, ?, ?)", [result.insertId, product.id, product.name, quantity, product.price]);
       await connection.query("UPDATE products SET stock = stock - ? WHERE id = ?", [quantity, product.id]);
     }
+    if (plan && payment_method !== "payfast") await PremiumService.upsertSubscription(req.user.id, { plan: plan.name, amount: order.total, method: payment_method, receipt_email: user.email, reference: number }, connection);
     const response = paymentResponse(order);
     await connection.commit();
     if (payment_method !== "payfast") response.emailSent = (await sendOrderConfirmationEmail(result.insertId, req.user.id)).emailSent;
@@ -168,6 +173,7 @@ export async function payfastItn(req, res) {
       return res.status(order.payfast_payment_id === payload.pf_payment_id ? 200 : 400).send("Already processed");
     }
     if (order.payment_status !== "pending") { await connection.rollback(); return res.status(409).send("Order is not pending"); }
+    if (order.premium_plan) await PremiumService.upsertSubscription(order.user_id, { plan: order.premium_plan, amount: order.total, method: "payfast", receipt_email: order.customer_email, reference: order.order_number }, connection);
     await connection.query("UPDATE orders SET payment_status = 'paid', payfast_payment_id = ? WHERE id = ?", [payload.pf_payment_id, order.id]);
     await connection.commit();
     // Acknowledge the verified, committed payment before waiting on SMTP.

@@ -1,6 +1,7 @@
 import pool from "../config/db.js";
 
 const REQUIRED_COLUMNS = [
+  ["premium_plan", "VARCHAR(50) NULL DEFAULT NULL"],
   ["customer_name", "VARCHAR(100) NULL DEFAULT NULL"],
   ["customer_email", "VARCHAR(150) NULL DEFAULT NULL"],
   ["subtotal", "DECIMAL(10,2) NOT NULL DEFAULT 0"],

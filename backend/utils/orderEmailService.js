@@ -35,7 +35,7 @@ export async function sendOrderConfirmationEmail(orderId, userId, customerEmail)
 		connection = await pool.getConnection();
 		// Step 1: Fetch complete order details
 		const [orders] = await connection.query(
-			`SELECT id, order_number, total, status, delivery_address,
+			`SELECT id, order_number, total, status, delivery_address, premium_plan,
 					delivery_method, payment_method, payment_status, notes,
 					confirmation_email_sent, confirmation_email_sent_at,
 					created_at, updated_at
@@ -65,6 +65,8 @@ export async function sendOrderConfirmationEmail(orderId, userId, customerEmail)
 			 WHERE order_id = ?`,
 			[orderId]
 		);
+
+		if (order.premium_plan) items.push({ product_name: `SafeHer ${order.premium_plan}`, quantity: 1, price_at_purchase: order.total });
 
 		// Fetch customer details
 		const [users] = await connection.query(

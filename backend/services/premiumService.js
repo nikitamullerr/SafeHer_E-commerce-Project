@@ -73,10 +73,10 @@ export const PremiumService = {
     return rows[0] || null;
   },
 
-  upsertSubscription: async (userId, planData) => {
+  upsertSubscription: async (userId, planData, db = pool) => {
     const { plan, amount, method, receipt_email, reference } = planData;
 
-    const [existing] = await pool.query(
+    const [existing] = await db.query(
       "SELECT * FROM premium_subscriptions WHERE user_id = ?",
       [userId],
     );
@@ -89,7 +89,7 @@ export const PremiumService = {
     }
 
     if (existing.length > 0) {
-      const [result] = await pool.query(
+      const [result] = await db.query(
         `UPDATE premium_subscriptions 
                  SET plan = ?, amount = ?, method = ?, receipt_email = ?, 
                      reference = ?, active = TRUE, expires_at = ?
@@ -98,7 +98,7 @@ export const PremiumService = {
       );
       return result.affectedRows > 0;
     } else {
-      const [result] = await pool.query(
+      const [result] = await db.query(
         `INSERT INTO premium_subscriptions 
                  (user_id, plan, amount, method, receipt_email, reference, expires_at) 
                  VALUES (?, ?, ?, ?, ?, ?, ?)`,
