@@ -56,7 +56,10 @@ export class EmailService {
 	}
 
 	initializeTransporter() {
-		if (this.provider === 'emailjs') return;
+		if (this.provider === 'emailjs') {
+			console.log('Email service configured: EmailJS HTTPS');
+			return;
+		}
 		const smtpUser = this.normalizeSmtpValue(process.env.EMAIL_USER);
 		const smtpPass = this.normalizeSmtpValue(process.env.EMAIL_PASSWORD);
 		const smtpHost = (process.env.EMAIL_HOST || '').trim();
@@ -136,7 +139,15 @@ export class EmailService {
         }),
       });
       if (!response.ok) {
-        console.error('EmailJS rejected email. HTTP status:', response.status);
+        // EmailJS returns the configuration error as plain text. Redact keys
+        // and recipient data before logging; never log the request payload.
+        let reason = await response.text();
+        for (const secret of [process.env.EMAILJS_PRIVATE_KEY, process.env.EMAILJS_PUBLIC_KEY, to]) {
+          if (secret?.trim()) reason = reason.split(secret.trim()).join('[redacted]');
+        }
+        reason = reason.replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi, '[email]')
+          .replace(/[\r\n\t]/g, ' ').slice(0, 500);
+        console.error('EmailJS rejected email. HTTP status:', response.status, 'Reason:', reason);
         return false;
       }
       console.log('EmailJS accepted email request.');

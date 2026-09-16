@@ -12,6 +12,9 @@ dotenv.config({ path: new URL('./.env', import.meta.url) });
 console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
 
 const app = express();
+// Render terminates incoming requests at its reverse proxy. Local requests
+// remain untrusted; never trust every forwarded address in a client header.
+app.set('trust proxy', process.env.RENDER === 'true' ? 1 : false);
 
 const PORT = process.env.PORT || 5000;
 
