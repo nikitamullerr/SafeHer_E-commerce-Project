@@ -652,3 +652,8 @@ SELECT id, name, email, is_admin,
        END AS password_status
 FROM users
 WHERE email = 'adminsafeher@gmail.com';
+
+USE safeher_db;
+SHOW TABLES;
+
+SELECT DATABASE(), @@hostname;

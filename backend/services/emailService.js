@@ -36,6 +36,7 @@ export class EmailService {
 
 	resolveFromAddress() {
 		const configuredFrom = (process.env.EMAIL_FROM || '').trim();
+		if (this.emailService === 'resend') return configuredFrom;
 		const accountEmail = (process.env.EMAIL_USER || '').trim();
 		const accountValid = this.isValidEmail(accountEmail);
 		const configuredValid = configuredFrom && (() => {
@@ -128,6 +129,35 @@ export class EmailService {
 			return false;
 		}
 
+		if (this.emailService === 'resend') {
+			if (!this.isReady()) {
+				console.error('Resend requires RESEND_API_KEY and EMAIL_FROM.');
+				return false;
+			}
+			try {
+				const attachments = (options.attachments || []).map(attachment => {
+					if (!Buffer.isBuffer(attachment.content)) throw new Error('Resend attachments must use Buffer content.');
+					return { filename: attachment.filename, content: attachment.content.toString('base64') };
+				});
+				const response = await fetch('https://api.resend.com/emails', {
+					method: 'POST',
+					headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY.trim()}`, 'Content-Type': 'application/json' },
+					body: JSON.stringify({ from: this.fromEmail, to: [to.trim()], subject, html, ...(options.text ? { text: options.text } : {}), ...(attachments.length ? { attachments } : {}) }),
+					signal: AbortSignal.timeout(15000),
+				});
+				const result = await response.json();
+				if (!response.ok || !result.id) {
+					console.error('Resend rejected email:', response.status, result.name || 'provider_error');
+					return false;
+				}
+				console.log('Resend accepted email:', result.id);
+				return true;
+			} catch (error) {
+				console.error('Resend delivery failed:', error.name);
+				return false;
+			}
+		}
+
 		if (!this.transporter) {
 			console.error('Email service not configured. Please check your .env file.');
 			return false;
@@ -169,6 +199,10 @@ export class EmailService {
 	 * @returns {boolean} - Ready status
 	 */
 	isReady() {
+		if (this.emailService === 'resend') {
+			const address = this.fromEmail.match(/<([^>]+)>/)?.[1] || this.fromEmail;
+			return Boolean(process.env.RESEND_API_KEY?.trim() && this.isValidEmail(address));
+		}
 		return this.transporter !== null;
 	}
 }
