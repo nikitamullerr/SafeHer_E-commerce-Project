@@ -111,7 +111,7 @@ export async function sendOrderConfirmationEmail(orderId, userId, customerEmail)
 		let htmlContent, pdfBuffer;
 		try {
 			htmlContent = isDemo ? generateDemoOrderEmail(orderData) : generateOrderConfirmationEmail(orderData);
-			pdfBuffer = isDemo ? null : await generatePdfReceipt(orderData);
+			pdfBuffer = isDemo || emailService.provider === 'emailjs' ? null : await generatePdfReceipt(orderData);
 		} catch (error) {
 			console.error(`Failed to generate email/PDF for order ${order.order_number}:`, error.message);
 			// Continue and try to send email without PDF
@@ -123,7 +123,18 @@ export async function sendOrderConfirmationEmail(orderId, userId, customerEmail)
 		const emailSubject = isDemo
 			? `SafeHer Demo Order Confirmation - No payment charged - ${order.order_number}`
 			: `SafeHer Order Confirmation - Order #${order.order_number}`;
-		const emailOptions = {};
+		const emailOptions = {
+			orderTemplate: true,
+			templateParams: {
+				customer_name: customerName,
+				order_number: isDemo ? `DEMO - No payment charged - ${order.order_number}` : order.order_number,
+				orders: orderData.items.map(item => ({ name: item.name, units: item.quantity, price: item.price.toFixed(2) })),
+				delivery_method: orderData.deliveryMethod,
+				delivery_address: orderData.deliveryAddress,
+				cost: { shipping: orderData.deliveryFee.toFixed(2) },
+				total: orderData.total.toFixed(2),
+			},
+		};
 
 		if (pdfBuffer) {
 			emailOptions.attachments = [

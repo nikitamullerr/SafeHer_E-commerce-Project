@@ -20,6 +20,7 @@ dotenv.config({ path: new URL('../.env', import.meta.url) });
 export class EmailService {
 	constructor() {
 		this.transporter = null;
+		this.provider = (process.env.EMAIL_SERVICE || (process.env.EMAILJS_SERVICE_ID ? 'emailjs' : 'smtp')).trim().toLowerCase();
 		this.fromEmail = this.resolveFromAddress();
 		this.initializeTransporter();
 	}
@@ -55,6 +56,7 @@ export class EmailService {
 	}
 
 	initializeTransporter() {
+		if (this.provider === 'emailjs') return;
 		const smtpUser = this.normalizeSmtpValue(process.env.EMAIL_USER);
 		const smtpPass = this.normalizeSmtpValue(process.env.EMAIL_PASSWORD);
 		const smtpHost = (process.env.EMAIL_HOST || '').trim();
@@ -112,6 +114,39 @@ export class EmailService {
     return false;
   }
 
+  if (this.provider === 'emailjs') {
+    const templateId = options.orderTemplate
+      ? process.env.EMAILJS_TEMPLATE_ID
+      : process.env.EMAILJS_GENERAL_TEMPLATE_ID;
+    if (!this.isReady() || !templateId?.trim()) {
+      console.error('EmailJS configuration missing for this email type.');
+      return false;
+    }
+    try {
+      const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(15000),
+        body: JSON.stringify({
+          service_id: process.env.EMAILJS_SERVICE_ID.trim(),
+          template_id: templateId.trim(),
+          user_id: process.env.EMAILJS_PUBLIC_KEY.trim(),
+          ...(process.env.EMAILJS_PRIVATE_KEY?.trim() ? { accessToken: process.env.EMAILJS_PRIVATE_KEY.trim() } : {}),
+          template_params: { ...options.templateParams, email: to.trim(), to_email: to.trim(), subject, message: options.text || html },
+        }),
+      });
+      if (!response.ok) {
+        console.error('EmailJS rejected email. HTTP status:', response.status);
+        return false;
+      }
+      console.log('EmailJS accepted email request.');
+      return true;
+    } catch (error) {
+      console.error('EmailJS request failed:', error.name);
+      return false;
+    }
+  }
+
   if (!this.transporter) {
     console.error("Email service not configured. Please check your .env file.");
     return false;
@@ -164,6 +199,7 @@ export class EmailService {
 	 * @returns {boolean} - Ready status
 	 */
 	isReady() {
+		if (this.provider === 'emailjs') return Boolean(process.env.EMAILJS_SERVICE_ID?.trim() && process.env.EMAILJS_PUBLIC_KEY?.trim());
 		return this.transporter !== null;
 	}
 }
