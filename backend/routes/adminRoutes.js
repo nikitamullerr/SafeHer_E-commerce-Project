@@ -1,3 +1,4 @@
+import { validProductImage, uploadProductImage } from '../services/imageHosting.js';
 import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -14,6 +15,7 @@ router.post('/login', rateLimit({windowMs:900000,limit:10,legacyHeaders:false}),
  }catch(e){next(e)}
 });
 router.use(verifyToken,verifyAdmin);
+router.post('/images', rateLimit({windowMs:60000,limit:10,legacyHeaders:false}), express.raw({type:['image/png','image/jpeg','image/webp'],limit:'5mb'}), uploadProductImage);
 router.get('/dashboard',async(req,res,next)=>{try{
  const [[counts]]=await pool.query(`SELECT (SELECT COUNT(*) FROM users) AS users,(SELECT COUNT(*) FROM orders) AS orders,(SELECT COALESCE(SUM(total),0) FROM orders WHERE payment_status='paid' AND payment_method NOT IN ('card','card_demo')) AS revenue,(SELECT COUNT(*) FROM orders WHERE payment_status='pending') AS pending_orders,(SELECT COUNT(*) FROM products WHERE is_active=1 AND stock<=5) AS low_stock,(SELECT COUNT(*) FROM premium_subscriptions WHERE active=1 AND expires_at>NOW()) AS active_subscriptions`);
  const [recent]=await pool.query('SELECT order_number,total,status,payment_status,created_at FROM orders ORDER BY id DESC LIMIT 10');res.json({counts,recent});}catch(e){next(e)}});
@@ -28,7 +30,7 @@ const fields={products:['name','slug','description','detail','price','image_url'
 for(const table of Object.keys(fields))for(const method of ['post','put'])router[method]('/'+table+(method==='put'?'/:id':''),async(req,res,next)=>{try{
  const data=Object.fromEntries(fields[table].map(k=>[k,req.body[k]]));
  const title=data.name??data.title;if(typeof title!=='string'||!title.trim()||title.length>150||typeof data.slug!=='string'||!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug)||data.slug.length>150)return res.status(400).json({error:'Enter a name/title and a unique lowercase slug (letters, numbers, hyphens).'});
- if(table==='products'&&(!Number.isFinite(Number(data.price))||Number(data.price)<0||!Number.isInteger(data.stock)||data.stock<0||!Number.isInteger(data.category_id)||typeof data.image_url!=='string'||data.image_url.length>255||(!data.image_url.startsWith('/images/')&&data.image_url!=='')))return res.status(400).json({error:'Check price, stock, category and local image path (/images/...).'});
+ if(table==='products'&&(!Number.isFinite(Number(data.price))||Number(data.price)<0||!Number.isInteger(data.stock)||data.stock<0||!Number.isInteger(data.category_id)||!validProductImage(data.image_url)))return res.status(400).json({error:'Check price, stock, category and image path. Use /images/... or an HTTPS i.ibb.co direct image URL.'});
  if(table==='lessons'&&(!Number.isInteger(data.order_number)||data.order_number<0||typeof data.youtube_id!=='string'||(data.youtube_id&&!/^[a-zA-Z0-9_-]{11}$/.test(data.youtube_id))))return res.status(400).json({error:'Enter a valid order number and YouTube video ID.'});
  for(const key of ['is_featured','is_active','is_premium'])if(key in data&&typeof data[key]!=='boolean')return res.status(400).json({error:'Invalid checkbox value.'});
  const keys=fields[table],values=keys.map(k=>data[k]??'');
