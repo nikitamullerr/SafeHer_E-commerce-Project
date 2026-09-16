@@ -2,7 +2,8 @@
 import { t } from "../languageConfig.js";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { getPaymentStatus } from "../services/paymentClient.js";
-const emit = defineEmits(["navigate"]);
+import { getSubscription, mapSubscription } from "../services/premiumClient.js";
+const emit = defineEmits(["navigate", "premium-updated"]);
 const number = new URLSearchParams(window.location.search).get("order");
 const status = ref("checking"), error = ref(""), order = ref(null), busy = ref(false);
 const attempts = ref(0);
@@ -16,6 +17,9 @@ async function refresh() {
     const data = await getPaymentStatus(number);
     if (stopped) return;
     order.value = data.order; status.value = data.order.payment_status;
+    if (status.value === "paid") {
+      try { const membership = await getSubscription(); if (!stopped) emit("premium-updated", mapSubscription(membership.subscription)); } catch { /* Membership can be refreshed from the packages page. */ }
+    }
     if (status.value === "pending" && ++attempts.value < 12) timer = setTimeout(refresh, 5000);
   } catch (failure) { if (!stopped) { status.value = "unknown"; error.value = failure.response?.data?.error || "Unable to check payment. Please refresh."; } }
   finally { busy.value = false; }

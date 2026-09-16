@@ -1,9 +1,10 @@
 <script setup>
 import { t, language, supportedLanguages } from "../languageConfig.js";
 import { ref } from "vue";
+import hostedImages from "../../shared/hosted-images.json";
 defineProps({ darkMode: Boolean });
 const backgroundsPaused = ref(false);
-const landingBackgrounds = Object.keys(import.meta.glob('/public/images/products/landing*.{png,jpg,jpeg,webp}')).sort().map(path => path.replace('/public', ''));
+const landingBackgrounds = Object.keys(hostedImages).filter(name => name.startsWith('landing')).sort().map(name => hostedImages[name]);
 const rotation = ref(0);
 const dragging = ref(false);
 const interacted = ref(false);

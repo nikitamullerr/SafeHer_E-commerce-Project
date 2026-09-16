@@ -5,7 +5,7 @@ import api from "../services/api.js";
 import { deliveryFee } from "../../shared/delivery.js";
 import { validateDemoCard } from "../services/cardValidation.js";
 import { createPayment, getPaymentConfig } from "../services/paymentClient.js";
-const props = defineProps({ items: { type: Array, required: true }, initialMethod: { type: String, default: "card" }, requiresDelivery: { type: Boolean, default: true }, submitPayment: { type: Function, default: null } });
+const props = defineProps({ items: { type: Array, required: true }, initialMethod: { type: String, default: "card" }, requiresDelivery: { type: Boolean, default: true }, allowPayfast: { type: Boolean, default: false }, submitPayment: { type: Function, default: null } });
 const emit = defineEmits(["close", "success"]);
 const method = ref(props.initialMethod || "card");
 const delivery = ref("standard");
@@ -126,7 +126,7 @@ async function submit() {
           </template>
           <legend class="mt-3">{{ t("Payment method") }}</legend>
           <div class="checkout-methods">
-            <label v-if="config.payfastAvailable && !submitPayment"><input v-model="method" type="radio" value="payfast" /> PayFast {{ config.sandbox ? '(Sandbox)' : '' }}</label>
+            <label v-if="config.payfastAvailable && (!submitPayment || allowPayfast)"><input v-model="method" type="radio" value="payfast" /> PayFast {{ config.sandbox ? '(Sandbox)' : '' }}</label>
             <label><input v-model="method" type="radio" value="card" /> Card</label>
             <label><input v-model="method" type="radio" value="instant_eft" /> Instant EFT</label>
             <label><input v-model="method" type="radio" value="bank_transfer" /> Bank transfer</label>

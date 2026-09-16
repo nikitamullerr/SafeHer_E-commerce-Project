@@ -2,8 +2,9 @@
 import { computed, ref, watch, onMounted } from "vue";
 import { t, formatDate } from "../languageConfig.js";
 import Swal from "../services/localizedSwal.js";
-import { getSubscription, subscribeToPremium, cancelSubscription, mapSubscription } from "../services/premiumClient.js";
+import { getSubscription, cancelSubscription, mapSubscription } from "../services/premiumClient.js";
 import api from "../services/api.js";
+import { createPayment, redirectToPayfast } from "../services/paymentClient.js";
 import CheckoutModal from "../components/CheckoutModal.vue";
 
 const props = defineProps({ email: String, isAuthenticated: Boolean });
@@ -60,19 +61,16 @@ function choosePackage(packageItem) {
 }
 
 async function completePackagePayment(payload) {
-  const data = await subscribeToPremium({
-    plan: selectedPackage.value.name,
-    amount: checkoutItems.value[0].price,
-    method: payload.payment_method,
-    receipt_email: props.email,
-    reference: payload.payment_reference || payload.request_id,
-  });
-  if (!data.success || !data.subscription) throw new Error("Subscription could not be saved. Please try again.");
-  setMembership(data.subscription);
+  const data = await createPayment({ ...payload, premium_plan: selectedPackage.value.name });
+  if (data.paymentMethod !== "payfast") {
+    const current = await getSubscription();
+    setMembership(current.subscription);
+  }
   return data;
 }
 
-async function checkoutComplete() {
+async function checkoutComplete(result) {
+  if (result.paymentMethod === "payfast") { selectedPackage.value = null; redirectToPayfast(result); return; }
   selectedPackage.value = null;
   await Swal.fire({
     icon: "success",
@@ -143,6 +141,7 @@ async function checkoutComplete() {
       v-if="selectedPackage && isAuthenticated"
       :items="checkoutItems"
       :requires-delivery="false"
+      :allow-payfast="true"
       :submit-payment="completePackagePayment"
       @close="selectedPackage = null"
       @success="checkoutComplete"

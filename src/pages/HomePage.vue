@@ -1,8 +1,16 @@
 <script setup>
 import { computed } from "vue";
+import LiveMap from "../components/LiveMap.vue";
 import { t, formatMoney } from "../languageConfig.js";
-const props = defineProps({ products: { type: Array, default: () => [] } });
-const emit = defineEmits(["navigate"]);
+const props = defineProps({
+  products: { type: Array, default: () => [] },
+  locationReady: Boolean,
+  nearest: String,
+  userLocation: Object,
+  locationLoading: Boolean,
+  locationError: String,
+});
+const emit = defineEmits(["navigate", "track"]);
 const featuredProducts = computed(() => [...props.products].sort((a, b) => Number(b.is_featured) - Number(a.is_featured)).slice(0, 3));
 </script>
 <template>
@@ -45,6 +53,13 @@ const featuredProducts = computed(() => [...props.products].sort((a, b) => Numbe
         </div>
       </div>
     </section>
+    <LiveMap
+      :location="userLocation"
+      :nearest="nearest"
+      :loading="locationLoading"
+      :error="locationError"
+      @locate="emit('track')"
+    />
     <section v-if="featuredProducts.length" class="home-store container-fluid px-4 px-xl-5">
       <div class="home-section-heading">
         <div><p class="eyebrow">{{ t("SAFEHER STORE") }}</p><h2 v-full-stop>{{ t("Safety essentials for everyday life") }}</h2></div>
