@@ -1,3 +1,4 @@
+import { productImage } from "../../shared/productImage.js";
 import pool from "../config/db.js";
 
 export const getProducts = async (req, res) => {
@@ -18,7 +19,7 @@ export const getProducts = async (req, res) => {
 			products: products.map((product) => ({
 				...product,
 				price: Number(product.price),
-				image: product.image_url,
+				image: productImage(product.image_url),
 				reviews: reviews.filter(review => review.product_id === product.id),
 			})),
 		});

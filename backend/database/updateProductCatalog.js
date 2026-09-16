@@ -1,4 +1,5 @@
-import { readFile, access } from "node:fs/promises";
+import { productImage } from "../../shared/productImage.js";
+import { readFile } from "node:fs/promises";
 import pool from "../config/db.js";
 
 // One-time catalog update. Names, descriptions, IDs and stock stay unchanged.
@@ -11,8 +12,8 @@ try {
   for (const update of prices) {
     const product = products.find(item => item.name.toLowerCase() === update.name.toLowerCase());
     if (!product) { missing.push(update.name); continue; }
-    const image = `/images/products/${product.slug}.png`;
-    await access(new URL(`../../public${image}`, import.meta.url));
+    const image = productImage(`/images/products/${product.slug}.png`);
+    if (!image) { missing.push(product.name); continue; }
     await connection.query("UPDATE products SET price = ?, image_url = ? WHERE id = ?", [update.price, image, product.id]);
     matched.push(product.name);
   }

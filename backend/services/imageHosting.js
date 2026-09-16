@@ -1,6 +1,6 @@
 export function validProductImage(value) {
   if (typeof value !== 'string' || value.length > 255) return false;
-  if (!value || value.startsWith('/images/')) return true;
+  if (!value) return true;
   try {
     const url = new URL(value);
     return url.protocol === 'https:' && url.hostname === 'i.ibb.co' && !url.username && !url.password && !url.port;

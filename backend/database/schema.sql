@@ -303,26 +303,26 @@ INSERT INTO categories (name, slug, description) VALUES
 
 -- Insert products
 INSERT INTO products (name, slug, description, detail, price, image_url, icon, tone, category_id, stock, is_featured, is_active) VALUES
-('Smart Panic Button', 'smart-panic-button', 'Wearable GPS alert with emergency SOS', 'Wearable GPS alert', 899.00, '/images/products/smart-panic-button.webp', 'bi-broadcast-pin', 'rose', 1, 50, TRUE, TRUE),
-('Defender Spray', 'defender-spray', 'Compact & discreet personal safety spray', 'Compact & discreet', 149.00, '/images/products/defender-spray.webp', 'bi-shield-shaded', 'plum', 1, 100, TRUE, TRUE),
-('Safety Whistle', 'safety-whistle', 'High-decibel emergency alarm', 'High-decibel alarm', 79.00, '/images/products/safety-whistle.webp', 'bi-megaphone', 'gold', 1, 200, FALSE, TRUE),
-('Emergency Contact Card', 'emergency-contact-card', 'Quick-access ID and medical info', 'Quick-access ID and medical info', 99.00, '/images/products/emergency-contact-card.webp', 'bi-person-vcard', 'cream', 3, 150, FALSE, TRUE),
-('Door Alarm Sensor', 'door-alarm-sensor', 'Smart entry alert for your home', 'Smart entry alert for your home', 399.00, '/images/products/door-alarm-sensor.webp', 'bi-door-open', 'rose', 2, 75, TRUE, TRUE),
-('Travel Safety Kit', 'travel-safety-kit', 'Compact essentials for on-the-go trips', 'Compact essentials for on-the-go trips', 279.00, '/images/products/travel-safety-kit.webp', 'bi-bag-check', 'plum', 3, 60, TRUE, TRUE),
-('Keychain SOS Beacon', 'keychain-sos-beacon', 'Small, bright and always within reach', 'Small, bright and always within reach', 199.00, '/images/products/keychain-sos-beacon.webp', 'bi-key', 'gold', 1, 120, FALSE, TRUE),
-('Window Safety Lock', 'window-safety-lock', 'Extra deterrent for secure homes', 'Extra deterrent for secure homes', 149.00, '/images/products/window-safety-lock.webp', 'bi-window', 'cream', 2, 90, FALSE, TRUE),
-('Portable Phone Charger', 'portable-phone-charger', 'Emergency backup for daily travel', 'Emergency backup for daily travel', 179.00, '/images/products/portable-phone-charger.webp', 'bi-phone', 'rose', 3, 200, FALSE, TRUE),
-('Personal Alarm Clip', 'personal-alarm-clip', 'Attachable alarm for busy commutes', 'Attachable alarm for busy commutes', 249.00, '/images/products/personal-alarm-clip.webp', 'bi-person-raised-hand', 'plum', 1, 85, FALSE, TRUE),
-('Flashlight Keyring', 'flashlight-keyring', 'Metal clip with emergency backup', 'Metal clip with emergency backup', 449.00, '/images/products/flashlight-keyring.webp', 'bi-lamp', 'gold', 1, 40, FALSE, TRUE),
-('Home Entry Alarm', 'home-entry-alarm', 'Alerts you to the moment the door opens', 'Alerts you to the moment the door opens', 499.00, '/images/products/home-entry-alarm.webp', 'bi-house-door', 'rose', 2, 55, FALSE, TRUE),
-('Passport Safety Sleeve', 'passport-safety-sleeve', 'Hidden document protection for travel', 'Hidden document protection for travel', 199.00, '/images/products/passport-safety-sleeve.webp', 'bi-passport', 'cream', 3, 100, FALSE, TRUE),
-('Pepper Spray Holder', 'pepper-spray-holder', 'Easy grip case with quick access design', 'Easy grip case with quick access design', 89.00, '/images/products/pepper-spray-holder.webp', 'bi-shield', 'plum', 1, 150, FALSE, TRUE),
-('Smart Window Sensor', 'smart-window-sensor', 'Notifies you of movement or tampering', 'Notifies you of movement or tampering', 499.00, '/images/products/smart-window-sensor.webp', 'bi-window', 'gold', 2, 45, FALSE, TRUE),
-('Road Trip Essentials Kit', 'road-trip-essentials-kit', 'Safety basics for long-distance travel', 'Safety basics for long-distance travel', 399.00, '/images/products/road-trip-essentials-kit.webp', 'bi-car-front', 'rose', 3, 30, FALSE, TRUE),
-('Digital Safety Sticker', 'digital-safety-sticker', 'Visible by all emergency escape route', 'Visible by all emergency escape route', 139.00, '/images/products/digital-safety-sticker.webp', 'bi-sticker', 'cream', 4, 200, FALSE, TRUE),
-('Fire Escape Plan Set', 'fire-escape-plan-set', 'Preppers need this for their home', 'Preppers need this for their home', 89.00, '/images/products/fire-escape-plan-set.webp', 'bi-fire', 'plum', 4, 180, FALSE, TRUE),
-('Nightlight Safety Lamp', 'nightlight-safety-lamp', 'Soft light for everyday use', 'Soft light for everyday use', 219.00, '/images/products/nightlight-safety-lamp.webp', 'bi-lightbulb', 'gold', 2, 70, FALSE, TRUE),
-('Reflective Safety Band', 'reflective-safety-band', 'High-visibility adjustable reflective strap', 'High-visibility adjustable reflective strap', 149.00, '/images/products/reflective-safety-band.webp', 'bi-person-walking', 'rose', 1, 130, FALSE, TRUE);
+('Smart Panic Button', 'smart-panic-button', 'Wearable GPS alert with emergency SOS', 'Wearable GPS alert', 899.00, 'https://i.ibb.co/5XT0sBXq/smart-panic-button.png', 'bi-broadcast-pin', 'rose', 1, 50, TRUE, TRUE),
+('Defender Spray', 'defender-spray', 'Compact & discreet personal safety spray', 'Compact & discreet', 149.00, 'https://i.ibb.co/n80cg5jf/defender-spray.png', 'bi-shield-shaded', 'plum', 1, 100, TRUE, TRUE),
+('Safety Whistle', 'safety-whistle', 'High-decibel emergency alarm', 'High-decibel alarm', 79.00, 'https://i.ibb.co/pjVKnW2B/safety-whistle.png', 'bi-megaphone', 'gold', 1, 200, FALSE, TRUE),
+('Emergency Contact Card', 'emergency-contact-card', 'Quick-access ID and medical info', 'Quick-access ID and medical info', 99.00, 'https://i.ibb.co/SXy3gfjW/emergency-contact-card.png', 'bi-person-vcard', 'cream', 3, 150, FALSE, TRUE),
+('Door Alarm Sensor', 'door-alarm-sensor', 'Smart entry alert for your home', 'Smart entry alert for your home', 399.00, 'https://i.ibb.co/8DH8YKVL/door-alarm-sensor.png', 'bi-door-open', 'rose', 2, 75, TRUE, TRUE),
+('Travel Safety Kit', 'travel-safety-kit', 'Compact essentials for on-the-go trips', 'Compact essentials for on-the-go trips', 279.00, 'https://i.ibb.co/TMxmfQP7/travel-first-aid-pouch.png', 'bi-bag-check', 'plum', 3, 60, TRUE, TRUE),
+('Keychain SOS Beacon', 'keychain-sos-beacon', 'Small, bright and always within reach', 'Small, bright and always within reach', 199.00, 'https://i.ibb.co/d0fwLyHL/keychain-sos-beacon.png', 'bi-key', 'gold', 1, 120, FALSE, TRUE),
+('Window Safety Lock', 'window-safety-lock', 'Extra deterrent for secure homes', 'Extra deterrent for secure homes', 149.00, 'https://i.ibb.co/mCSdk0mn/window-safety-lock.png', 'bi-window', 'cream', 2, 90, FALSE, TRUE),
+('Portable Phone Charger', 'portable-phone-charger', 'Emergency backup for daily travel', 'Emergency backup for daily travel', 179.00, 'https://i.ibb.co/MDgv2rpm/portable-phone-charger.png', 'bi-phone', 'rose', 3, 200, FALSE, TRUE),
+('Personal Alarm Clip', 'personal-alarm-clip', 'Attachable alarm for busy commutes', 'Attachable alarm for busy commutes', 249.00, 'https://i.ibb.co/TqvHyTXH/personal-alarm-clip.png', 'bi-person-raised-hand', 'plum', 1, 85, FALSE, TRUE),
+('Flashlight Keyring', 'flashlight-keyring', 'Metal clip with emergency backup', 'Metal clip with emergency backup', 449.00, 'https://i.ibb.co/Zpdktr8D/flashlight-keyring.png', 'bi-lamp', 'gold', 1, 40, FALSE, TRUE),
+('Home Entry Alarm', 'home-entry-alarm', 'Alerts you to the moment the door opens', 'Alerts you to the moment the door opens', 499.00, 'https://i.ibb.co/LdVY5P9S/home-entry-alarm.png', 'bi-house-door', 'rose', 2, 55, FALSE, TRUE),
+('Passport Safety Sleeve', 'passport-safety-sleeve', 'Hidden document protection for travel', 'Hidden document protection for travel', 199.00, 'https://i.ibb.co/DPkByQ5c/passport-safety-sleeve.png', 'bi-passport', 'cream', 3, 100, FALSE, TRUE),
+('Pepper Spray Holder', 'pepper-spray-holder', 'Easy grip case with quick access design', 'Easy grip case with quick access design', 89.00, 'https://i.ibb.co/yB77FZN2/pepper-spray-holder.png', 'bi-shield', 'plum', 1, 150, FALSE, TRUE),
+('Smart Window Sensor', 'smart-window-sensor', 'Notifies you of movement or tampering', 'Notifies you of movement or tampering', 499.00, 'https://i.ibb.co/Gf2zw53D/safe-home-sensor-pack.png', 'bi-window', 'gold', 2, 45, FALSE, TRUE),
+('Road Trip Essentials Kit', 'road-trip-essentials-kit', 'Safety basics for long-distance travel', 'Safety basics for long-distance travel', 399.00, 'https://i.ibb.co/hxS3NyGH/road-trip-essentials-kit.png', 'bi-car-front', 'rose', 3, 30, FALSE, TRUE),
+('Digital Safety Sticker', 'digital-safety-sticker', 'Visible by all emergency escape route', 'Visible by all emergency escape route', 139.00, 'https://i.ibb.co/7wdgZJT/digital-safety-sticker.png', 'bi-sticker', 'cream', 4, 200, FALSE, TRUE),
+('Fire Escape Plan Set', 'fire-escape-plan-set', 'Preppers need this for their home', 'Preppers need this for their home', 89.00, 'https://i.ibb.co/jv0PDC3v/fire-escape-plan-set.png', 'bi-fire', 'plum', 4, 180, FALSE, TRUE),
+('Nightlight Safety Lamp', 'nightlight-safety-lamp', 'Soft light for everyday use', 'Soft light for everyday use', 219.00, 'https://i.ibb.co/C53htL1f/nightlight-safety-lamp.png', 'bi-lightbulb', 'gold', 2, 70, FALSE, TRUE),
+('Reflective Safety Band', 'reflective-safety-band', 'High-visibility adjustable reflective strap', 'High-visibility adjustable reflective strap', 149.00, '', 'bi-person-walking', 'rose', 1, 130, FALSE, TRUE);
 
 -- Insert product reviews
 INSERT INTO product_reviews (product_id, name, stars, text) VALUES
@@ -568,7 +568,7 @@ SET
     name = 'Safety Bracelet',
     slug = 'safety-bracelet',
     price = 149.00,
-    image_url = '/images/products/safety-bracelet.png'
+    image_url = 'https://i.ibb.co/Gvk3vj3m/safety-bracelet.png'
 WHERE name = 'Reflective Safety Band';
 
 -- Add products that don't currently exist
@@ -578,7 +578,7 @@ SELECT
     'Travel Lock Box',
     'travel-lock-box',
     299.00,
-    '/images/products/travel-lock-box.png',
+    'https://i.ibb.co/Gf2zw53D/safe-home-sensor-pack.png',
     50,
     FALSE,
     TRUE
@@ -592,7 +592,7 @@ SELECT
     'Travel First-Aid Pouch',
     'travel-first-aid-pouch',
     299.00,
-    '/images/products/travel-first-aid-pouch.png',
+    'https://i.ibb.co/TMxmfQP7/travel-first-aid-pouch.png',
     50,
     FALSE,
     TRUE
@@ -606,7 +606,7 @@ SELECT
     'Safe Home Sensor Pack',
     'safe-home-sensor-pack',
     499.00,
-    '/images/products/safe-home-sensor-pack.png',
+    'https://i.ibb.co/Gf2zw53D/safe-home-sensor-pack.png',
     50,
     FALSE,
     TRUE
@@ -620,7 +620,7 @@ SELECT
     'Travel Buddy Kit',
     'travel-buddy-kit',
     449.00,
-    '/images/products/travel-buddy-kit.png',
+    'https://i.ibb.co/hxS3NyGH/road-trip-essentials-kit.png',
     50,
     FALSE,
     TRUE
