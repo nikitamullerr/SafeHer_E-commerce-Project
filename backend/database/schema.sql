@@ -390,3 +390,265 @@ ORDER BY p.id;
 
 -- checking all users
 SELECT id, name, email, phone, is_admin, created_at FROM users;
+
+-- checking one specific user
+SELECT id, name, email, phone, is_admin, created_at, updated_at
+FROM users
+WHERE email = 'nikitaleighmuller@gmail.com';
+
+SELECT
+    id,
+    user_id,
+    order_number,
+    subtotal,
+    delivery_fee,
+    total,
+    status,
+    payment_method,
+    payment_status,
+    confirmation_email_sent,
+    created_at
+FROM orders
+ORDER BY id DESC;
+
+SELECT
+    oi.id,
+    oi.order_id,
+    oi.product_id,
+    oi.product_name,
+    oi.quantity,
+    oi.price_at_purchase
+FROM order_items oi
+ORDER BY oi.id DESC;
+
+-- Order was created
+SELECT *
+FROM orders
+ORDER BY id DESC
+LIMIT 1;
+
+-- Order items were created
+SELECT *
+FROM order_items
+ORDER BY id DESC;
+
+SELECT *
+FROM orders
+WHERE user_id = 6
+ORDER BY id DESC;
+
+-- 3. ORDER ITEMS
+SELECT
+    oi.*
+FROM order_items oi
+JOIN orders o ON o.id = oi.order_id
+WHERE o.user_id = 6
+ORDER BY oi.id DESC;
+
+-- 4. SAVED ADDRESSES
+SELECT
+    id,
+    user_id,
+    order_number,
+    delivery_address,
+    delivery_method
+FROM orders
+WHERE user_id = 6
+ORDER BY id DESC;
+
+-- 5. LESSON PROGRESS
+SELECT *
+FROM lesson_progress
+WHERE user_id = 6
+ORDER BY id DESC;
+
+-- 6. PREMIUM SUBSCRIPTION
+SELECT *
+FROM premium_subscriptions
+WHERE user_id = 6;
+
+SELECT
+    id,
+    user_id,
+    plan,
+    name,
+    amount,
+    method,
+    receipt_email,
+    reference,
+    active,
+    started_at,
+    expires_at,
+    created_at,
+    updated_at
+FROM premium_subscriptions
+WHERE user_id = 6;
+
+-- 7. EMERGENCY CONTACTS
+SELECT *
+FROM emergency_contacts;
+
+SELECT *
+FROM emergency_contacts
+WHERE id = 4;
+
+-- 8. SOS ALERTS
+SELECT *
+FROM sos_alerts
+ORDER BY id DESC;
+
+-- 6. Check Safety Hub events
+SELECT *
+FROM safety_events
+WHERE user_id = 1
+ORDER BY id DESC;
+
+-- 9. Check the tables exist
+SHOW TABLES LIKE 'emergency_contacts';
+SHOW TABLES LIKE 'checkins';
+SHOW TABLES LIKE 'safety_hub_state';
+SHOW TABLES LIKE 'safety_events';
+
+-- 10. Inspect the structure of the Safety Hub tables
+DESCRIBE emergency_contacts;
+DESCRIBE checkins;
+DESCRIBE safety_hub_state;
+DESCRIBE safety_events;
+
+-- 9. CHECK-INS
+SELECT *
+FROM checkins
+WHERE user_id = 6
+ORDER BY id DESC;
+
+SELECT
+    u.id,
+    u.name,
+    u.email,
+    (SELECT COUNT(*) FROM orders o WHERE o.user_id = u.id) AS orders,
+    (SELECT COUNT(*) FROM addresses a WHERE a.user_id = u.id) AS addresses,
+    (SELECT COUNT(*) FROM lesson_progress lp WHERE lp.user_id = u.id) AS lesson_progress,
+    (SELECT COUNT(*) FROM premium_subscriptions ps WHERE ps.user_id = u.id) AS subscriptions,
+    (SELECT COUNT(*) FROM emergency_contacts ec WHERE ec.user_id = u.id) AS emergency_contacts,
+    (SELECT COUNT(*) FROM sos_alerts sa WHERE sa.user_id = u.id) AS sos_alerts,
+    (SELECT COUNT(*) FROM checkins c WHERE c.user_id = u.id) AS checkins,
+    (SELECT COUNT(*) FROM notifications n WHERE n.user_id = u.id) AS notifications
+FROM users u
+WHERE u.id = 6;
+
+-- updating the exisiting products
+USE safeher_db;
+
+START TRANSACTION;
+
+-- Update existing product prices
+UPDATE products SET price = 1299.00 WHERE name = 'Smart Panic Button';
+UPDATE products SET price = 119.00  WHERE name = 'Defender Spray';
+UPDATE products SET price = 79.00   WHERE name = 'Safety Whistle';
+UPDATE products SET price = 49.00   WHERE name = 'Emergency Contact Card';
+UPDATE products SET price = 129.00  WHERE name = 'Door Alarm Sensor';
+UPDATE products SET price = 349.00  WHERE name = 'Travel Safety Kit';
+UPDATE products SET price = 119.00  WHERE name = 'Keychain SOS Beacon';
+UPDATE products SET price = 129.00  WHERE name = 'Window Safety Lock';
+UPDATE products SET price = 299.00  WHERE name = 'Portable Phone Charger';
+UPDATE products SET price = 179.00  WHERE name = 'Personal Alarm Clip';
+UPDATE products SET price = 169.00  WHERE name = 'Nightlight Safety Lamp';
+UPDATE products SET price = 149.00  WHERE name = 'Flashlight Keyring';
+UPDATE products SET price = 129.00  WHERE name = 'Home Entry Alarm';
+UPDATE products SET price = 129.00  WHERE name = 'Passport Safety Sleeve';
+UPDATE products SET price = 99.00   WHERE name = 'Pepper Spray Holder';
+UPDATE products SET price = 229.00  WHERE name = 'Smart Window Sensor';
+UPDATE products SET price = 499.00  WHERE name = 'Road Trip Essentials Kit';
+UPDATE products SET price = 99.00   WHERE name = 'Fire Escape Plan Set';
+UPDATE products SET price = 69.00   WHERE name = 'Digital Safety Sticker';
+
+-- Replace Reflective Safety Band with Safety Bracelet
+UPDATE products
+SET
+    name = 'Safety Bracelet',
+    slug = 'safety-bracelet',
+    price = 149.00,
+    image_url = '/images/products/safety-bracelet.png'
+WHERE name = 'Reflective Safety Band';
+
+-- Add products that don't currently exist
+INSERT INTO products
+    (name, slug, price, image_url, stock, is_featured, is_active)
+SELECT
+    'Travel Lock Box',
+    'travel-lock-box',
+    299.00,
+    '/images/products/travel-lock-box.png',
+    50,
+    FALSE,
+    TRUE
+WHERE NOT EXISTS (
+    SELECT 1 FROM products WHERE slug = 'travel-lock-box'
+);
+
+INSERT INTO products
+    (name, slug, price, image_url, stock, is_featured, is_active)
+SELECT
+    'Travel First-Aid Pouch',
+    'travel-first-aid-pouch',
+    299.00,
+    '/images/products/travel-first-aid-pouch.png',
+    50,
+    FALSE,
+    TRUE
+WHERE NOT EXISTS (
+    SELECT 1 FROM products WHERE slug = 'travel-first-aid-pouch'
+);
+
+INSERT INTO products
+    (name, slug, price, image_url, stock, is_featured, is_active)
+SELECT
+    'Safe Home Sensor Pack',
+    'safe-home-sensor-pack',
+    499.00,
+    '/images/products/safe-home-sensor-pack.png',
+    50,
+    FALSE,
+    TRUE
+WHERE NOT EXISTS (
+    SELECT 1 FROM products WHERE slug = 'safe-home-sensor-pack'
+);
+
+INSERT INTO products
+    (name, slug, price, image_url, stock, is_featured, is_active)
+SELECT
+    'Travel Buddy Kit',
+    'travel-buddy-kit',
+    449.00,
+    '/images/products/travel-buddy-kit.png',
+    50,
+    FALSE,
+    TRUE
+WHERE NOT EXISTS (
+    SELECT 1 FROM products WHERE slug = 'travel-buddy-kit'
+);
+
+COMMIT;
+
+SELECT
+    id,
+    name,
+    price,
+    image_url,
+    stock,
+    is_active
+FROM products
+ORDER BY id;
+
+SELECT *
+FROM testimonials
+ORDER BY date DESC, id DESC;
+
+SELECT id, name, email, is_admin,
+       CASE
+           WHEN password_hash IS NOT NULL AND password_hash <> ''
+           THEN 'Password hash exists'
+           ELSE 'No password set'
+       END AS password_status
+FROM users
+WHERE email = 'adminsafeher@gmail.com';
