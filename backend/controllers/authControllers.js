@@ -87,7 +87,7 @@ export const login = async (req, res) => {
 
         const { email, password } = req.body;
 
-        if (!email || !password) {
+        if (typeof email !== 'string' || typeof password !== 'string' || !email.trim() || !password) {
             return res.status(400).json({
                 success: false,
                 error: 'Email and password are required'
@@ -112,7 +112,7 @@ export const login = async (req, res) => {
         }
 
     const user = rows[0];
-    const isMatch = await bcrypt.compare(password, user.password_hash);
+    const isMatch = Boolean(user.password_hash) && await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return res.status(401).json({
         success: false,

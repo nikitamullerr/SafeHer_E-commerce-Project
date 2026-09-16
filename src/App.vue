@@ -6,6 +6,8 @@ import SiteHeader from "./components/SiteHeader.vue";
 import CartDrawer from "./components/CartDrawer.vue";
 import CheckoutModal from "./components/CheckoutModal.vue";
 import HomePage from "./pages/HomePage.vue";
+import AdminPage from "./pages/AdminPage.vue";
+import LandingPage from "./pages/LandingPage.vue";
 import ProductsPage from "./pages/ProductsPage.vue";
 import AllProductsPage from "./pages/AllProductsPage.vue";
 import SafetyHubPage from "./pages/SafetyHubPage.vue";
@@ -23,6 +25,7 @@ import PaymentCancelledPage from "./pages/PaymentCancelledPage.vue";
 import { language, supportedLanguages } from "./languageConfig.js";
 import { assessDangerLevel } from "./services/dangerAssessment.js";
 import api from "./services/api.js";
+import { redirectToPayfast } from "./services/paymentClient.js";
 import { getSubscription, mapSubscription } from "./services/premiumClient.js";
 import { publicViews, authViews, memberViews, normalizeView, resolveView } from "./services/viewAccess.js";
 
@@ -47,7 +50,7 @@ const savedView = localStorage.getItem("safeher-active-view");
 const paymentReturnView = window.location.pathname === "/payment-success"
   ? "payment-success" : window.location.pathname === "/payment-cancel" ? "payment-cancel" : null;
 const sessionView = readSession("safeher-browse-view", null);
-const requestedView = paymentReturnView || (isAuthenticated.value ? savedView : pendingAction.value ? "login" : authViews.has(sessionView) ? sessionView : publicViews.has(savedView) ? savedView : "index") || "index";
+const requestedView = (window.location.pathname === "/admin" ? "admin" : null) || (window.location.pathname === "/login" ? "login" : null) || paymentReturnView || (isAuthenticated.value ? savedView : pendingAction.value ? "login" : authViews.has(sessionView) ? sessionView : publicViews.has(sessionView) ? sessionView : "landing") || "index";
 const activeView = ref(resolveView(requestedView, isAuthenticated.value));
 if (activeView.value === "login" && memberViews.has(requestedView)) pendingAction.value = { type: "view", view: requestedView };
 const showingAuth = computed(() => authViews.has(activeView.value));
@@ -114,7 +117,9 @@ function updatePremiumMembership(membership) {
     : null;
 }
 
+const dangerCheckBusy = ref(false);
 function showPremiumSafetyCheck() {
+  if (dangerCheckBusy.value) return;
   if (!hasPremiumAccess.value) return;
   if (!navigator.geolocation) {
     // No geolocation API at all — still show a time-based advisory.
@@ -123,8 +128,10 @@ function showPremiumSafetyCheck() {
     return;
   }
 
+  dangerCheckBusy.value = true;
   navigator.geolocation.getCurrentPosition(
     ({ coords }) => {
+      dangerCheckBusy.value = false;
       const assessment = assessDangerLevel({
         lat: coords.latitude,
         lng: coords.longitude,
@@ -132,6 +139,7 @@ function showPremiumSafetyCheck() {
       showDangerAlert(assessment, false);
     },
     () => {
+      dangerCheckBusy.value = false;
       // Location denied or unavailable — still show a time-based advisory
       // so Premium members always receive their sign-in danger alert.
       const assessment = assessDangerLevel(null);
@@ -256,8 +264,9 @@ function requireSignIn(action) {
   menuOpen.value = false;
   cartOpen.value = false;
   checkoutOpen.value = false;
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  resetPageScroll();
 }
+function resetPageScroll() { window.scrollTo({ top: 0, left: 0, behavior: "instant" }); }
 function navigate(view) {
   view = normalizeView(view);
   if (!isAuthenticated.value && memberViews.has(view)) {
@@ -272,8 +281,8 @@ function navigate(view) {
   saveSession("safeher-browse-view", view);
   menuOpen.value = false;
   cartOpen.value = false;
-  if (paymentReturnView && view !== paymentReturnView && !authViews.has(view)) history.replaceState({}, "", "/");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (((paymentReturnView && view !== paymentReturnView) || ["/login", "/admin"].includes(window.location.pathname)) && !authViews.has(view)) history.replaceState({}, "", "/");
+  resetPageScroll();
 }
 
 function toggleDarkMode() {
@@ -420,20 +429,40 @@ async function removeContact(id) {
     contacts.value = contacts.value.filter(contact => contact.id !== id);
   } catch { Swal.fire({ icon: "error", text: "Unable to remove emergency contact. Please try again." }); }
 }
-function shareRoute() {
-  if (!userLocation.value || !contacts.value.length) {
+async function shareRoute() {
+  if (!userLocation.value) {
     Swal.fire({
-      title: !userLocation.value
-        ? "Start live tracking first"
-        : "Add an emergency contact",
+      title: t("Start live tracking first"),
       icon: "info",
       confirmButtonColor: "#351536",
     });
     return;
   }
   const link = `https://www.google.com/maps/dir/?api=1&destination=${userLocation.value.lat},${userLocation.value.lng}`;
-  const body = `SafeHer alert: please check in on me. My live location: ${link}`;
-  window.location.href = `sms:${contacts.value.map((contact) => contact.phone).join(",")}?body=${encodeURIComponent(body)}`;
+  const body = `SafeHer alert: please check in on me. My current location (not live tracking): ${link}`;
+  const choice = await Swal.fire({
+    title: t("Share route"),
+    text: t("Choose how to share your current location. Review and send the message in your chosen app."),
+    showDenyButton: true,
+    showCancelButton: true,
+    confirmButtonText: "WhatsApp",
+    denyButtonText: "SMS",
+    cancelButtonText: t("Cancel"),
+    confirmButtonColor: "#18794e",
+    denyButtonColor: "#351536",
+    background: darkMode.value ? "#241b25" : "#ffffff",
+    color: darkMode.value ? "#fff2f7" : "#351536",
+  });
+  if (choice.isConfirmed) {
+    window.location.href = `https://wa.me/?text=${encodeURIComponent(body)}`;
+  } else if (choice.isDenied) {
+    const recipients = contacts.value.map(contact => contact.phone).filter(Boolean).join(",");
+    if (!recipients) {
+      Swal.fire({ icon: "info", title: t("Add an emergency contact"), confirmButtonColor: "#351536" });
+      return;
+    }
+    window.location.href = `sms:${recipients}?body=${encodeURIComponent(body)}`;
+  }
 }
 function callContact(contact) {
   if (!contact?.phone) return;
@@ -471,6 +500,7 @@ function checkout() {
 function checkoutComplete(result) {
   checkoutOpen.value = false;
   cart.value = [];
+  if (result.paymentMethod === "payfast" && result.formInputs) { redirectToPayfast(result); return; }
   navigate("orders");
   if (result.simulated) Swal.fire({ icon: "info", title: "Demo order created", text: result.emailSent ? "No money was charged. A labelled demo confirmation was sent to your account email." : "No money was charged. The email could not be sent; use Send demo confirmation in your order history to retry.", confirmButtonColor: "#351536" });
 }
@@ -481,6 +511,13 @@ function authenticated(user) {
   isAuthenticated.value = true;
   localStorage.setItem("safeher-authenticated", "true");
   if (email) localStorage.setItem("safeher-client-email", email);
+  if (user?.role === "admin") {
+    sessionStorage.setItem("safeher-admin-token", localStorage.getItem("safeher-token"));
+    pendingAction.value = null;
+    navigate("admin");
+    return;
+  }
+  sessionStorage.removeItem("safeher-admin-token");
   loadPremiumMembership();
   loadContacts();
   const action = pendingAction.value;
@@ -493,6 +530,7 @@ function authenticated(user) {
 }
 
 function logout() {
+  sessionStorage.removeItem("safeher-admin-token");
   localStorage.removeItem("safeher-token");
   localStorage.removeItem("safeher-user");
   localStorage.removeItem("safeher-client-email");
@@ -506,7 +544,7 @@ function logout() {
   sosActive.value = false;
   checkoutOpen.value = false;
   cart.value = [];
-  navigate("index");
+  navigate("landing");
 }
 
 // ----- Page component mapping for transitions -----
@@ -538,6 +576,8 @@ const currentPageComponent = computed(() => {
 
 // Props and events passed to the dynamic page
 const pageProps = computed(() => ({
+  dangerCheckBusy: dangerCheckBusy.value,
+  hasPremiumAccess: hasPremiumAccess.value,
   view: activeView.value,
   isAuthenticated: isAuthenticated.value,
   locationReady: locationReady.value,
@@ -552,6 +592,8 @@ const pageProps = computed(() => ({
 }));
 
 const pageEvents = {
+  "danger-check": () => hasPremiumAccess.value ? showPremiumSafetyCheck() : navigate("packages"),
+  "review-added": loadProducts,
   sos: options => showSos(false, options?.skipCountdown === true),
   "sos-all": sendSosToAll,
   track: toggleTracking,
@@ -578,7 +620,7 @@ async function loadContacts() {
   }
 }
 onMounted(() => {
-  if (isAuthenticated.value && (pendingAction.value || showingAuth.value)) authenticated(localStorage.getItem("safeher-client-email"));
+  if (isAuthenticated.value && !window.location.hash.includes("reset-token=") && (pendingAction.value || showingAuth.value)) authenticated(localStorage.getItem("safeher-client-email"));
   loadContacts();
   loadProducts();
   loadPremiumMembership();
@@ -602,6 +644,8 @@ onMounted(() => {
       @authenticated="authenticated"
       @sign-in-notification-complete="schedulePremiumSafetyCheck"
     />
+    <AdminPage v-else-if="activeView === 'admin'" @navigate="navigate" @signed-out="logout" @toggle-dark-mode="toggleDarkMode" @catalog-updated="loadProducts" />
+    <LandingPage v-else-if="activeView === 'landing'" :dark-mode="darkMode" @navigate="navigate" @toggle-dark-mode="toggleDarkMode" />
     <template v-else>
       <SiteHeader
         :active-view="activeView"
@@ -627,19 +671,21 @@ onMounted(() => {
         @checkout="checkout"
         @shop="navigate('products')"
       />
-      <section v-if="['products', 'store-all'].includes(activeView)" class="container-fluid px-4 py-3" aria-live="polite">
+      <section v-if="['index', 'products', 'store-all'].includes(activeView)" class="container-fluid px-4 py-3" aria-live="polite">
         <p v-if="productsLoading" role="status">{{ t("Loading products...") }}</p>
         <div v-else-if="productsError" role="alert"><p>{{ t(productsError) }}</p><button class="btn btn-outline-plum" @click="loadProducts">{{ t("Retry loading products") }}</button></div>
         <p v-else-if="!products.length">{{ t("No products are available right now.") }}</p>
       </section>
       <!--  PAGE TRANSITION  -->
-      <Transition name="page" mode="out-in">
+      <Transition name="page" mode="out-in" @after-enter="resetPageScroll">
+        <div :key="activeView" class="page-content">
         <component
           :is="currentPageComponent"
           :key="activeView"
           v-bind="pageProps"
           v-on="pageEvents"
         />
+        </div>
       </Transition>
 
       <SiteFooter @navigate="navigate" />

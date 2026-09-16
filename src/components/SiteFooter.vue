@@ -15,6 +15,7 @@ const emit = defineEmits(["navigate"]);
       <div class="footer-links">
         <div>
           <strong>{{ t("Explore") }}</strong
+          ><button @click="emit('navigate', 'landing')">{{ t("Discover SafeHer") }}</button
           ><button @click="emit('navigate', 'services')">{{ t("Our services") }}</button
           ><button @click="emit('navigate', 'reviews')">{{ t("Reviews") }}</button>
         </div>
@@ -31,6 +32,7 @@ const emit = defineEmits(["navigate"]);
         </div>
       </div>
       <div class="footer-bottom">
+        <button @click="emit('navigate', 'admin')">Admin sign in</button>
         <span>{{ t("© 2025 SafeHer. Made for safer tomorrows.") }}</span>
       </div>
     </div>

@@ -206,7 +206,7 @@ onBeforeUnmount(() => {
     <div class="map-heading">
       <div>
         <p class="eyebrow">{{ t("LIVE SAFETY MAP") }}</p>
-        <h2>{{ t("See your surroundings.") }}</h2>
+        <h2 v-full-stop>{{ t("See your surroundings.") }}</h2>
         <p> {{ t("Track your position and find nearby police, ambulance and trusted SafeHer help.") }} </p>
         <p v-if="nearestPoliceName" class="nearest-station-label">
           <i class="bi bi-shield-fill-check"></i> {{ t("Nearest police station:") }} <strong>{{ nearestPoliceName }}</strong>

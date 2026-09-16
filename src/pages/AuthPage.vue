@@ -209,13 +209,13 @@ function finishAuth(response, title) {
     icon: "success",
     title,
     confirmButtonColor: "#351536",
-  }).then(() => {
-    emit("authenticated", response.user);
-    emit("sign-in-notification-complete");
   });
+  emit("authenticated", response.user);
+  emit("sign-in-notification-complete");
 }
 
 async function submit() {
+  if (submitting.value) return;
   errors.form = "";
 
   if (props.mode === "login") {
@@ -233,7 +233,7 @@ async function submit() {
 
       finishAuth(response, "Welcome back to SafeHer");
     } catch (error) {
-      console.error("LOGIN ERROR:", error);
+
       console.error("LOGIN STATUS:", error.response?.status);
       console.error("LOGIN DATA:", error.response?.data);
 
@@ -266,7 +266,7 @@ async function submit() {
 
     finishAuth(response, "Your SafeHer account is ready");
   } catch (error) {
-    console.error("REGISTRATION ERROR:", error);
+
     console.error("STATUS:", error.response?.status);
     console.error("DATA:", error.response?.data);
 
@@ -321,6 +321,28 @@ async function setupGoogle() {
   }
 }
 onMounted(setupGoogle);
+onMounted(async () => {
+  const token = new URLSearchParams(window.location.hash.slice(1)).get('reset-token');
+  if (!token) return;
+  history.replaceState({}, '', window.location.pathname);
+  await Swal.fire({
+    title: 'Choose a new password', input: 'password',
+    inputLabel: 'Use at least 8 characters', inputAttributes: { autocomplete: 'new-password' },
+    confirmButtonText: 'Reset password', showCancelButton: true, showLoaderOnConfirm: true,
+    allowOutsideClick: () => !Swal.isLoading(),
+    preConfirm: async value => {
+      if (!value || value.length < 8 || new TextEncoder().encode(value).length > 72) { Swal.showValidationMessage('Use at least 8 characters and no more than 72 bytes.'); return false; }
+      try { await authService.resetPassword(token, value); return true; }
+      catch (error) { Swal.showValidationMessage(error.response?.data?.error || 'Unable to reset your password. Please try again.'); return false; }
+    },
+  }).then(result => {
+    if (result.isConfirmed) {
+      authService.logout();
+      password.value = '';
+      Swal.fire({ icon: 'success', title: 'Password updated', text: 'Sign in with your new password.' });
+    }
+  });
+});
 watch([googleButton, () => props.mode, locale], renderGoogleButton, { flush: "post" });
 onBeforeUnmount(() => { disposed = true; googleIdentity?.cancel(); });
 
@@ -347,13 +369,14 @@ async function forgotPassword() {
     return;
   }
 
+  Swal.fire({ title: "Requesting reset email...", showConfirmButton: false, allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   try {
     await authService.forgotPassword(emailResult.value);
 
     Swal.fire({
       icon: "success",
-      title: "Password reset email sent",
-      text: "Check your email for instructions to reset your password.",
+      title: "Check your email",
+      text: "If an account matches that email, you will receive a password reset link. Check your spam folder too.",
       confirmButtonColor: "#351536",
     });
   } catch (error) {
@@ -361,8 +384,8 @@ async function forgotPassword() {
 
     Swal.fire({
       icon: "error",
-      title: "Account not found",
-      text: "Check the email address or create a new account.",
+      title: "Unable to request reset",
+      text: error.response?.data?.error || (error.code === "ECONNABORTED" ? "The reset request is taking too long. Check your inbox before requesting another link." : "Cannot reach the server. Please try again."),
       confirmButtonColor: "#351536",
     });
   }
@@ -400,14 +423,14 @@ async function forgotPassword() {
           :aria-selected="mode === 'registration'"
           :class="{ active: mode === 'registration' }"
           @click="switchMode('registration')"
-        > {{ t("Create account") }} </button>
+        > {{ t(submitting ? "Creating account..." : "Create account") }} </button>
         <span class="sf-thumb" :class="mode"></span>
       </div>
 
       <transition name="sf-crossfade" mode="out-in">
         <div :key="mode" class="sf-mode-body">
           <div class="sf-copy">
-            <h1>
+            <h1 v-full-stop>
               {{ t(mode === "login" ? "Welcome back." : "Join the network.") }}
             </h1>
             <p>
@@ -499,7 +522,7 @@ async function forgotPassword() {
                 >
                 <button type="button" class="sf-link" @click="forgotPassword"> {{ t("Forgot password?") }} </button>
               </div>
-              <button class="sf-submit" type="submit" :disabled="submitting"> {{ t("Sign in") }} <i class="bi bi-arrow-right"></i>
+              <button class="sf-submit" type="submit" :disabled="submitting"> {{ t(submitting ? "Signing in..." : "Sign in") }} <i class="bi bi-arrow-right"></i>
               </button>
             </form>
 
@@ -634,7 +657,7 @@ async function forgotPassword() {
               <div class="sf-actions">
                 <button class="sf-ghost" type="button" @click="prevStep">
                   <i class="bi bi-arrow-left"></i> {{ t("Back") }} </button>
-                <button class="sf-submit" type="submit" :disabled="submitting"> {{ t("Create account") }} </button>
+                <button class="sf-submit" type="submit" :disabled="submitting"> {{ t(submitting ? "Creating account..." : "Create account") }} </button>
               </div>
             </form>
           </transition>

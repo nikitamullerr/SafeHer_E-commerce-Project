@@ -7,7 +7,7 @@ const emit = defineEmits(["sos"]);
   <main class="guide-page container-fluid px-4 px-xl-5">
     <div class="guide-heading">
       <p class="eyebrow">SAFEHER / {{ t("guide") }}</p>
-      <h1>{{ t("servicesTitle") }}</h1>
+      <h1 v-full-stop>{{ t("servicesTitle") }}</h1>
       <p>{{ t("guideLead") }}</p>
     </div>
     <section class="guide-sos-banner">
@@ -17,7 +17,7 @@ const emit = defineEmits(["sos"]);
         ></span>
         <div>
           <p class="eyebrow">{{ t("NEED HELP NOW?") }}</p>
-          <h2>{{ t("Your safety comes first.") }}</h2>
+          <h2 v-full-stop>{{ t("Your safety comes first.") }}</h2>
           <p> {{ t("Use SafeHer SOS to notify your trusted people and start your emergency response.") }} </p>
         </div>
       </div>
@@ -28,47 +28,47 @@ const emit = defineEmits(["sos"]);
       <article class="guide-feature guide-feature-main">
         <i class="bi bi-shield-check"></i>
         <p class="eyebrow">01 / {{ t("staySafe") }}</p>
-        <h2>{{ t("staySafe") }}</h2>
+        <h2 v-full-stop>{{ t("staySafe") }}</h2>
         <p>{{ t("staySafeText") }}</p>
       </article>
       <article class="guide-feature guide-feature-pink">
         <i class="bi bi-person-raised-hand"></i>
         <p class="eyebrow">02 / {{ t("selfDefence") }}</p>
-        <h2>{{ t("selfDefence") }}</h2>
+        <h2 v-full-stop>{{ t("selfDefence") }}</h2>
         <p>{{ t("selfDefenceText") }}</p>
       </article>
       <article class="guide-feature guide-feature-cream">
         <i class="bi bi-tools"></i>
         <p class="eyebrow">03 / {{ t("itemGuide") }}</p>
-        <h2>{{ t("itemGuide") }}</h2>
+        <h2 v-full-stop>{{ t("itemGuide") }}</h2>
         <p>{{ t("itemGuideText") }}</p>
       </article>
     </section>
     <section class="steps-panel">
       <div class="steps-heading">
         <p class="eyebrow">{{ t("A SIMPLE PLAN") }}</p>
-        <h2>{{ t("When something feels wrong.") }}</h2>
+        <h2 v-full-stop>{{ t("When something feels wrong.") }}</h2>
         <p>{{ t("Keep these steps calm, simple and repeatable.") }}</p>
       </div>
       <div class="steps-list">
         <article>
           <span>01</span>
           <div>
-            <h3>{{ t("stepOne") }}</h3>
+            <h3 v-full-stop>{{ t("stepOne") }}</h3>
             <p>{{ t("stepOneText") }}</p>
           </div>
         </article>
         <article>
           <span>02</span>
           <div>
-            <h3>{{ t("stepTwo") }}</h3>
+            <h3 v-full-stop>{{ t("stepTwo") }}</h3>
             <p>{{ t("stepTwoText") }}</p>
           </div>
         </article>
         <article>
           <span>03</span>
           <div>
-            <h3>{{ t("stepThree") }}</h3>
+            <h3 v-full-stop>{{ t("stepThree") }}</h3>
             <p>{{ t("stepThreeText") }}</p>
           </div>
         </article>
@@ -78,7 +78,7 @@ const emit = defineEmits(["sos"]);
       <article>
         <div class="guide-detail-heading">
           <i class="bi bi-bag-heart-fill"></i>
-          <h2>{{ t("Use your safety items") }}</h2>
+          <h2 v-full-stop>{{ t("Use your safety items") }}</h2>
         </div>
         <ul>
           <li>
@@ -104,7 +104,7 @@ const emit = defineEmits(["sos"]);
       <article>
         <div class="guide-detail-heading">
           <i class="bi bi-check2-circle"></i>
-          <h2>{{ t("A safer everyday routine") }}</h2>
+          <h2 v-full-stop>{{ t("A safer everyday routine") }}</h2>
         </div>
         <ul>
           <li>
@@ -132,7 +132,7 @@ const emit = defineEmits(["sos"]);
       <i class="bi bi-play-circle-fill"></i>
       <div>
         <p class="eyebrow">{{ t("PRACTICE MAKES READY") }}</p>
-        <h2>{{ t("Learn how your tools work before you need them.") }}</h2>
+        <h2 v-full-stop>{{ t("Learn how your tools work before you need them.") }}</h2>
         <p> {{ t("Visit the Safety Hub to add emergency contacts, start a check-in timer and share your live route.") }} </p>
       </div>
     </section>

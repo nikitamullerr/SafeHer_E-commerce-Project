@@ -1,4 +1,4 @@
-export const publicViews = new Set(["index", "products", "store-all", "reviews", "packages"]);
+export const publicViews = new Set(["admin", "landing", "index", "products", "store-all", "reviews", "packages"]);
 export const authViews = new Set(["login", "registration"]);
 export const memberViews = new Set(["services", "guide", "safetyhub", "videos", "orders", "payment-success", "payment-cancel"]);
 export function normalizeView(view) {

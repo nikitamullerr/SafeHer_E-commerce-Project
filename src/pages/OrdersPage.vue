@@ -2,7 +2,7 @@
 import { t, formatDate, formatMoney } from "../languageConfig.js";
 import { computed, onMounted, ref } from "vue";
 import api from "../services/api.js";
-import { retryPayment } from "../services/paymentClient.js";
+import { retryPayment, redirectToPayfast } from "../services/paymentClient.js";
 const emit = defineEmits(["navigate"]);
 const orders = ref([]), loading = ref(false), error = ref("");
 const search = ref(""), filter = ref("all"), sort = ref("newest");
@@ -11,7 +11,7 @@ const statuses = ["Confirmed", "Packed", "Out for delivery", "Delivered"];
 const money = formatMoney;
 const isDemo = (order) => order.paymentMethod === "card_demo";
 const isPaid = (order) => order.paymentStatus === "paid" && !isDemo(order);
-const canPay = (order) => ["card", "instant_eft", "bank_transfer", "wallet"].includes(order.paymentMethod) && ["pending", "failed"].includes(order.paymentStatus);
+const canPay = (order) => order.paymentMethod === "payfast" ? order.paymentStatus === "pending" : ["card", "instant_eft", "bank_transfer", "wallet"].includes(order.paymentMethod) && ["pending", "failed"].includes(order.paymentStatus);
 const paymentLabel = (order) => isDemo(order) ? "Demo - no charge" : ({ paid: "Paid", pending: "Awaiting payment", failed: "Payment not completed", refunded: "Refunded" }[order.paymentStatus] || "Payment unconfirmed");
 const visibleOrders = computed(() => {
   const term = search.value.trim().toLowerCase();
@@ -32,7 +32,7 @@ async function loadOrders() {
 async function pay(order) {
   if (busy.value[order.id]) return;
   busy.value[order.id] = true; messages.value[order.id] = "";
-  try { await retryPayment(order.orderNumber); messages.value[order.id] = "Payment is ready for confirmation. Refresh the order list to see the latest status."; }
+  try { const payment = await retryPayment(order.orderNumber); if (payment.formInputs) { redirectToPayfast(payment); return; } messages.value[order.id] = "Payment is ready for confirmation. Refresh the order list to see the latest status."; }
   catch (failure) { messages.value[order.id] = failure.response?.data?.error || failure.message || "Could not start payment."; }
   finally { busy.value[order.id] = false; }
 }
@@ -51,7 +51,7 @@ onMounted(loadOrders);
 </script>
 <template>
   <main class="inner-page container-fluid px-4 px-xl-5 orders-page">
-    <div class="orders-header"><p class="eyebrow">{{ t("SAFEHER / Orders") }}</p><h1>{{ t("Your orders") }}</h1><p>{{ t("Track payment, delivery and receipts in one place.") }}</p></div>
+    <div class="orders-header"><p class="eyebrow">{{ t("SAFEHER / Orders") }}</p><h1 v-full-stop>{{ t("Your orders") }}</h1><p>{{ t("Track payment, delivery and receipts in one place.") }}</p></div>
     <section class="order-tools" :aria-label="t(&quot;Order filters&quot;)">
       <label>{{ t("Search orders") }}<input v-model="search" type="search" :placeholder="t(&quot;Order number or product&quot;)" /></label>
       <label>{{ t("Payment status") }}<select v-model="filter" :aria-label="t(&quot;Payment status&quot;)"><option value="all">{{ t("All orders") }}</option><option value="pending">{{ t("Awaiting payment") }}</option><option value="paid">{{ t("Paid") }}</option><option value="failed">{{ t("Payment not completed") }}</option><option value="refunded">{{ t("Refunded") }}</option><option value="demo">{{ t("Demo orders") }}</option></select></label>
@@ -72,14 +72,14 @@ onMounted(loadOrders);
         <p v-else-if="isDemo(order)">{{ t("This is a demonstration order. No charge, stock reservation or delivery will take place.") }}</p>
         <p v-else-if="order.paymentStatus === 'refunded'">{{ t("This order has been refunded.") }}</p>
         <p v-else>{{ t("Delivery begins after payment is confirmed. If you just paid, refresh to check the latest status.") }}</p>
-        <ul class="order-items-list"><li v-for="item in order.items" :key="item.id" class="order-item"><span class="item-name">{{ item.name }} <small>? {{ item.quantity }} {{ t("at") }} {{ money(item.price) }}</small></span><strong>{{ money(Number(item.price) * item.quantity) }}</strong></li></ul>
+        <ul class="order-items-list"><li v-for="item in order.items" :key="item.id" class="order-item"><span class="item-name">{{ item.name }} <small>&times; {{ item.quantity }} {{ t("at") }} {{ money(item.price) }}</small></span><strong>{{ money(Number(item.price) * item.quantity) }}</strong></li></ul>
         <dl class="order-breakdown"><div><dt>{{ t("Items subtotal") }}</dt><dd>{{ money(subtotal(order)) }}</dd></div><div><dt>{{ t("Delivery") }}</dt><dd>{{ money(Math.max(0, Number(order.total) - subtotal(order))) }}</dd></div></dl>
         <div class="order-delivery-section"><strong>{{ t(order.deliveryMethod || 'Delivery') }}</strong><p class="delivery-address">{{ order.deliveryAddress }}</p></div>
         <div class="order-actions"><button v-if="canPay(order)" class="btn btn-dark-plum" :disabled="busy[order.id]" @click="pay(order)">{{ t(busy[order.id] ? 'Please wait...' : 'Continue payment') }}</button><button v-if="isPaid(order) || isDemo(order)" class="btn btn-outline-plum" :disabled="busy[order.id]" @click="resend(order)">{{ t(busy[order.id] ? 'Sending...' : isDemo(order) ? (order.emailSent ? 'Resend demo confirmation' : 'Send demo confirmation') : (order.emailSent ? 'Resend receipt' : 'Send receipt')) }}</button><span v-if="isPaid(order) || isDemo(order)">{{ t(order.emailSent ? 'Confirmation sent to your account email' : 'Confirmation not sent yet') }}</span></div>
         <p v-if="messages[order.id]" class="order-action-message" role="status">{{ t(messages[order.id]) }}</p>
       </article>
     </section>
-    <section v-else-if="!loading && !error" class="empty-orders"><i class="bi bi-bag"></i><h2>{{ t(orders.length ? 'No matching orders' : 'No orders yet') }}</h2><p>{{ t(orders.length ? 'Try another search or payment filter.' : 'Your orders will appear here after checkout.') }}</p><button v-if="!orders.length" class="btn btn-dark-plum mt-3" @click="emit('navigate', 'products')">{{ t("Browse products") }}</button></section>
+    <section v-else-if="!loading && !error" class="empty-orders"><i class="bi bi-bag"></i><h2 v-full-stop>{{ t(orders.length ? 'No matching orders' : 'No orders yet') }}</h2><p>{{ t(orders.length ? 'Try another search or payment filter.' : 'Your orders will appear here after checkout.') }}</p><button v-if="!orders.length" class="btn btn-dark-plum mt-3" @click="emit('navigate', 'products')">{{ t("Browse products") }}</button></section>
   </main>
 </template>
 <style scoped>

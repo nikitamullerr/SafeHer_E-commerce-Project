@@ -1,3 +1,4 @@
+import adminRoutes from './adminRoutes.js';
 import express from 'express';
 
 import authRoutes from './authRoutes.js';
@@ -21,6 +22,7 @@ router.get('/health', (req, res) => {
 
 // Auth routes
 router.use('/auth', authRoutes);
+router.use('/admin', adminRoutes);
 router.use('/orders', orderRoutes);
 router.use('/products', productRoutes);
 router.use('/premium', premiumRoutes);

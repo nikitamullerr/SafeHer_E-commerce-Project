@@ -22,7 +22,7 @@ const averageRating = product => {
 };
 const ratingStars = product => {
   const rating = Math.round(Number(averageRating(product)) || 0);
-  return "?".repeat(rating) + "?".repeat(5 - rating);
+  return "\u2605".repeat(rating || 0) + "\u2606".repeat(5 - (rating || 0));
 };
 const getReviews = (productId) => props.products?.find(product => product.id === productId)?.reviews || [];
 
@@ -36,12 +36,12 @@ const filteredProducts = computed(() => {
 
 const displayedProducts = computed(() => {
   const filtered = filteredProducts.value;
-  return filtered.slice(0, 6);
+  return filtered.filter(product => product.id !== featuredProduct.value?.id).slice(0, 6);
 });
 
 const featuredProduct = computed(() => {
   const list = filteredProducts.value;
-  return list.length ? list[0] : props.products?.[0] || null;
+  return list.find(product => product.is_featured) || list[0] || null;
 });
 
 const formatPrice = formatMoney;
@@ -63,7 +63,7 @@ function closeModal() {
   <main class="inner-page container-fluid px-4 px-xl-5 products-page">
     <div class="inner-heading">
       <p class="eyebrow">SAFEHER / {{ t("store") }}</p>
-      <h1>{{ t("storeTitle") }}</h1>
+      <h1 v-full-stop>{{ t("storeTitle") }}</h1>
       <p>{{ t("storeLead") }}</p>
     </div>
 
@@ -82,7 +82,7 @@ function closeModal() {
 
       <div class="featured-product-copy">
         <p class="eyebrow">{{ t("Bestselling safety pick") }}</p>
-        <h2>{{ featuredProduct.name }}</h2>
+        <h2 v-full-stop>{{ featuredProduct.name }}</h2>
 
         <div class="product-rating-row">
           <span class="rating-stars">★★★★★</span>
@@ -144,7 +144,7 @@ function closeModal() {
           </div>
           <div class="product-info">
             <p class="eyebrow">{{ t("safetyAccessory") }}</p>
-            <h3>{{ product.name }}</h3>
+            <h3 v-full-stop>{{ product.name }}</h3>
             <p>{{ t(product.detail) }}</p>
             <div class="product-buy">
               <strong>{{ formatPrice(product.price) }}</strong>
@@ -161,13 +161,13 @@ function closeModal() {
       </div>
 
       <!-- More button -->
-      <div v-if="filteredProducts.length > 6" class="products-more-section">
+      <div v-if="filteredProducts.length > 7" class="products-more-section">
         <button
           class="btn btn-outline-plum"
           @click="emit('navigate', 'store-all')"
         >
           <i class="bi bi-arrow-right"></i> {{ t("View all products (") }}{{
-            filteredProducts.length - 6
+            filteredProducts.length - 7
           }} {{ t("more)") }} </button>
       </div>
     </div>
@@ -194,7 +194,7 @@ function closeModal() {
 
             <div class="modal-product-info">
               <p class="eyebrow">{{ t("safetyAccessory") }}</p>
-              <h2>{{ selectedProduct.name }}</h2>
+              <h2 v-full-stop>{{ selectedProduct.name }}</h2>
 
               <div class="product-rating-row">
                 <span class="rating-stars">★★★★★</span>
@@ -225,7 +225,7 @@ function closeModal() {
           </div>
 
           <div class="modal-reviews-section">
-            <h3>{{ t("Customer reviews") }}</h3>
+            <h3 v-full-stop>{{ t("Customer reviews") }}</h3>
             <div class="reviews-list">
               <article
                 v-for="(review, idx) in getReviews(selectedProduct.id)"

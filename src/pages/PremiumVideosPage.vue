@@ -161,7 +161,7 @@ function closePlayer() {
     <section class="premium-heading">
       <div class="guide-heading">
         <p class="eyebrow">{{ t("SAFEHER / PREMIUM LIBRARY") }}</p>
-        <h1>{{ t("Learn skills that help you feel") }} <em>{{ t("ready.") }}</em></h1>
+        <h1 v-full-stop>{{ t("Learn skills that help you feel") }} <em>{{ t("ready.") }}</em></h1>
         <p> {{ t("Expert-led safety lessons for your everyday routines, available with SafeHer Premium.") }} </p>
       </div>
       <div class="premium-badge">
@@ -183,7 +183,7 @@ function closePlayer() {
         <i class="bi bi-play-btn-fill"></i>
         <div>
           <p class="eyebrow">{{ t("YOUR NEXT STEP") }}</p>
-          <h2>
+          <h2 v-full-stop>
             {{
               t(hasPremiumAccess
                 ? "Your full safety video library is ready."
@@ -233,7 +233,7 @@ function closePlayer() {
         </div>
         <div class="video-card-copy">
           <p class="eyebrow">{{ t("PREMIUM LESSON") }}</p>
-          <h2>{{ t(video.title) }}</h2>
+          <h2 v-full-stop>{{ t(video.title) }}</h2>
           <p>{{ t(video.detail || video.description) }}</p>
           <button class="video-action" @click="openVideo(video)">
             <i

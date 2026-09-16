@@ -1,3 +1,4 @@
+import { ensurePasswordResetSchema } from './controllers/passwordResetController.js';
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -17,6 +18,7 @@ const PORT = process.env.PORT || 5000;
 try {
     await ensureRequiredOrderColumns();
     await ensureSafetySchema();
+    await ensurePasswordResetSchema();
 } catch (error) {
     console.error("Backend startup failed: check DB_HOST, DB_PORT, DB_NAME and MySQL availability.", error.code || error.message);
     process.exit(1);

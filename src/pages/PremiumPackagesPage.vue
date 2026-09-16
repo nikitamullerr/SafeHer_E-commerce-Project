@@ -11,9 +11,11 @@ const emit = defineEmits(["navigate", "premium-updated", "require-auth"]);
 
 const packages = ref([]);
 const plansError = ref("");
+const plansLoading = ref(true);
 onMounted(async () => {
   try { const { data } = await api.get("/premium/plans"); packages.value = data.plans; }
   catch { plansError.value = "Unable to load packages. Please refresh and try again."; }
+  finally { plansLoading.value = false; }
 });
 
 const selectedPackage = ref(null);
@@ -84,9 +86,11 @@ async function checkoutComplete() {
 
 <template>
   <main class="packages-page container-fluid px-4 px-xl-5">
+  <p v-if="plansLoading" class="request-status" role="status"><span class="request-spinner" aria-hidden="true" />{{ t("Loading packages...") }}</p>
+
     <section class="packages-heading">
       <p class="eyebrow">SAFEHER / {{ t('premiumPackages') }}</p>
-      <h1>{{ t('chooseFit') }}</h1>
+      <h1 v-full-stop>{{ t('chooseFit') }}</h1>
       <p>{{ t('unlockTools') }}</p>
     </section>
     <p v-if="membershipError" role="alert">{{ membershipError }}</p>
@@ -95,7 +99,7 @@ async function checkoutComplete() {
         <i class="bi bi-patch-check-fill"></i>
         <div>
           <p class="eyebrow">{{ t("YOUR MEMBERSHIP") }}</p>
-          <h2>{{ t(activeMembership.name) }} {{ t("is active") }}</h2>
+          <h2 v-full-stop>{{ t(activeMembership.name) }} {{ t("is active") }}</h2>
           <p>{{ t("Includes the video library and SafeHer AI until") }} {{ formatDate(activeMembership.expiresAt) }}.</p>
         </div>
       </div>
@@ -113,7 +117,7 @@ async function checkoutComplete() {
           t("mostPopular")
         }}</span>
         <p class="eyebrow">{{ t("premium") }}</p>
-        <h2>{{ t(item.name) }}</h2>
+        <h2 v-full-stop>{{ t(item.name) }}</h2>
         <p>{{ t(item.detail) }}</p>
         <strong class="package-price">
           {{ item.price }}

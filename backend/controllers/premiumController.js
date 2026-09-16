@@ -210,6 +210,7 @@ export const subscribe = async (req, res) => {
     try {
         const userId = req.user.id;
         const { plan, method, receipt_email, reference } = req.body || {};
+        if (method === "payfast") return res.status(400).json({ success: false, error: "PayFast is currently available for product orders only." });
         const prices = Object.fromEntries(premiumPlans.map(item => [item.name, Number(item.price.slice(1))]));
 
         if (!Object.hasOwn(prices, plan)) {

@@ -57,7 +57,7 @@ function closeModal() {
   <main class="inner-page container-fluid px-4 px-xl-5 all-products-page">
     <div class="inner-heading">
       <p class="eyebrow">SAFEHER / {{ t("store") }}</p>
-      <h1>{{ t("All products") }}</h1>
+      <h1 v-full-stop>{{ t("All products") }}</h1>
       <p>{{ t("Our complete range of safety accessories") }}</p>
     </div>
 
@@ -92,7 +92,7 @@ function closeModal() {
           </div>
           <div class="product-info">
             <p class="eyebrow">{{ t("safetyAccessory") }}</p>
-            <h3>{{ product.name }}</h3>
+            <h3 v-full-stop>{{ product.name }}</h3>
             <p>{{ t(product.detail) }}</p>
             <div class="product-buy">
               <strong>{{ formatPrice(product.price) }}</strong>
@@ -140,7 +140,7 @@ function closeModal() {
 
             <div class="modal-product-info">
               <p class="eyebrow">{{ t("safetyAccessory") }}</p>
-              <h2>{{ selectedProduct.name }}</h2>
+              <h2 v-full-stop>{{ selectedProduct.name }}</h2>
 
               <div class="product-rating-row">
                 <span class="rating-stars">★★★★★</span>
@@ -171,7 +171,7 @@ function closeModal() {
           </div>
 
           <div class="modal-reviews-section">
-            <h3>{{ t("Customer reviews") }}</h3>
+            <h3 v-full-stop>{{ t("Customer reviews") }}</h3>
             <div class="reviews-list">
               <article
                 v-for="(review, idx) in getReviews(selectedProduct.id)"

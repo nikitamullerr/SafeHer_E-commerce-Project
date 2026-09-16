@@ -88,7 +88,7 @@ async function submit() {
   if (method.value === "card") {
     error.value = validateDemoCard(cardDetails.value);
     if (error.value) return;
-  } else if (!paymentReference.value.trim()) { error.value = "Add the payment reference for this method."; return; }
+  } else if (method.value !== "payfast" && !paymentReference.value.trim()) { error.value = "Add the payment reference for this method."; return; }
   busy.value = true;
   try {
     if (saveAddress.value && !(await storeAddress())) return;
@@ -102,10 +102,10 @@ async function submit() {
 <template>
   <div class="checkout-backdrop" @click.self="!busy && emit('close')">
     <section ref="dialog" class="checkout-dialog" role="dialog" aria-modal="true" aria-labelledby="checkout-title" tabindex="-1" @keydown="trapFocus">
-      <header><h2 id="checkout-title">{{ t("Checkout") }}</h2><button type="button" class="btn btn-outline-plum" :disabled="busy" :aria-label="t(&quot;Close checkout&quot;)" @click="emit('close')">&times;</button></header>
+      <header><h2 v-full-stop id="checkout-title">{{ t("Checkout") }}</h2><button type="button" class="btn btn-outline-plum" :disabled="busy" :aria-label="t(&quot;Close checkout&quot;)" @click="emit('close')">&times;</button></header>
       <p v-if="error" class="checkout-error" role="alert">{{ t(error) }}</p>
       <p v-if="configLoading" role="status">{{ t("Loading payment options...") }}</p>
-      <form @submit.prevent="submit">
+      <form :aria-busy="busy" @submit.prevent="submit">
         <fieldset :disabled="busy || configLoading">
           <p v-if="!requiresDelivery" v-for="item in items" :key="item.id"><strong>{{ t(item.name) }}</strong> — {{ money(item.price) }}</p>
           <template v-if="requiresDelivery">
@@ -126,6 +126,7 @@ async function submit() {
           </template>
           <legend class="mt-3">{{ t("Payment method") }}</legend>
           <div class="checkout-methods">
+            <label v-if="config.payfastAvailable && !submitPayment"><input v-model="method" type="radio" value="payfast" /> PayFast {{ config.sandbox ? '(Sandbox)' : '' }}</label>
             <label><input v-model="method" type="radio" value="card" /> Card</label>
             <label><input v-model="method" type="radio" value="instant_eft" /> Instant EFT</label>
             <label><input v-model="method" type="radio" value="bank_transfer" /> Bank transfer</label>
@@ -144,6 +145,7 @@ async function submit() {
             </div>
           </template>
 
+          <p v-else-if="method === 'payfast'">{{ t("You will continue to PayFast to complete payment.") }}</p>
           <template v-else>
             <label for="payment-reference">{{ method === 'instant_eft' ? 'Instant EFT reference' : method === 'bank_transfer' ? 'Bank transfer reference' : 'Wallet reference' }}</label>
             <input id="payment-reference" v-model="paymentReference" type="text" :placeholder="method === 'wallet' ? 'e.g. 082 123 4567 or payment code' : 'Reference or payment note'" />
@@ -153,6 +155,7 @@ async function submit() {
           <button type="submit" class="btn btn-sos w-100" :disabled="!available || !items.length">{{ t(busy ? 'Processing...' : 'Complete payment') }}</button>
         </fieldset>
       </form>
+      <div v-if="busy" class="request-status" role="status"><span class="request-spinner" aria-hidden="true" /><div><strong>{{ t(method === 'payfast' ? 'Preparing PayFast checkout' : 'Saving your order') }}</strong><p>{{ t('Please keep this window open. Your order is being processed.') }}</p></div></div>
       <button v-if="!configLoading && !available" class="btn btn-outline-plum mt-3" @click="loadConfig">{{ t("Refresh payment options") }}</button>
     </section>
   </div>

@@ -1,8 +1,10 @@
 import { test, beforeEach, after } from "node:test";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import pool from "../config/db.js";
 import { ensureRequiredOrderColumns } from "../database/ensureSchema.js";
-import { createPayment, retryPayment } from "../controllers/paymentController.js";
+import { createPayment, retryPayment, payfastItn } from "../controllers/paymentController.js";
+import { createPayfastSignature, buildPayfastParameterString, isValidPayfastSignature, verifyPayfastNotification } from "../services/payfastService.js";
 import { EmailService } from "../services/emailService.js";
 import { validateDemoCard } from "../../src/services/cardValidation.js";
 
@@ -129,7 +131,7 @@ test("duplicate checkout returns the same order without another stock reservatio
   assert.equal(calls.length > 0, true);
 });
 
-test("retry payment rejects the legacy PayFast flow and keeps the new methods in place", async () => {
+test("retry payment rejects PayFast orders that are not pending", async () => {
   existing = { payment_status: "paid", payment_method: "payfast" };
   const res = response();
   await retryPayment({ user: { id: 2 }, params: { orderNumber: "SH-test" } }, res);
@@ -188,3 +190,75 @@ test("order schema repair adds the required checkout columns if they are missing
   }
 });
 
+
+
+test("PayFast creates a pending order and a signed sandbox form", async () => {
+  const res = response();
+  await createPayment({ user: { id: 2 }, body: { ...payload(), payment_method: "payfast" } }, res);
+  assert.equal(res.code, 201);
+  assert.equal(res.body.url, "https://sandbox.payfast.co.za/eng/process");
+  assert.equal(res.body.formInputs.amount, "79.00");
+  assert.equal(res.body.paymentStatus, "pending");
+  const [, values] = calls.find(([sql]) => sql.startsWith("INSERT INTO orders"));
+  assert.equal(values.at(-1), "pending");
+  assert.equal(res.body.emailSent, undefined);
+});
+
+test("PayFast signature parameters preserve form order and PHP form encoding", () => {
+  assert.equal(buildPayfastParameterString({ merchant_id: "100", item_name: "A & B!", amount: "79.00" }), "merchant_id=100&item_name=A+%26+B%21&amount=79.00");
+});
+
+function notification(amount = "79.00") {
+  const data = { m_payment_id: `SH-${requestId}`, pf_payment_id: "987654", payment_status: "COMPLETE", amount_gross: amount, merchant_id: "test-merchant" };
+  return { ...data, signature: createPayfastSignature(data) };
+}
+
+test("PayFast rejects invalid notification signatures before database access", async () => {
+  const res = response();
+  await payfastItn({ body: { ...notification(), signature: "0".repeat(32) } }, res);
+  assert.equal(res.code, 400);
+  assert.equal(calls.length, 0);
+});
+
+test("PayFast verifies amount and provider before recording payment", async () => {
+  existing = { id: 7, user_id: 2, total: 79, payment_status: "pending", payment_method: "payfast" };
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, "https://sandbox.payfast.co.za/eng/query/validate");
+    assert(!options.body.includes("passphrase"));
+    return { ok: true, text: async () => "VALID" };
+  };
+  const wrong = response();
+  await payfastItn({ body: notification("1.00") }, wrong);
+  assert.equal(wrong.code, 400);
+  assert(!calls.some(([sql]) => sql.startsWith("UPDATE orders")));
+  const valid = response();
+  await payfastItn({ body: notification() }, valid);
+  assert.equal(valid.code, 200);
+  assert.equal(calls.filter(([sql]) => sql.startsWith("UPDATE orders SET payment_status")).length, 1);
+  existing.payment_status = "paid";
+  existing.payfast_payment_id = "987654";
+  const repeat = response();
+  await payfastItn({ body: notification() }, repeat);
+  assert.equal(repeat.code, 200);
+  assert.equal(calls.filter(([sql]) => sql.startsWith("UPDATE orders SET payment_status")).length, 1);
+});
+
+
+test("PayFast ITNs preserve empty fields, spaces and PHP encoding in both verification steps", async () => {
+  const parameters = "m_payment_id=SH-test&item_description=&custom_str1=&name_first=+Test+Buyer+&item_name=Kit%7E&merchant_id=test-merchant";
+  const payload = {
+    m_payment_id: "SH-test", item_description: "", custom_str1: "", name_first: " Test Buyer ", item_name: "Kit~", merchant_id: "test-merchant",
+    signature: createHash("md5").update(parameters + "&passphrase=test-passphrase").digest("hex"),
+  };
+  assert.equal(isValidPayfastSignature(payload), true);
+  globalThis.fetch = async (url, options) => {
+    assert.equal(options.body, parameters);
+    return { ok: true, text: async () => "VALID" };
+  };
+  assert.equal(await verifyPayfastNotification(payload), true);
+  assert.equal(isValidPayfastSignature({ ...payload, item_description: "altered" }), false);
+  assert.equal(isValidPayfastSignature({ ...payload, custom_str1: [""] }), false);
+  delete process.env.PAYFAST_PASSPHRASE;
+  payload.signature = createHash("md5").update(parameters).digest("hex");
+  assert.equal(isValidPayfastSignature(payload), true);
+});

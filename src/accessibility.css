@@ -58,6 +58,28 @@
   border-bottom: 1px solid var(--line);
 }
 .app-shell .browse-return { border-radius: 999px; min-height: 42px; padding: 10px 18px; text-transform: none; }
+.app-shell .tracking-control {
+  background: var(--control-bg);
+  border-color: var(--control-border);
+  color: var(--control-text);
+  border-radius: 12px;
+}
+.app-shell .tracking-control strong { color: var(--control-text); font-size: 14px; }
+.app-shell .tracking-control small {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: normal;
+  overflow: visible;
+}
+.app-shell .tracking-control > div > i { color: var(--control-text); }
+.app-shell .tracking-control .btn-track {
+  background: var(--control-active);
+  color: var(--control-active-text);
+  border: 1px solid var(--control-active);
+  min-height: 42px;
+  font-size: 12px;
+}
+.app-shell .tracking-control .btn-track:hover { filter: brightness(.92); }
 .app-shell .top-strip { background: #351536; color: #fff; }
 .app-shell .top-strip > div { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding-block: 8px; }
 .app-shell .guest-account-links { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -112,3 +134,18 @@
   .app-shell .sf-card { padding: 28px 20px; }
   .app-shell .sf-shell { padding: 24px 12px; }
 }
+
+/* Shared, labelled request feedback in both themes. */
+.request-status { display: flex; align-items: center; gap: 12px; padding: 16px; margin: 16px 0; border: 1px solid var(--control-border); border-radius: 12px; background: var(--control-bg); color: var(--control-text); font-size: 14px; line-height: 1.6; }
+.request-status p { margin: 4px 0 0; color: inherit; font-size: 13px; }
+.request-spinner { width: 20px; height: 20px; flex: 0 0 20px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: request-turn .8s linear infinite; }
+@keyframes request-turn { to { transform: rotate(360deg); } }
+@media(prefers-reduced-motion: reduce) { .request-spinner { animation: none; } }
+
+/* Keep the admin canvas opaque so underlying surfaces cannot tint it. */
+.app-shell:has(.admin-shell) { background: var(--blush); }
+.app-shell.dark-mode .admin-shell { background: var(--blush); }
+
+.app-shell { min-height:100vh; background:var(--blush); }
+.page-content { min-height:60vh; overflow-anchor:none; }
+body:has(.app-shell.dark-mode) { background:#120d12; }

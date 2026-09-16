@@ -1,12 +1,13 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import Swal from "sweetalert2";
 import LiveMap from "../components/LiveMap.vue";
 import { t } from "../languageConfig.js";
 import api from "../services/api.js";
 import checkinService from "../services/checkinService.js";
 
 const props = defineProps({
+  dangerCheckBusy: Boolean,
+  hasPremiumAccess: Boolean,
   contacts: Array,
   locationReady: Boolean,
   userLocation: Object,
@@ -15,14 +16,13 @@ const props = defineProps({
   premiumMembership: Object,
 });
 const emit = defineEmits([
+  "danger-check",
   "add-contact",
   "remove-contact",
   "share",
   "track",
   "sos",
   "sos-all",
-  "call-contact",
-  "message-contact",
 ]);
 const checkInMinutes = ref(0), checkInSeconds = ref(0);
 const customCheckinMinutes = ref(30);
@@ -44,13 +44,17 @@ const activeTrip = ref(null), tripNotice = ref("");
 const completedCheckins = ref(0), activeCheckin = ref(null);
 const hubError = ref(""), hubBusy = ref(false), hubLoading = ref(true);
 let timer, panicTimer, pollTimer, expiresAt = 0, clockOffset = 0, loadingState = false, disposed = false;
-let lastMissedId = null;
+const missedCheckin = ref(null);
+function isDismissed(id) { try { return sessionStorage.getItem(`safeher-dismissed-checkin-${id}`) === 'true'; } catch { return false; } }
+function dismissMissedCheckin() { if(missedCheckin.value) { try { sessionStorage.setItem(`safeher-dismissed-checkin-${missedCheckin.value}`, 'true'); } catch {} } missedCheckin.value = null; }
+
 
 function displayCheckins(checkins, serverTime) {
   clockOffset = serverTime ? Date.parse(serverTime) - Date.now() : clockOffset;
   activeCheckin.value = checkins.find(item => item.status === "active") || null;
   clearInterval(timer);
   if (activeCheckin.value) {
+    missedCheckin.value = null;
     expiresAt = Date.parse(activeCheckin.value.expires_at);
     checkInStatus.value = "Check-in active";
     const tick = () => {
@@ -64,10 +68,7 @@ function displayCheckins(checkins, serverTime) {
     checkInMinutes.value = 0; checkInSeconds.value = 0;
     const latest = checkins[0];
     checkInStatus.value = latest?.status === "completed" ? "Check-in completed" : latest?.status === "missed" ? "Check-in missed" : "Not checked in yet";
-    if (latest?.status === "missed" && lastMissedId !== latest.id) {
-      lastMissedId = latest.id;
-      showMissedCheckinAlert();
-    }
+    missedCheckin.value = latest?.status === 'missed' && !isDismissed(latest.id) ? latest.id : null;
   }
 }
 async function loadState() {
@@ -95,16 +96,10 @@ async function perform(action) {
 async function startTimer(minutes) {
   return perform(() => checkinService.start(Number(minutes)));
 }
-function adjustCustomCheckin(minutes) { customCheckinMinutes.value = Math.min(240, Math.max(5, customCheckinMinutes.value + minutes)); }
 function startCustomCheckin() { return startTimer(customCheckinMinutes.value); }
 async function checkInNow() {
   if (!activeCheckin.value) { hubError.value = "Start a check-in before confirming that you are safe."; return false; }
   return perform(() => checkinService.updateStatus(activeCheckin.value.id, "completed"));
-}
-async function showMissedCheckinAlert() {
-  const result = await Swal.fire({ icon: "warning", title: "Check-in missed", text: "Your check-in time has passed. Choose an action.", showDenyButton: true, showCancelButton: true, confirmButtonText: "Send SOS to contacts", denyButtonText: "Start another check-in", cancelButtonText: "Dismiss" });
-  if (result.isConfirmed) emit("sos-all");
-  else if (result.isDenied) startCustomCheckin();
 }
 function setSafetyPlan(plan) { return perform(() => api.put("/safety-hub/state", { selectedPlan: plan })); }
 async function saveNightChecklist() {
@@ -115,7 +110,6 @@ async function saveNightChecklist() {
     hubError.value = error;
   }
 }
-function startNightCheckin(minutes) { return startTimer(minutes); }
 async function startTrip() {
   if (!tripDestination.value.trim() || !tripArrival.value) { tripNotice.value = "Add a destination and expected arrival time to start your trip."; return; }
   const saved = await perform(() => api.post("/safety-hub/trips", {
@@ -153,7 +147,7 @@ onBeforeUnmount(() => { disposed = true; clearInterval(timer); clearInterval(pan
     <div class="hub-header">
       <div>
         <p class="eyebrow">{{ t("MY SAFETY HUB") }}</p>
-        <h1>{{ t("welcome") }}</h1>
+        <h1 v-full-stop>{{ t("welcome") }}</h1>
         <p>{{ t("hubLead") }}</p>
       </div>
       <div class="hub-plan">
@@ -161,8 +155,11 @@ onBeforeUnmount(() => { disposed = true; clearInterval(timer); clearInterval(pan
         ><span>{{ t("Always protected") }}</span>
       </div>
     </div>
+    <p v-if="hubBusy" class="request-status" role="status">{{ t("Saving your safety settings...") }}</p>
     <p v-if="hubLoading" role="status">{{ t("Loading safety data...") }}</p>
     <p v-if="hubError" role="alert">{{ hubError }} <button @click="loadState">{{ t("Retry") }}</button></p>
+    <section class="danger-advisory-card"><span class="advisory-icon"><i class="bi bi-shield-check" aria-hidden="true" /></span><div><small>PREMIUM SAFETY ADVISORY</small><h2 v-full-stop>{{ t('Your Premium danger alert') }}</h2><p>{{ t('Check your surroundings before you go. This is an advisory, not live crime data.') }}</p></div><button class="btn btn-dark-plum" :disabled="dangerCheckBusy" @click="emit('danger-check')"><i class="bi bi-crosshair" aria-hidden="true" /> {{ t(dangerCheckBusy ? 'Checking your location...' : hasPremiumAccess ? 'Check danger level' : 'Explore Premium') }}</button><span v-if="dangerCheckBusy" role="status">{{ t('Checking your location...') }}</span></section>
+    <section v-if="missedCheckin" class="missed-checkin-notice" role="status"><div><h2 v-full-stop>{{ t('Check-in missed') }}</h2><p>{{ t('Your check-in time has passed. Choose an action.') }}</p></div><div class="missed-checkin-actions"><button class="btn btn-dark-plum" :disabled="hubBusy || hubLoading" @click="startCustomCheckin">{{ t('Start another check-in') }}</button><button class="btn btn-outline-plum" @click="emit('sos-all')">{{ t('SOS to contacts') }}</button><button class="btn btn-outline-plum" @click="dismissMissedCheckin">{{ t('Dismiss') }}</button></div></section>
     <section class="hub-metrics">
       <article class="hub-sos-card">
         <div class="hub-card-title">
@@ -223,7 +220,7 @@ onBeforeUnmount(() => { disposed = true; clearInterval(timer); clearInterval(pan
       </article>
       <article class="hub-panel contacts-panel">
         <div class="hub-panel-heading">
-          <h2>{{ t("Emergency Contacts") }}</h2>
+          <h2 v-full-stop>{{ t("Emergency Contacts") }}</h2>
           <span class="hub-add">{{ contacts.length }} {{ t("saved") }}</span>
         </div>
         <div v-if="contacts.length" class="hub-contact-list">
@@ -236,12 +233,6 @@ onBeforeUnmount(() => { disposed = true; clearInterval(timer); clearInterval(pan
               ></span
             ><i class="bi bi-circle-fill"></i
             ><div class="hub-contact-actions">
-              <button class="hub-mini-action" @click="emit('call-contact', contact)">
-                <i class="bi bi-telephone"></i>
-              </button>
-              <button class="hub-mini-action" @click="emit('message-contact', contact)">
-                <i class="bi bi-chat-text"></i>
-              </button>
               <button
                 class="hub-remove"
                 @click="emit('remove-contact', contact.id)"
@@ -272,83 +263,94 @@ onBeforeUnmount(() => { disposed = true; clearInterval(timer); clearInterval(pan
         </form>
       </article>
     </section>
-    <section class="hub-panel panic-panel">
-      <div>
-        <h2>Safety plans</h2>
-        <p>Switch your daily protection mode based on your situation.</p>
-      </div>
-      <div class="safety-plan-row">
-        <button
-          v-for="plan in safetyPlans"
-          :key="plan"
-          :class="{ active: selectedPlan === plan }"
-          :disabled="hubBusy || hubLoading" @click="setSafetyPlan(plan)"
-        >
-          {{ plan }}
+    <section class="hub-panel safety-mode-picker">
+      <div><h2 v-full-stop>{{ t("Safety plans") }}</h2><p>{{ t("Choose a mode for your day.") }}</p></div>
+      <div class="safety-plan-row" role="group" :aria-label="t('Safety plans')">
+        <button v-for="plan in safetyPlans" :key="plan" :class="{ active: selectedPlan === plan }" :aria-pressed="selectedPlan === plan" :disabled="hubBusy || hubLoading" @click="setSafetyPlan(plan)">
+          <i :class="plan === 'Home mode' ? 'bi bi-house' : plan === 'Night mode' ? 'bi bi-moon-stars' : 'bi bi-airplane'"></i> {{ t(plan) }}
         </button>
       </div>
-      <div class="panic-box">
-        <div>
-          <strong>{{ panicStatus }}</strong>
-          <small>{{ panicCountdown ? `Triggering in ${panicCountdown}s` : "Ready to trigger SOS" }}</small>
-        </div>
-        <div class="panic-actions">
-          <button class="btn btn-sos" @click="startPanicCountdown">Start countdown</button>
-          <button class="btn btn-outline-plum" @click="cancelPanicCountdown">Cancel</button>
-          <button class="btn btn-dark-plum" @click="emit('sos-all')"><i class="bi bi-send-fill"></i> Send SOS to all contacts</button>
-        </div>
-      </div>
     </section>
-
+    <section v-if="selectedPlan === 'Home mode'" class="hub-panel mode-tools-panel">
+      <div class="mode-tools-heading"><span class="mode-tools-icon"><i class="bi bi-house"></i></span><div><h2 v-full-stop>{{ t("Home mode") }}</h2><p>{{ t("Keep your contacts close and set a check-in below.") }}</p></div></div>
+    </section>
     <section v-if="selectedPlan === 'Night mode'" class="hub-panel mode-tools-panel night-mode-panel">
-      <div class="mode-tools-heading"><span class="mode-tools-icon"><i class="bi bi-moon-stars-fill"></i></span><div><p class="eyebrow">NIGHT MODE</p><h2>Get ready for a safer journey home</h2><p>Complete your check, then start a timed check-in when you leave.</p></div><strong>{{ nightReadyCount }}/{{ nightChecklistItems.length }} ready</strong></div>
-      <div class="mode-checklist"><label v-for="item in nightChecklistItems" :key="item.key"><input v-model="nightChecklist[item.key]" type="checkbox" :disabled="hubBusy || hubLoading" @change="saveNightChecklist" /><span>{{ item.label }}</span><i :class="nightChecklist[item.key] ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i></label></div>
-      <div class="mode-action-row"><button v-for="minutes in [15, 30, 60]" :key="minutes" :disabled="hubBusy || hubLoading" @click="startNightCheckin(minutes)">Start {{ minutes }} min check-in</button><button class="btn btn-sos" @click="startPanicCountdown"><i class="bi bi-exclamation-triangle-fill"></i> Quick alert</button></div>
-      <small class="mode-tools-note">Quick alert starts the existing five-second SOS countdown; it does not send an alert automatically.</small>
+      <div class="mode-tools-heading"><span class="mode-tools-icon"><i class="bi bi-moon-stars-fill"></i></span><div><h2 v-full-stop>{{ t("Night mode") }}</h2><p>{{ t("Check your essentials before you head out.") }}</p></div><strong>{{ nightReadyCount }}/{{ nightChecklistItems.length }} ready</strong></div>
+      <div class="mode-checklist"><label v-for="item in nightChecklistItems" :key="item.key"><input v-model="nightChecklist[item.key]" type="checkbox" :disabled="hubBusy || hubLoading" @change="saveNightChecklist" /><span>{{ item.label }}</span></label></div>
     </section>
 
     <section v-if="selectedPlan === 'Travel mode'" class="hub-panel mode-tools-panel travel-mode-panel">
-      <div class="mode-tools-heading"><span class="mode-tools-icon"><i class="bi bi-airplane-engines-fill"></i></span><div><p class="eyebrow">TRAVEL MODE</p><h2>Share a plan and check in on arrival</h2><p>Save your destination, choose a check-in window, and confirm when you arrive.</p></div></div>
+      <div class="mode-tools-heading"><span class="mode-tools-icon"><i class="bi bi-airplane-engines-fill"></i></span><div><h2 v-full-stop>{{ t("Travel mode") }}</h2><p>{{ t("Save your trip and check in when you arrive.") }}</p></div></div>
       <form class="trip-form" @submit.prevent="startTrip"><label>Destination<input v-model="tripDestination" required maxlength="120" placeholder="e.g. Rosebank Mall" /></label><label>Expected arrival<input v-model="tripArrival" required type="datetime-local" /></label><label>Check-in window<select v-model.number="tripDuration"><option :value="30">30 minutes</option><option :value="60">60 minutes</option><option :value="90">90 minutes</option></select></label><button class="btn btn-dark-plum" type="submit" :disabled="hubBusy || hubLoading"><i class="bi bi-play-circle"></i> Start trip</button></form>
       <div v-if="activeTrip" class="trip-status" :class="{ complete: !activeTrip.active }"><span><i :class="activeTrip.active ? 'bi bi-geo-alt-fill' : 'bi bi-check-circle-fill'"></i></span><div><strong>{{ activeTrip.active ? `Trip to ${activeTrip.destination}` : `Arrived at ${activeTrip.destination}` }}</strong><small>Expected arrival: {{ new Date(activeTrip.arrival).toLocaleString() }}</small></div><button v-if="activeTrip.active" class="btn btn-dark-plum" :disabled="hubBusy || hubLoading" @click="arriveSafely">I arrived safely</button><button class="hub-mini-action" aria-label="Clear saved trip" :disabled="hubBusy || hubLoading" @click="clearTrip"><i class="bi bi-x-lg"></i></button></div>
       <p v-if="tripNotice" class="mode-tools-note">{{ tripNotice }}</p>
       <div class="travel-readiness"><span><i :class="locationReady ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i> Location {{ locationReady ? "ready" : "not ready" }}</span><span><i :class="contacts.length ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i> {{ contacts.length ? `${contacts.length} trusted contact${contacts.length === 1 ? "" : "s"} ready` : "Add a trusted contact" }}</span><button @click="emit('share')"><i class="bi bi-send"></i> Share route</button></div>
     </section>
-    <section class="hub-panel checkin-panel">
-      <div>
-        <h2>{{ t("checkinTimer") }}</h2>
-        <p>{{ t("Use a timer to remind yourself to check in.") }}</p>
+    <section class="hub-panel simple-checkin">
+      <div class="simple-checkin-heading"><div><h2 v-full-stop>{{ t("checkinTimer") }}</h2><p>{{ t("Use a timer to remind yourself to check in.") }}</p></div><span class="simple-status" role="status">{{ checkInStatusText }}</span></div>
+      <div v-if="activeCheckin" class="simple-running"><span class="simple-clock"><i class="bi bi-stopwatch"></i> {{ String(checkInMinutes).padStart(2, '0') }}:{{ String(checkInSeconds).padStart(2, '0') }}</span><button class="btn btn-dark-plum" :disabled="hubBusy || hubLoading" @click="checkInNow"><i class="bi bi-check-circle"></i> {{ t("Check in now") }}</button></div>
+      <div v-else class="simple-timer-setup">
+        <div class="simple-durations" role="group" :aria-label="t('Check-in duration')"><button v-for="minutes in [15, 30, 60, 90]" :key="minutes" :class="{ selected: customCheckinMinutes === minutes }" :aria-pressed="customCheckinMinutes === minutes" :disabled="hubBusy || hubLoading" @click="customCheckinMinutes = minutes">{{ minutes }} {{ t("min") }}</button></div>
+        <label class="simple-custom">{{ t("Minutes") }}<input v-model.number="customCheckinMinutes" type="number" min="5" max="240" step="1" :disabled="hubBusy || hubLoading" /></label>
+        <button class="btn btn-dark-plum" :disabled="hubBusy || hubLoading || !Number.isInteger(customCheckinMinutes) || customCheckinMinutes < 5 || customCheckinMinutes > 240" @click="startCustomCheckin"><i class="bi bi-play-fill"></i> {{ t("Start check-in") }}</button>
       </div>
-      <div class="checkin-status-box">
-        <span class="status-pill">{{ checkInStatusText }}</span>
-      </div>
-      <div class="timer-display" v-if="checkInMinutes || checkInSeconds">
-        <i class="bi bi-stopwatch"></i
-        >{{ String(checkInMinutes).padStart(2, "0") }}:{{
-          String(checkInSeconds).padStart(2, "0")
-        }}
-      </div>
-      <div class="checkin-actions">
-        <button
-          v-for="minutes in [15, 30, 60, 90]"
-          :key="minutes"
-          :disabled="hubBusy || hubLoading" @click="startTimer(minutes)"
-        >
-          {{ minutes }} min</button
-        ><div class="checkin-custom-time">
-          <span>Custom time</span>
-          <button type="button" aria-label="Decrease check-in time by five minutes" @click="adjustCustomCheckin(-5)"><i class="bi bi-dash-lg"></i></button>
-          <strong>{{ customCheckinMinutes }} min</strong>
-          <button type="button" aria-label="Increase check-in time by five minutes" @click="adjustCustomCheckin(5)"><i class="bi bi-plus-lg"></i></button>
-          <button type="button" class="checkin-custom-start" :disabled="hubBusy || hubLoading" @click="startCustomCheckin">Start</button>
-        </div><button class="btn btn-dark-plum" :disabled="hubBusy || hubLoading" @click="checkInNow">
-          <i class="bi bi-check-circle"></i> Check in now
-        </button>
-        <button class="btn btn-dark-plum" @click="emit('share')">
-          <i class="bi bi-send"></i> {{ t("shareRoute") }}
-        </button>
-      </div>
+    </section>
+    <section class="hub-panel simple-alerts">
+      <div><h2 v-full-stop>{{ t("Quick actions") }}</h2><p role="status">{{ panicCountdown ? `${panicCountdown}s` : t("Choose when to share or start an alert.") }}</p></div>
+      <div class="simple-alert-actions"><button class="btn btn-outline-plum" @click="emit('share')"><i class="bi bi-send"></i> {{ t("shareRoute") }}</button><button v-if="panicCountdown" class="btn btn-outline-plum" @click="cancelPanicCountdown">{{ t("Cancel") }}</button><button v-else class="btn btn-sos" @click="startPanicCountdown"><i class="bi bi-exclamation-triangle"></i> {{ t("Quick alert") }}</button><button class="btn btn-outline-plum" @click="emit('sos-all')">{{ t("SOS to contacts") }}</button></div>
+      <small>{{ t("Quick alert starts a five-second countdown. Messages are not sent automatically.") }}</small>
     </section>
 
   </main>
 </template>
+
+<style scoped>
+.hub-page :is(.safety-mode-picker, .mode-tools-panel, .simple-checkin, .simple-alerts) { padding: 24px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); margin-top: 20px; }
+.hub-page :is(.safety-mode-picker, .mode-tools-panel, .simple-checkin, .simple-alerts) h2 { font-size: 20px; color: var(--ink); margin: 0 0 6px; }
+.hub-page :is(.safety-mode-picker, .mode-tools-panel, .simple-checkin, .simple-alerts) p { color: var(--muted); font-size: 14px; margin: 0; line-height: 1.6; }
+.safety-mode-picker { display: flex; justify-content: space-between; gap: 20px; align-items: center; }
+.hub-page .safety-plan-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.hub-page .safety-plan-row button { border-radius: 12px; padding: 12px 18px; font-size: 14px; }
+.hub-page .mode-tools-heading { display: flex; gap: 14px; align-items: center; margin: 0 0 20px; padding: 0; }
+.hub-page .mode-tools-heading > strong { margin-left: auto; white-space: nowrap; background: var(--control-bg); color: var(--control-text); padding: 8px 12px; border-radius: 999px; font-size: 12px; }
+.hub-page .mode-tools-icon { width: 44px; height: 44px; flex: 0 0 44px; font-size: 20px; background: var(--control-bg); color: var(--control-text); border-radius: 12px; }
+.hub-page .mode-checklist { background: transparent; border: 0; gap: 10px; }
+.hub-page .mode-checklist label { background: var(--control-bg); color: var(--control-text); border: 1px solid var(--line); border-radius: 12px; padding: 15px; gap: 12px; font-size: 14px; }
+.hub-page .mode-checklist input { width: 18px; height: 18px; accent-color: #b54072; flex-shrink: 0; }
+.hub-page .trip-form { margin-top: 16px; gap: 14px; align-items: end; }
+.hub-page .trip-form :is(input, select) { min-height: 46px; border-radius: 10px; }
+.hub-page .trip-status { margin-top: 20px; border-radius: 12px; padding: 16px; gap: 14px; flex-wrap: wrap; }
+.simple-checkin-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+.simple-status { color: var(--muted); font-size: 12px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; }
+.simple-timer-setup, .simple-running { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.simple-durations { display: flex; flex-wrap: wrap; gap: 8px; }
+.hub-page .simple-durations button { min-height: 44px; padding: 10px 18px; background: var(--control-bg); color: var(--control-text); border: 1px solid var(--control-border); border-radius: 10px; white-space: nowrap; }
+.hub-page .simple-durations button.selected { background: var(--control-active); color: var(--control-active-text); border-color: var(--control-active); }
+.simple-custom { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.simple-custom input { width: 78px; min-height: 44px; padding: 8px; border: 1px solid var(--control-border); border-radius: 10px; background: var(--control-bg); color: var(--control-text); }
+.hub-page :is(.simple-timer-setup, .simple-running, .simple-alert-actions) .btn { min-height: 44px; border-radius: 10px; padding: 12px 18px; font-size: 13px; text-transform: none; letter-spacing: 0; box-shadow: none; }
+.simple-clock { font-size: 32px; font-variant-numeric: tabular-nums; color: var(--ink); }
+.simple-alerts { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.simple-alert-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.simple-alerts > small { flex-basis: 100%; color: var(--muted); font-size: 12px; }
+@media (max-width: 767px) {
+  .hub-page :is(.safety-mode-picker, .mode-tools-panel, .simple-checkin, .simple-alerts) { padding: 18px; }
+  .safety-mode-picker { flex-direction: column; align-items: stretch; }
+  .hub-page .safety-plan-row button { flex: 1; padding: 10px; }
+  .hub-page .mode-tools-heading { flex-wrap: wrap; }
+  .hub-page .mode-tools-heading > div { flex: 1; min-width: 150px; }
+  .hub-page .mode-checklist, .hub-page .trip-form { grid-template-columns: 1fr; }
+  .simple-checkin-heading { flex-direction: column; gap: 10px; }
+  .simple-timer-setup > .btn { width: 100%; }
+  .simple-durations { width: 100%; }.simple-durations button { flex: 1; padding: 10px !important; }
+}
+</style>
+
+<style scoped>
+.danger-advisory-card { display:flex; flex-wrap:wrap; align-items:center; gap:20px; padding:26px; margin:24px 0; border:1px solid var(--control-border); border-radius:20px; background:linear-gradient(120deg,var(--control-bg),var(--surface)); color:var(--ink); }.danger-advisory-card > div { flex:1; min-width:220px; }.danger-advisory-card small { font-size:10px; letter-spacing:1.5px; color:var(--muted); }.danger-advisory-card h2 { font-size:21px; margin:7px 0; }.danger-advisory-card p { font-size:13px; color:var(--muted); margin:0; line-height:1.7; }.advisory-icon { display:grid; place-items:center; width:58px; height:58px; border-radius:50%; border:6px solid var(--surface); background:var(--control-active); color:var(--control-active-text); box-shadow:0 0 0 1px var(--control-border); font-size:24px; }.danger-advisory-card button { border-radius:12px; min-height:48px; }
+@media(max-width:600px) { .danger-advisory-card { padding:20px; }.danger-advisory-card button { width:100%; } }
+</style>
+
+<style scoped>
+.missed-checkin-notice { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:18px; padding:22px; margin:20px 0; border:1px solid var(--control-border); border-left:4px solid var(--control-active); border-radius:16px; background:var(--control-bg); color:var(--control-text); }.missed-checkin-notice h2 { font-size:19px; margin:0 0 6px; }.missed-checkin-notice p { font-size:13px; margin:0; }.missed-checkin-actions { display:flex; flex-wrap:wrap; gap:10px; }
+</style>

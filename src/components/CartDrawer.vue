@@ -39,7 +39,7 @@ function handleKeydown(event) {
       <div class="drawer-header">
         <div>
           <p class="eyebrow">{{ t("SAFEHER STORE") }}</p>
-          <h2>{{ t("Your bag") }}</h2>
+          <h2 v-full-stop>{{ t("Your bag") }}</h2>
         </div>
         <button type="button" class="drawer-close" :aria-label="t('Close cart')" @click="emit('toggle')">
           <i class="bi bi-x-lg"></i>
@@ -81,7 +81,7 @@ function handleKeydown(event) {
 
       <div v-else class="drawer-empty">
         <i class="bi bi-bag"></i>
-        <h3>{{ t("Your bag is empty") }}</h3>
+        <h3 v-full-stop>{{ t("Your bag is empty") }}</h3>
         <p>{{ t("Choose a safety product and it will appear here.") }}</p>
         <button class="btn btn-dark-plum" @click="emit('shop')"> {{ t("Browse store") }} </button>
       </div>

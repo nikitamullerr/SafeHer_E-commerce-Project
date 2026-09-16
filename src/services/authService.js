@@ -1,6 +1,8 @@
 import api from "./api.js";
 
 export const authService = {
+  forgotPassword: async (email) => (await api.post('/auth/forgot-password', { email }, { timeout: 45000 })).data,
+  resetPassword: async (token, password) => (await api.post('/auth/reset-password', { token, password })).data,
   google: async (credential, mode) => {
     const { data } = await api.post("/auth/google", { credential, mode });
     return data;
