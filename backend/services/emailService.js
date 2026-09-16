@@ -102,40 +102,50 @@ export class EmailService {
 	 * @returns {Promise<boolean>} - Success status
 	 */
 	async sendEmail(to, subject, html, options = {}) {
-		if (!to || !subject || !html) {
-			console.error('Email validation failed: Missing required fields');
-			return false;
-		}
+  if (!to || !subject || !html) {
+    console.error("Email validation failed: Missing required fields");
+    return false;
+  }
 
-		// Validate email format
-		if (!this.isValidEmail(to)) {
-			console.error(`Invalid email address: ${to}`);
-			return false;
-		}
+  if (!this.isValidEmail(to)) {
+    console.error(`Invalid email address: ${to}`);
+    return false;
+  }
 
-		if (!this.transporter) {
-			console.error('Email service not configured. Please check your .env file.');
-			return false;
-		}
+  if (!this.transporter) {
+    console.error("Email service not configured. Please check your .env file.");
+    return false;
+  }
 
-		try {
-			const mailOptions = {
-				from: this.fromEmail,
-				to,
-				subject,
-				html,
-				...options,
-			};
+  try {
+    const mailOptions = {
+      from: this.fromEmail,
+      to,
+      subject,
+      html,
+      ...options,
+    };
 
-			const info = await this.transporter.sendMail(mailOptions);
-			if (!info.accepted?.length) return false;
-			console.log(`✓ Email sent to ${to}: ${info.messageId}`);
-			return true;
-		} catch (error) {
-			console.error(`✗ Failed to send email to ${to}:`, error.message);
-			return false;
-		}
-	}
+    const info = await this.transporter.sendMail(mailOptions);
+
+    if (!info.accepted?.length) {
+      return false;
+    }
+
+    console.log(`✓ Email sent to ${to}: ${info.messageId}`);
+    return true;
+
+  } catch (error) {
+    console.error("Email send failed:", {
+      code: error.code,
+      command: error.command,
+      responseCode: error.responseCode,
+      message: error.message,
+    });
+
+    return false;
+  }
+}
 
 	/**
 	 * Validate email format
