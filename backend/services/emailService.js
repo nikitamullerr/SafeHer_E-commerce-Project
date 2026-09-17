@@ -135,7 +135,15 @@ export class EmailService {
           template_id: templateId.trim(),
           user_id: process.env.EMAILJS_PUBLIC_KEY.trim(),
           ...(process.env.EMAILJS_PRIVATE_KEY?.trim() ? { accessToken: process.env.EMAILJS_PRIVATE_KEY.trim() } : {}),
-          template_params: { ...options.templateParams, email: to.trim(), to_email: to.trim(), subject, message: options.text || html },
+          template_params: {
+            ...options.templateParams,
+            email: to.trim(),
+            to_email: to.trim(),
+            subject,
+            // A hosted template can supply rich, safe reset-link content through
+            // templateParams.message; ordinary mail keeps the plain-text fallback.
+            message: options.templateParams?.message || options.text || html,
+          },
         }),
       });
       if (!response.ok) {

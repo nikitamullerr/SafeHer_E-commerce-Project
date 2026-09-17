@@ -668,6 +668,7 @@ async function forgotPassword() {
             <p v-if="googleLoading" role="status">{{ t("Connecting...") }}</p>
             <div v-if="googleError" role="status"><p>{{ t(googleError) }}</p><button type="button" class="sf-link" @click="setupGoogle">{{ t("Try again") }}</button></div>
           </div>
+          <p v-if="mode === 'login'" class="sf-signin-help">If you created your account with Google, use Continue with Google. To set an email-and-password sign-in, choose Forgot password.</p>
           <p class="sf-switch">
             {{
               t(mode === "login" ? "New to SafeHer?" : "Already have an account?")
@@ -689,6 +690,7 @@ async function forgotPassword() {
 <style scoped>
 .google-signin-area { display: grid; justify-items: center; gap: 8px; color: var(--ink); }
 .google-signin-button { width: 100%; min-height: 40px; display: flex; justify-content: center; }
+.sf-signin-help { margin: 14px 0 0; color: var(--muted); font-size: 0.82rem; line-height: 1.5; text-align: center; }
 
 .sf-shell {
   position: relative;
