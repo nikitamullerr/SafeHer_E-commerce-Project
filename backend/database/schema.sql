@@ -568,7 +568,7 @@ SET
     name = 'Safety Bracelet',
     slug = 'safety-bracelet',
     price = 149.00,
-    image_url = 'https://i.ibb.co/Gvk3vj3m/safety-bracelet.png'
+    image_url = 'https://i.ibb.co/8gQGP4vC/c1bba2b6b3c0.png'
 WHERE name = 'Reflective Safety Band';
 
 -- Add products that don't currently exist
