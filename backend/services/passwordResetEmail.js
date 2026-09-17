@@ -5,7 +5,9 @@ export function passwordResetEmail(url) {
     templateParams: {
       reset_url: url,
       reset_link: `<a href="${link}" style="display:inline-block;padding:14px 22px;border-radius:6px;background:#713650;color:#ffffff;font-weight:700;text-decoration:none;">Reset password</a>`,
-      message: `Use this secure link to reset your SafeHer password: <a href="${link}">Reset password</a>. This link expires in 30 minutes.`,
+      // Some hosted email presets escape variables, so this must remain text.
+      // The actual anchor belongs in the preset markup: href="{{reset_url}}".
+      message: 'Use the Reset password button below. This link expires in 30 minutes.',
     },
     html: `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reset your SafeHer password</title></head>
