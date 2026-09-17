@@ -148,6 +148,15 @@ GET /api/health/database
 
 ## Admin access
 
+For the local development admin account, open `/admin` and sign in with:
+
+```text
+Email: adminsafeher@gmail.com
+Password: admin_safeher123
+```
+
+Change these credentials before deploying a public environment.
+
 In Windows PowerShell, run:
 
 ```powershell
@@ -157,7 +166,7 @@ npm.cmd run setup:admin
 
 The command prompts for an email and password and stores a bcrypt hash in MySQL. It creates an admin account or resets an existing admin's password; it does not promote an existing customer account. Use at least 12 password characters.
 
-Open `/admin` on the frontend or use the admin sign-in link. Admin routes verify the authenticated user's database role. There is no shared default admin password.
+Open `/admin` on the frontend or use the admin sign-in link. Admin routes verify the authenticated user's database role.
 
 ## Payments
 
