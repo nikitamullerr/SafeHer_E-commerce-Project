@@ -22,7 +22,7 @@ export async function forgotPassword(req, res) {
       url.hash = `reset-token=${token}`;
       await pool.query('INSERT INTO password_resets (user_id, token_hash, expires_at, password_hash_at_request) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 MINUTE), ?) ON DUPLICATE KEY UPDATE token_hash = VALUES(token_hash), expires_at = VALUES(expires_at), password_hash_at_request = VALUES(password_hash_at_request)', [user.id, digest(token), user.password_hash || '']);
       const message = passwordResetEmail(url.href);
-      const sent = await emailService.sendEmail(user.email, 'Reset your SafeHer password', message.html, { text: message.text });
+      const sent = await emailService.sendEmail(user.email, 'Reset your SafeHer password', message.html, { text: message.text, templateParams: message.templateParams });
       if (!sent) {
         await pool.query('DELETE FROM password_resets WHERE token_hash = ?', [digest(token)]);
         console.error('Password reset email delivery failed.');

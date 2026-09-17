@@ -2,6 +2,11 @@ export function passwordResetEmail(url) {
   const link = url.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
   return {
     text: `Reset your SafeHer password\n\nWe received a request to reset your password. Choose a new password using this link:\n${url}\n\nThis link expires in 30 minutes and can only be used once.\nIf you did not request this, you can ignore this email. Your password will stay unchanged.\n\nSafeHer | Your safety. Your people. Your choice.`,
+    templateParams: {
+      reset_url: url,
+      reset_link: `<a href="${link}" style="display:inline-block;padding:14px 22px;border-radius:6px;background:#713650;color:#ffffff;font-weight:700;text-decoration:none;">Reset password</a>`,
+      message: `Use this secure link to reset your SafeHer password: <a href="${link}">Reset password</a>. This link expires in 30 minutes.`,
+    },
     html: `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reset your SafeHer password</title></head>
 <body style="margin:0;padding:0;background-color:#f7f2f5;font-family:Arial,Helvetica,sans-serif;color:#351536;">
